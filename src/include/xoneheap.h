@@ -84,8 +84,8 @@ public:
   bool inRange(void * ptr) {
     return getHeap()->inRange(ptr);
   }
-  void handleWrite(void * ptr) {
-    getHeap()->handleWrite(ptr);
+  void handleAccess(void * ptr) {
+    getHeap()->handleAccess(ptr);
   }
 
 #ifdef LAZY_COMMIT

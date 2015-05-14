@@ -419,7 +419,7 @@ public:
 #endif
 
   // @ Page fault handler
-  void handleWrite (void * addr) {
+  void handleAccess (void * addr) {
     // Compute the page number of this item
     int pageNo = computePage ((size_t) addr - (size_t) base());
     unsigned long * pageStart = (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize * pageNo);

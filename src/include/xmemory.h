@@ -149,15 +149,15 @@ public:
     }
   }
 
-  static inline void handleWrite(void * addr) {
+  static inline void handleAccess(void * addr) {
     if (_pheap.inRange(addr)) {
-      _pheap.handleWrite(addr);
+      _pheap.handleAccess(addr);
     } else if (_globals.inRange(addr)) {
-      _globals.handleWrite(addr);
+      _globals.handleAccess(addr);
     }
     else {
       // None of the above - something is wrong.
-      fprintf(stderr, "%d: wrong faulted address\n", getpid()); 
+      fprintf(stderr, "%d: wrong faulted address\n", getpid());
       assert(0);
     }
   }
@@ -199,7 +199,7 @@ public:
 
     // Check if this was a SEGV that we are supposed to trap.
     if (siginfo->si_code == SEGV_ACCERR) {
-      xmemory::handleWrite(addr);
+      xmemory::handleAccess(addr);
     } else if (siginfo->si_code == SEGV_MAPERR) {
       fprintf (stderr, "%d : map error with addr %p!\n", getpid(), addr);
       ::abort();
