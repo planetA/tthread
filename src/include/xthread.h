@@ -64,10 +64,10 @@ public:
 	static int thread_kill(void * v, int sig);
 
 	// The following functions are trying to get id or thread index of specified thread.
-	static int getThreadIndex(void *v); 
-	static int getThreadPid(void *v); 
+	static int getThreadIndex(void *v);
+	static int getThreadPid(void *v);
 
-	// getId is trying to get id for current thread, the function 
+	// getId is trying to get id for current thread, the function
 	// is called by current thread.
 	static inline int getId(void) {
 		return _tid;

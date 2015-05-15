@@ -2,7 +2,7 @@
 
 /*
   Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
   Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
   This program is free software; you can redistribute it and/or modify
@@ -118,14 +118,14 @@ public:
 
     void * newptr = (void*)*_position;
     //__asm__ __volatile__ ("mfence": : :"memory");
-		
+
     //		fprintf(stderr, "%d: xheapmalloc %p ~ %p. sz %x\n", getpid(),p, newptr, sz);
 #ifdef DETERM_MEMORY_ALLOC
     pthread_mutex_unlock(_mutex);
 #else
     _lock->unlock();
 #endif
-		
+
 #ifdef LAZY_COMMIT
     parent::setOwnedPage(p, sz);
 #endif
@@ -159,7 +159,7 @@ public:
   inline size_t getSize(void * ptr) {
     sanityCheck();
     return 0;
-  } 
+  }
 
 private:
 

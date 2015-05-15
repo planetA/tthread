@@ -36,27 +36,27 @@ void unit_work(void)
 void * child_thread(void * data)
 {
 	unsigned long threadid = (unsigned long)data;
-	int rounds = 3;	
+	int rounds = 3;
 	int i;
 	int j;
 
-    /* Do specified work. */	
+    /* Do specified work. */
 	for(i = 0; i < rounds; i++)
 	{
 		pthread_mutex_lock(&mutex[threadid]);
 		fprintf (stderr, "threadid:%d\n", threadid);
 		fflush (stderr);
-	
+
 		/* Do 1ms computation work. */
 		for(j = 0; j < 1; j++) {
 	//		fprintf(stderr, "threadid:%d with j %d\n", threadid, j);
 			unit_work();
 		}
-	
+
 		pthread_mutex_unlock(&mutex[threadid]);
 	}
 	return NULL;
-} 
+}
 
 
 /* Different input parameters

@@ -71,7 +71,7 @@ double get_elapse(struct timeinfo * start, struct timeinfo * stop)
        	start();
        	*****
  	elapse = stop();
-		
+
 	time = elapse2us();
  */
 

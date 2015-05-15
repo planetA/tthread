@@ -52,7 +52,7 @@ void * child_thread(void * data)
 	char * pStart = NULL;
 	int pages = 0;
 	int i = 0, j = 0;
-	int workload = pCntrl->workload;	
+	int workload = pCntrl->workload;
 	int rounds = pCntrl->rounds;
 
 	fprintf(stderr, "%d : total rounds %d\n", getpid(), rounds);
@@ -60,7 +60,7 @@ void * child_thread(void * data)
 		fprintf(stderr, "%d : now rounds %d\n", getpid(), i);
 		pthread_mutex_lock(&g_lock);
 		pthread_mutex_unlock(&g_lock);
-    	/* Do specified work. */	
+    	/* Do specified work. */
 		for(j = 0; j < workload; j++)
 		{
 			/* Do 1ms computation work. */
@@ -70,8 +70,8 @@ void * child_thread(void * data)
 		continue;
 	}
 
-	fprintf(stderr, "in the end, rounds %d\n", i);	
-} 
+	fprintf(stderr, "in the end, rounds %d\n", i);
+}
 
 const long int A = 48271;
 const long int M = 2147483647;
@@ -107,12 +107,12 @@ int main(int argc,char**argv)
 	int i, j;
 	int workload;
 	int times; /* Times to run in order to meet the overall workload. */
-	char * addr = (char *)((unsigned int)g_buffer+PAGE_SIZE); 
+	char * addr = (char *)((unsigned int)g_buffer+PAGE_SIZE);
 	struct control_info *cntrl;
 	int random_seed = time(NULL);
 
 	pthread_mutex_init(&g_lock, NULL);
-	
+
 	start(NULL);
 
 	/* Initialize thread parameters */
@@ -124,8 +124,8 @@ int main(int argc,char**argv)
 	workload = atoi(argv[1]);
 	const int thr_num = (argc == 3) ? atoi(argv[2]):8; /* default value for number of threads. */
 	pthread_t waiters[thr_num];
-	
-	cntrl = (struct control_info *)malloc(thr_num * sizeof(struct control_info));	
+
+	cntrl = (struct control_info *)malloc(thr_num * sizeof(struct control_info));
 	if(cntrl == NULL)
 	{
 		printf("Can not alloc space for control structure\n");
@@ -139,7 +139,7 @@ int main(int argc,char**argv)
 		control->rounds = 5;
 		control->workload = workload;
 //		control->workload = i*workload;
-	} 
+	}
 
 	for(j = 0; j < thr_num; j++) {
 		pthread_create (&waiters[j], NULL, child_thread, (void *)&cntrl[j]);
@@ -149,10 +149,10 @@ int main(int argc,char**argv)
 		pthread_join (waiters[j], NULL);
 	}
 	elapse = stop(NULL, NULL);
-	
+
 	//printf("overlap %d\n", overlap_count);
 	printf("elapse %ld\n", elapse2ms(elapse));
-	
+
 	/* Free the spaces. */
 	free(cntrl);
 	return 0;

@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ public:
 
   void initialize(void) {
     Source::initialize();
-		
+
     int metasize = sizeof(Heap<Source, ChunkSize> );
 		//void * buf = Source::malloc (metasize);
 		void * buf = mmap(NULL, metasize, PROT_READ | PROT_WRITE, MAP_SHARED

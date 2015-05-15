@@ -76,28 +76,28 @@ void * child_thread(void * data)
 		g_buffer[1] = i;
 	}
 	pthread_mutex_unlock(&g_lock);
-	
+
 	/* Check whether to write to private pages. */
 	if(pCntrl->bWrite)
-	{	
+	{
 		pStart = pCntrl->addr;
 		pages  = pCntrl->pages;
 	}
 
-	 //printf("in child thread %d\n", getpid());	
+	 //printf("in child thread %d\n", getpid());
 	/* Get rounds information */
 	rounds = pCntrl->rounds;
 
-	/* Do specified work. */	
+	/* Do specified work. */
 	for(i = 0; i < rounds; i++)
 	{
 		/* Do 1ms computation work. */
 		unit_work();
 	}
-		
+
 	/* Write to pages. */
 	dirty_pages(pStart, pages, i);
-} 
+}
 
 const long int A = 48271;
 const long int M = 2147483647;
@@ -135,14 +135,14 @@ int main(int argc,char**argv)
 	double elapse = 0.0;
 	int i, j;
 	int workload;
-	int tran_size; 
-	int mem_pages; 
-	int conflict_rate; 
+	int tran_size;
+	int mem_pages;
+	int conflict_rate;
 	int times; /* Times to run in order to meet the overall workload. */
-	char * addr = (char *)((unsigned int)g_buffer+PAGE_SIZE); 
+	char * addr = (char *)((unsigned int)g_buffer+PAGE_SIZE);
 	struct control_info *cntrl;
 	int random_seed = time(NULL);
-	
+
 	start(NULL);
 
 	/* Initialize thread parameters */
@@ -157,9 +157,9 @@ int main(int argc,char**argv)
 	conflict_rate = atoi(argv[4]);
 	const int thr_num = (argc == 6) ? atoi(argv[5]):16; /* default value for number of threads. */
 	pthread_t waiters[thr_num];
-	
+
 //	printf("conflict rate is %d!!!!\n", conflict_rate);
-	cntrl = (struct control_info *)malloc(thr_num * sizeof(struct control_info));	
+	cntrl = (struct control_info *)malloc(thr_num * sizeof(struct control_info));
 	if(cntrl == NULL)
 	{
 		printf("Can not alloc space for control structure\n");
@@ -173,13 +173,13 @@ int main(int argc,char**argv)
 		struct control_info * control = (struct control_info *)((int)cntrl + i * sizeof(struct control_info));
 		control->rounds = tran_size;
 		control->pages  = mem_pages;
-//		printf("%d is %p with pages %d\n", i, control, control->pages);	
-		
+//		printf("%d is %p with pages %d\n", i, control, control->pages);
+
 		if(control->pages > 0)
 			control->bWrite = 1;
 		else
 			control->bWrite = 0;
-	
+
 		random_seed = random2(random_seed);
 		if(conflict_rate) {
 			if(i == 0 || (random_seed%100 < conflict_rate)) {
@@ -194,7 +194,7 @@ int main(int argc,char**argv)
 		}
 //		printf(" %d is pages %d\n", i, mem_pages*i);
 		control->addr = (char *)((unsigned long)addr + mem_pages*PAGE_SIZE*i);
-	} 
+	}
 
 	/* Compute the size according to overall workload and tran_size. */
 	/* Check whether (thr_num * tran_size) is lower than workload. */
@@ -203,9 +203,9 @@ int main(int argc,char**argv)
 		print_help();
 		exit(1);
 	}
-		
+
 	times = workload/(thr_num * tran_size);
-	
+
 	//printf("times is %d\n", times);
 	for(i = 0; i < times; i++)
 	{
@@ -216,10 +216,10 @@ int main(int argc,char**argv)
 		}
 	}
 	elapse = stop(NULL, NULL);
-	
+
 //	printf("overlap %d\n", overlap_count);
 	printf("%ld\n", elapse2ms(elapse));
-	
+
 	/* Free the spaces. */
 	free(cntrl);
 	return 0;

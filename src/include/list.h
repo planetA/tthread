@@ -19,7 +19,7 @@
 
 /*
  * @file   list.h
- * @brief  Link list, in order to avoid the usage of STL. 
+ * @brief  Link list, in order to avoid the usage of STL.
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
@@ -82,7 +82,7 @@ inline void moveWholeList(Entry * prev, Entry ** src) {
 inline void insertTail(Entry * entry, Entry ** head) {
   int i = 0;
 
-  // If it is empty, simply set head pointer to current node. 
+  // If it is empty, simply set head pointer to current node.
   if (*head == NULL) {
     *head = entry;
     entry->prev = entry;
@@ -91,7 +91,7 @@ inline void insertTail(Entry * entry, Entry ** head) {
     Entry * header = *head;
     Entry * tail = header->prev;
 
-    // Modify the next and previous entry.  
+    // Modify the next and previous entry.
     tail->next = entry;
     header->prev = entry;
 
@@ -102,16 +102,16 @@ inline void insertTail(Entry * entry, Entry ** head) {
   return;
 }
 
-// Insert one entry to specified list. Here, we assume that 
+// Insert one entry to specified list. Here, we assume that
 // the target list is not empty (at least one element inside).
 inline void insertHead(Entry * entry, Entry ** head) {
   int i = 0;
 
-  // If it is empty, simply set head pointer to current node. 
+  // If it is empty, simply set head pointer to current node.
   Entry * header = *head;
   Entry * next = header->next;
 
-  // Modify the next and previous entry.  
+  // Modify the next and previous entry.
   header->next = entry;
   next->prev = entry;
 

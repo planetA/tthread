@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify
@@ -56,9 +56,9 @@ public:
   enum { PROTECTEDHEAP_SIZE = 1048576UL * 4096}; // FIX ME 512 };
 #endif
   enum { PROTECTEDHEAP_CHUNK = 10485760 };
-  
+
   enum { MAX_GLOBALS_SIZE = 1048576UL * 40 };
-  enum { INTERNALHEAP_SIZE = 1048576UL * 100 }; // FIXME 10M 
+  enum { INTERNALHEAP_SIZE = 1048576UL * 100 }; // FIXME 10M
   enum { PageSize = 4096UL };
   enum { PAGE_SIZE_MASK = (PageSize-1) };
   enum { NUM_HEAPS = 32 }; // was 16

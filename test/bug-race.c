@@ -19,7 +19,7 @@ struct pair_compare {
 	int lower;
 	int upper;
 };
-struct pair_compare pair[2]; 
+struct pair_compare pair[2];
 
 void delay (void) {
   volatile double d = 1.0;
@@ -36,10 +36,10 @@ void * pick_even(void * para)
   for (i=cur->lower; i<= cur->upper; i++) {
     if (is_even(i)) {
       delay();
-      set[total] = i + total; 
+      set[total] = i + total;
       delay();
-      total = total + 1; 
-      //	  printf("set[%d] = %d, addr %x\n", total, i, &set[total]);  
+      total = total + 1;
+      //	  printf("set[%d] = %d, addr %x\n", total, i, &set[total]);
     }
   }
   return(NULL);
@@ -51,17 +51,17 @@ int main (int argc, char * argv[])
   int i;
 
   /* Initialize pairs to pickup. */
-  pair[0].lower = 1; 
-  pair[0].upper = N/2; 
-  pair[1].lower = N/2+1; 
+  pair[0].lower = 1;
+  pair[0].upper = N/2;
+  pair[1].lower = N/2+1;
   pair[1].upper = N;
 
   /* Create the different threads. */
 #if 1
-  for (i = 0; i < 2; i++) 
+  for (i = 0; i < 2; i++)
   	pthread_create (&waiters[i], 0, pick_even, (void *)&pair[i]);
 
-  for (i = 0; i < 2; i++) 
+  for (i = 0; i < 2; i++)
     pthread_join(waiters[i], NULL);
 
 

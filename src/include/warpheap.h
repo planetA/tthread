@@ -2,7 +2,7 @@
 
 /*
   Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
   Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
   This program is free software; you can redistribute it and/or modify
@@ -130,7 +130,7 @@ class PPHeap: public TheHeapType {
 public:
 
   PPHeap() {}
-	
+
   void initialize() {
 
     /// The lock's attributes.
@@ -160,7 +160,7 @@ public:
     lock(ind);
     // Try to get memory from the local heap first.
     void * ptr = _heap[ind].malloc(sz);
-		
+
     unlock(ind);
     return ptr;
   }
@@ -181,7 +181,7 @@ public:
   void unlock(int ind) {
     WRAP(pthread_mutex_unlock)(_lock[ind]);
   }
-	
+
 private:
   pthread_mutex_t * _lock[NumHeaps];
   TheHeapType _heap[NumHeaps];

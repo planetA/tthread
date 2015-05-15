@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify
@@ -109,7 +109,7 @@ public:
   }
 
   // Control whether we will protect memory or not.
-  // When there is only one thread in the system, memory is not 
+  // When there is only one thread in the system, memory is not
   // protected to avoid the memory protection overhead.
   static void openMemoryProtection(void) {
     if (_protection_enabled)
@@ -179,7 +179,7 @@ public:
   static inline void threadDeregister(void) {
     waitToken();
 
-#ifdef LAZY_COMMIT 
+#ifdef LAZY_COMMIT
     xmemory::finalcommit(false);
 #endif
 
@@ -198,7 +198,7 @@ public:
     global_data->thread_index = 1;
   }
 
-#ifdef LAZY_COMMIT 
+#ifdef LAZY_COMMIT
   static inline void forceThreadCommit(void * v) {
     int pid;
     pid = xthread::getThreadPid(v);
@@ -218,30 +218,30 @@ public:
       openMemoryProtection();
       atomicBegin(true);
     }
-      
+
     atomicEnd(false);
 
-#ifdef LAZY_COMMIT 
+#ifdef LAZY_COMMIT
     xmemory::finalcommit(true);
 #endif
-      
+
     // If fence is already enabled, then we should wait for token to proceed.
-    if(_fence_enabled) {  
+    if(_fence_enabled) {
       waitToken();
 
       // In order to speedup the performance, we try to create as many children
       // as possible once. So we set the _fence_enabled to false now, then current
       // thread don't need to wait on token anymore.
-      // Since other threads are either waiting on internal fence or waiting on the parent notification, 
+      // Since other threads are either waiting on internal fence or waiting on the parent notification,
       // it will be fine to do so.
-      // When current thread are trying to wakeup the children threads, it will set 
+      // When current thread are trying to wakeup the children threads, it will set
       // _fence_enabled to true again.
       _fence_enabled = false;
       _children_threads_count = 0;
     }
 
     _children_threads_count++;
-       
+
     void * ptr = xthread::spawn(fn, arg, _thread_index);
 
     // Start a new transaction
@@ -262,16 +262,16 @@ public:
     }
 
     // Wait on token if the fence is already started.
-    // It is important to maitain the determinism by waiting. 
+    // It is important to maitain the determinism by waiting.
     // No need to wait when fence is not started since join is the first
-    // synchronization after spawning, other thread should wait for 
+    // synchronization after spawning, other thread should wait for
     // the notification from me.
     if(_fence_enabled) {
       waitToken();
     }
-    
+
     atomicEnd(false);
-#ifdef LAZY_COMMIT 
+#ifdef LAZY_COMMIT
     xmemory::finalcommit(true);
 #endif
 
@@ -286,25 +286,25 @@ public:
     // When child is not finished, current thread should wait on cond var until child is exited.
     // It is possible that children has been exited, then it will make sure this.
     determ::getInstance().join(child_threadindex, _thread_index, wakeupChildren);
-    
+
     // Release the token.
     putToken();
-    
-    // Cleanup some status about the joinee.  
+
+    // Cleanup some status about the joinee.
     xthread::join(v, result);
-    
+
     // Now we should wait on fence in order to proceed.
     waitFence();
-    
+
     // Start next transaction.
     atomicBegin(true);
-  
+
     // Check whether we can close protection at all.
     // If current thread is the only alive thread, then close the protection.
     if(determ::getInstance().isSingleAliveThread()) {
       closeMemoryProtection();
-            
-      // Do some cleanup for fence. 
+
+      // Do some cleanup for fence.
       closeFence();
     }
   }
@@ -327,13 +327,13 @@ public:
     // It is important to call this function before xthread::cancel since
     // threadindex or threadpid information will be destroyed xthread::cancel.
     if(isFound) {
-      forceThreadCommit(v);   
+      forceThreadCommit(v);
     }
 #endif
     atomicBegin(true);
     threadindex = xthread::cancel(v);
     isFound = determ::getInstance().cancel(threadindex);
-    
+
 
     // Put token and wait on fence if I waitToken before.
     if (!_token_holding) {
@@ -344,7 +344,7 @@ public:
 
   inline void kill(void *v, int sig) {
     int threadindex;
-  
+
     if(sig == SIGKILL || sig == SIGTERM) {
       cancel(v);
     }
@@ -439,7 +439,7 @@ public:
     // We start fence only if we are have more than two processes.
     assert(_children_threads_count != 0);
 
-    // Start fence.   
+    // Start fence.
     determ::getInstance().startFence(_children_threads_count);
 
     _children_threads_count = 0;
@@ -486,18 +486,18 @@ public:
     }
 
     // Calculate how many locks are acquired under the token.
-    // Since we treat multiple locks as one lock, we only start 
+    // Since we treat multiple locks as one lock, we only start
     // the transaction in the beginning and close the transaction
-    // when lock_count equals to 0. 
+    // when lock_count equals to 0.
     _lock_count++;
-    
+
     if(determ::getInstance().lock_isowner(mutex) || determ::getInstance().isSingleWorkingThread()) {
       // Then there is no need to acquire the lock.
       bool result = determ::getInstance().lock_acquire(mutex);
-      if(result == false) {   
+      if(result == false) {
         goto getLockAgain;
       }
-      return; 
+      return;
     }
     else {
 getLockAgain:
@@ -511,11 +511,11 @@ getLockAgain:
       }
 
     //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
-      
+
       // We are trying to get current lock.
       // Whenver someone didn't release the lock, getLock should be false.
-      bool getLock = determ::getInstance().lock_acquire(mutex);   
-      
+      bool getLock = determ::getInstance().lock_acquire(mutex);
+
   //  fprintf(stderr, "%d: mutex_lock 4 with getlock %d\n", getpid(), getLock);
       if(getLock == false) {
         // If we can't get lock, let other threads to move on first
@@ -528,7 +528,7 @@ getLockAgain:
         atomicBegin(true);
         waitFence();
         _token_holding = false;
-        goto getLockAgain; 
+        goto getLockAgain;
       }
 
     }
@@ -538,14 +538,14 @@ getLockAgain:
     if (!_fence_enabled)
       return;
 
-    // Decrement the lock account 
+    // Decrement the lock account
     _lock_count--;
 
-    
+
     // Unlock current lock.
     determ::getInstance().lock_release(mutex);
 
-      // Since multiple lock are considering as one big lock, 
+      // Since multiple lock are considering as one big lock,
     // we only do transaction end operations when no one is holding the lock.
     // However, when lock is owned, there is no need to close the transaction.
     // But for another case, there is only one thread and not any more(by sending out singal).
@@ -587,13 +587,13 @@ getLockAgain:
 
     return 0;
   }
-  
+
   // Support for sigwait() functions in order to avoid deadlock.
   static int sig_wait(const sigset_t *set, int *sig) {
     int ret;
     waitToken();
     atomicEnd(false);
-    
+
     ret = determ::getInstance().sig_wait(set, sig, _thread_index);
     if(ret == 0) {
       atomicBegin(true);
@@ -613,7 +613,7 @@ getLockAgain:
     determ::getInstance().cond_wait(_thread_index, cond, lock);
     atomicBegin(true);
   }
-  
+
 
   static void cond_broadcast(void * cond) {
     if (!_fence_enabled)
@@ -627,7 +627,7 @@ getLockAgain:
     atomicEnd(false);
     determ::getInstance().cond_broadcast(cond);
     atomicBegin(true);
-    
+
     if(!_token_holding) {
       putToken();
       waitFence();
@@ -637,16 +637,16 @@ getLockAgain:
   static void cond_signal(void * cond) {
     if (!_fence_enabled)
       return;
-    
+
     if(!_token_holding) {
       waitToken();
     }
-      
+
     atomicEnd(false);
     //fprintf(stderr, "%d: cond_signal\n", getpid());
     determ::getInstance().cond_signal(cond);
     atomicBegin(true);
-      
+
     if(!_token_holding) {
       putToken();
       waitFence();
@@ -671,7 +671,7 @@ getLockAgain:
 
     if (!_protection_enabled)
       return;
-  
+
     // Commit all private modifications to shared mapping
     xmemory::commit(update);
   }

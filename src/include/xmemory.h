@@ -83,7 +83,7 @@ public:
     xpageentry::getInstance().initialize();
 
     // Initialize the internal heap.
-    InternalHeap::getInstance().initialize(); 
+    InternalHeap::getInstance().initialize();
   }
 
   static void finalize(void) {
@@ -177,12 +177,12 @@ public:
   static inline void cleanupOwnedBlocks(void) {
     _pheap.cleanupOwnedBlocks();
   }
-  
+
   static inline void commitOwnedPage(int page_no, bool set_shared) {
     _pheap.commitOwnedPage(page_no, set_shared);
   }
 
-  // Commit every page owned by me. 
+  // Commit every page owned by me.
   static inline void finalcommit(bool release) {
     _pheap.finalcommit(release);
   }
@@ -213,7 +213,7 @@ public:
   static void signalHandler(int signum, siginfo_t * siginfo, void * context) {
     union sigval signal = siginfo->si_value;
     int page_no;
-    
+
     page_no = signal.sival_int;
     xmemory::commitOwnedPage(page_no, true);
   }

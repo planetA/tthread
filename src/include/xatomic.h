@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify

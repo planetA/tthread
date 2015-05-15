@@ -42,7 +42,7 @@ void * xthread::spawn(threadFunction * fn, void * arg, int parent_index) {
   return forkSpawn(fn, t, arg, parent_index);
 }
 
-/// @brief Get thread index for this thread. 
+/// @brief Get thread index for this thread.
 int xthread::getThreadIndex(void * v) {
   assert(v != NULL);
 
@@ -51,7 +51,7 @@ int xthread::getThreadIndex(void * v) {
   return t->threadIndex;
 }
 
-/// @brief Get thread tid for this thread. 
+/// @brief Get thread tid for this thread.
 int xthread::getThreadPid(void * v) {
     assert(v != NULL);
 
@@ -98,7 +98,7 @@ int xthread::thread_kill (void *v, int sig)
   threadindex = t->threadIndex;
 
   kill(t->tid, sig);
-  
+
   freeSharedObject(t, 4096);
   return threadindex;
 }

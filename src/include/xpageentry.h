@@ -38,7 +38,7 @@
 
 /* This class is used to manage the page entries.
  * Page fault handler will ask for one page entry here.
- * Normally, we will keep 256 pages entries. If the page entry 
+ * Normally, we will keep 256 pages entries. If the page entry
  * is not enough, then we can allocate 64 more, but those will be
  * freed in atomicEnd() to avoid unnecessary memory blowup.
  * Since one process will have one own copy of this and it is served

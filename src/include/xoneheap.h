@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ public:
     getHeap()->forceCommitOwnedPages(pid, end);
   }
 #endif
-  
+
   void checkandcommit(bool update) {
     getHeap()->checkandcommit(update);
   }
@@ -91,13 +91,13 @@ public:
 #ifdef LAZY_COMMIT
   void cleanupOwnedBlocks(void) {
     getHeap()->cleanupOwnedBlocks();
-  } 
+  }
 
   void commitOwnedPage(int page_no, bool set_shared) {
     getHeap()->commitOwnedPage(page_no, set_shared);
   }
 #endif
-  
+
   bool mem_write(void * dest, void *val) {
     return getHeap()->mem_write(dest, val);
   }

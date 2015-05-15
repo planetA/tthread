@@ -2,7 +2,7 @@
 
 /*
  Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
  Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
  This program is free software; you can redistribute it and/or modify
@@ -334,29 +334,29 @@ int pthread_barrier_wait(pthread_barrier_t *barrier) {
 
 ssize_t write(int fd, const void *buf, size_t count) {
 	uint8_t *start = (uint8_t*)buf;
-	volatile int temp; 
-	
+	volatile int temp;
+
 	for(size_t i=0; i<count; i += xdefines::PageSize) {
 		temp = start[i];
 	}
 
 	temp = start[count-1];
-	
+
 	return WRAP(write)(fd, buf, count);
 }
-	
+
 ssize_t read(int fd, void *buf, size_t count) {
 	uint8_t *start = (uint8_t*)buf;
-	
+
 	for(size_t i=0; i<count; i += xdefines::PageSize) {
 		start[i] = 0;
 	}
-	
+
 	start[count-1] = 0;
-	
+
 	return WRAP(read)(fd, buf, count);
 }
-  
+
   // DISABLED
 #if 0
 void * mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset) {

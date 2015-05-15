@@ -5,8 +5,8 @@ struct xpageinfo {
 	int pageNo;
 
 	int version;
-	
-	// Used to save start address for this page. 
+
+	// Used to save start address for this page.
 	void * pageStart;
 	bool isUpdated;
 	bool isShared;

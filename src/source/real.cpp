@@ -70,7 +70,7 @@ int (*WRAP(pthread_barrier_wait))(pthread_barrier_t*);
 int (*WRAP(pthread_barrier_destroy))(pthread_barrier_t*);
 
 #ifndef assert
-#define assert(x) 
+#define assert(x)
 #endif
 
 #define SET_WRAPPED(x, handle) WRAP(x) = (typeof(WRAP(x)))dlsym(handle, #x); assert(#x)

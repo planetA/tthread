@@ -6,12 +6,12 @@
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -48,18 +48,18 @@
 #include "prof.h"
 
 #define MAX_THREADS 2048
-//#define fprintf(...) 
+//#define fprintf(...)
 
 // We are using a circular double linklist to manage those alive threads.
 class determ {
 private:
-   
+
   // Different status of one thread.
   enum threadStatus {
     STATUS_COND_WAITING = 0, STATUS_BARR_WAITING, STATUS_READY, STATUS_EXIT, STATUS_JOINING
   };
 
-  // Each thread has a thread entry in the system, it is used to control the thread. 
+  // Each thread has a thread entry in the system, it is used to control the thread.
   // For example, when one thread is cond_wait, the corresponding thread entry will be taken out of the token
   // queue and putted into corresponding conditional variable queue.
   class ThreadEntry {
@@ -77,10 +77,10 @@ private:
     Entry * prev;
     Entry * next;
     volatile int tid; // pid of this thread.
-    volatile int threadindex; // thread index 
+    volatile int threadindex; // thread index
     volatile int status;
     int tid_parent; // parent's pid
-    void * cond; 
+    void * cond;
     void * barrier;
     size_t wait;
     int joinee_thread_index;
@@ -154,7 +154,7 @@ private:
   size_t _barriernum;
 
   size_t _coresNumb;
-  
+
   // Variables related to token pass and fence control
   volatile ThreadEntry *_tokenpos;
   volatile size_t _maxthreads;
@@ -171,9 +171,9 @@ private:
     _alivethreads(0),
     _maxthreadentries(MAX_THREADS),
     _activelist(NULL),
-    _tokenpos(NULL), 
-    _parentnotified(false), 
-    _childregistered(false) 
+    _tokenpos(NULL),
+    _parentnotified(false),
+    _childregistered(false)
     {  }
 
 public:
@@ -185,7 +185,7 @@ public:
       fprintf(stderr, "cores number isnot correct. Exit now.\n");
       exit(-1);
     }
-    
+
     // Set up with a shared attribute.
     WRAP(pthread_mutexattr_init)(&_mutexattr);
     pthread_mutexattr_setpshared(&_mutexattr, PTHREAD_PROCESS_SHARED);
@@ -222,7 +222,7 @@ public:
     _alivethreads += threads;
     _is_arrival_phase = true;
 
-    // Because all threads are waiting when one thread is spawning, 
+    // Because all threads are waiting when one thread is spawning,
     // Now time to wake up them.
     WRAP(pthread_cond_broadcast)(&cond);
     unlock();
@@ -261,8 +261,8 @@ public:
       isFound = false;
       break;
 
-    case STATUS_COND_WAITING: 
-      // If the thread is waiting on condition variable, remove it from corresponding list. 
+    case STATUS_COND_WAITING:
+      // If the thread is waiting on condition variable, remove it from corresponding list.
       {
       CondEntry * condentry = (CondEntry *) entry->cond;
       removeEntry((Entry *) entry, &condentry->head);
@@ -271,7 +271,7 @@ public:
       }
       break;
 
-    case STATUS_BARR_WAITING: 
+    case STATUS_BARR_WAITING:
     default:
       // In fact, this case is almost impossible. But just in case, we put code here.
       assert(0);
@@ -340,8 +340,8 @@ public:
 
     // Now in an arrival phase, proceed with barrier synchronization
     _currthreads++;
-   
-    // Whenever all threads arrived in the barrier, wakeup everyone on the barrier. 
+
+    // Whenever all threads arrived in the barrier, wakeup everyone on the barrier.
     if(_maxthreads <= _coresNumb) {
       if(_currthreads >= _maxthreads) {
         _is_arrival_phase = false;
@@ -364,11 +364,11 @@ public:
         }
       }
     }
-   
-    // Mark one thread is leaving the barrier. 
+
+    // Mark one thread is leaving the barrier.
     _currthreads--;
-  
-    // When all threads leave the barrier, entering into the new arrival phase.  
+
+    // When all threads leave the barrier, entering into the new arrival phase.
     if (_currthreads == 0) {
       _is_arrival_phase = true;
 
@@ -383,7 +383,7 @@ public:
 
     return;
   }
-  
+
   void getToken(void) {
     while (_tokenpos->tid != getpid()) {
       sched_yield();
@@ -424,10 +424,10 @@ public:
   // No need lock since the register is done before any spawning.
   void registerMaster(int threadindex, int pid) {
     registerThread(threadindex, pid, 0);
-    
+
     _maxthreads = 1;
     _alivethreads = 1;
-    _is_arrival_phase = true; 
+    _is_arrival_phase = true;
   }
 
   // Add this thread to the list.
@@ -472,7 +472,7 @@ public:
     unlock();
   }
 
-  // Parent should call this function. 
+  // Parent should call this function.
   inline void waitChildRegistered(void) {
     lock();
     if (!_childregistered) {
@@ -485,7 +485,7 @@ public:
     unlock();
   }
 
-  // Now wakeup all threads waiting on _cond_children when 
+  // Now wakeup all threads waiting on _cond_children when
   // parent finishs the spawning. In fact, parent met some synchronizations points now.
   inline void notifyWaitingChildren(void) {
     lock();
@@ -508,53 +508,53 @@ public:
     myentry = (ThreadEntry *)&_entries[myindex];
     joinee = (ThreadEntry *)&_entries[guestindex];
 
-    // If join is the first synchronization point after spawning, 
+    // If join is the first synchronization point after spawning,
     // wakeup all children waiting for the parent's notification.
     if(wakeup) {
       WRAP(pthread_cond_broadcast)(&_cond_children);
     }
-  
-    // When the joinee is still alive, we should wait for the joinee to wake me up 
+
+    // When the joinee is still alive, we should wait for the joinee to wake me up
     if(joinee->status != STATUS_EXIT) {
       // Remove myself from the token queue.
       removeEntry((Entry *)myentry, &_activelist);
-      
+
       // Set my status to joinning.
       myentry->status = STATUS_JOINING;
       myentry->joinee_thread_index = guestindex;
     }
-  
-    
-    while(joinee->status != STATUS_EXIT) {    
+
+
+    while(joinee->status != STATUS_EXIT) {
       decrFence();
 
       // Pass the token to next thread if I am holding the token.
       if(_tokenpos->threadindex == myindex && _activelist != NULL) {
         _tokenpos = (ThreadEntry *) (_tokenpos->next);
-      } 
-    
+      }
+
       // Waiting for the children's exit now.
       WRAP(pthread_cond_wait)(&_cond_join, &_mutex);
 
-      // When the parent is waken, it should get token immediately then it could 
+      // When the parent is waken, it should get token immediately then it could
       // put token later. For simplicity, all pthread_join should hold the token.
       toWaitToken = true;
-      
+
       // Increase total threads since current threads is waken.
       // Whenever this thread cannot run, ti will decrease fence immediately.
       incrFence(1);
     }
-  
+
     // Cleanup the status.
     myentry->status = STATUS_READY;
-  
+
     DEBUG("%d: pthread_join, pass token to %d before unlock\n", _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: pthread_join, pass token to %d before unlock\n", _tokenpos->threadindex);
 
-    unlock(); 
-       
+    unlock();
+
     if(toWaitToken) {
-      // Wait for the token. 
+      // Wait for the token.
           while(_tokenpos->threadindex != myindex) {
               sched_yield();
               __asm__ __volatile__ ("mfence");
@@ -578,19 +578,19 @@ public:
     // Whether the parent is trying to join current thread now??
     if(parent->status == STATUS_JOINING && parent->joinee_thread_index == threadindex) {
       // Move parent to the next, so that the parent can get the token immediately.
-      // Otherwise, if the token is passed to one thread (already finished the token), 
-      // then the waken up thread cannot move on since it will wait for the 
+      // Otherwise, if the token is passed to one thread (already finished the token),
+      // then the waken up thread cannot move on since it will wait for the
       // token to move on, however, the thread cannot pass the token and it is waiting for fence now.
           insertHead((Entry *)parent, (Entry **)&_tokenpos);
 
       // Waken up all threads waiting on _cond_join, but only the one waiting on this thread
       // can be waken up. Other thread will goto sleep again immediately.
       WRAP(pthread_cond_broadcast)(&_cond_join);
-    } 
+    }
 
     // Decrease number of alive threads and fence.
     if(_alivethreads > 0) {
-      // Since this thread is running with the token, no need to modify 
+      // Since this thread is running with the token, no need to modify
       // _currthreads.
            _alivethreads--;
            decrFence();
@@ -599,7 +599,7 @@ public:
     nextentry = (ThreadEntry *)entry->next;
     assert(nextentry != entry);
 
-    // Remove this thread entry from activelist.  
+    // Remove this thread entry from activelist.
     removeEntry((Entry *) entry, &_activelist);
     freeThreadEntry(entry);
 
@@ -607,10 +607,10 @@ public:
     // It is almost impossible that nextentry will be NULL, that means that
     // no one is active.
         _tokenpos = nextentry;
-    
+
     DEBUG("%d: deregistering. Token is passed to %d\n", getpid(), (ThreadEntry *)_tokenpos->threadindex);
     PRINT_SCHEDULE("%d: deregistering. Token is passed to %d\n", threadindex, (ThreadEntry *)_tokenpos->threadindex);
-    
+
     unlock();
   }
 
@@ -619,12 +619,12 @@ public:
     LockEntry * entry = allocLockEntry();
     entry->total_users = 0;
     entry->last_thread = 0;
-    
+
     //No one acquire the lock in the beginning.
     entry->is_acquired = false;
-    
+
     // No one is the owner.
-    setSyncEntry(mutex, (void *)entry); 
+    setSyncEntry(mutex, (void *)entry);
     return entry;
   }
 
@@ -635,33 +635,33 @@ public:
   }
 
   // Only there is only one thread to use this lock,
-  // function can return true. 
+  // function can return true.
   // Since it is called without the token,
-  // if no one uses this lock before, the caller cannot 
-  // own the lock in order to guarantee the determinism. 
+  // if no one uses this lock before, the caller cannot
+  // own the lock in order to guarantee the determinism.
   inline bool lock_isowner(void * mutex) {
-    //fprintf(stderr, "%d: lock_isowner\n", getpid());  
+    //fprintf(stderr, "%d: lock_isowner\n", getpid());
     LockEntry * entry = (LockEntry *)getSyncEntry(mutex);
-    //fprintf(stderr, "%d: lock_isowner with entry %p\n", getpid(), entry); 
+    //fprintf(stderr, "%d: lock_isowner with entry %p\n", getpid(), entry);
 
     if(entry == NULL)
       return false;
-  
-    //fprintf(stderr, "%d: lock_isowner with usrs %d\n", getpid(), entry->total_users); 
+
+    //fprintf(stderr, "%d: lock_isowner with usrs %d\n", getpid(), entry->total_users);
     if(entry->total_users == 1) {
-      // If only one user uses this lock, check whether 
+      // If only one user uses this lock, check whether
       // current user is the owner.
       int pid = getpid();
       if(entry->last_thread != pid) {
         entry->total_users++;
         return false;
-      } 
+      }
       return true;
     }
     return false;
   }
 
-    
+
   // Check whether lock is acquired.
   // Whenever the lock is owned by someone, we don't need to acquire the lock.
   inline bool lock_isacquired(void * mutex) {
@@ -671,8 +671,8 @@ public:
   }
 
   // The function is only called when the thread owns the token.
-  // So it is safe to change status without the use the locks. 
-  // The function is to avoid the problem caused by turning multiple locks 
+  // So it is safe to change status without the use the locks.
+  // The function is to avoid the problem caused by turning multiple locks
   // into one big lock. The idea is that when one lock is not released,
   // next thread to acquire this should not move on.
   inline bool lock_acquire(void * mutex) {
@@ -680,16 +680,16 @@ public:
     bool result = true;
 
     if(entry == NULL) {
-       // fprintf(stderr, "%d: lock acquire 3 with mutex %p, entry %p\n", getpid(), mutex, entry);  
+       // fprintf(stderr, "%d: lock acquire 3 with mutex %p, entry %p\n", getpid(), mutex, entry);
       entry = lock_init(mutex);
     }
-  
-  //  fprintf(stderr, "%d: lock acquire, with last thread %d, total users %d, is_acquire %d\n", getpid(), entry->last_thread, entry->total_users, entry->is_acquired);  
-    if(entry->is_acquired == true)  
+
+  //  fprintf(stderr, "%d: lock acquire, with last thread %d, total users %d, is_acquire %d\n", getpid(), entry->last_thread, entry->total_users, entry->is_acquired);
+    if(entry->is_acquired == true)
       return false;
 
     entry->is_acquired = true;
-    if(entry->total_users == 0) { 
+    if(entry->total_users == 0) {
       // Change the owner of this lock.
       entry->last_thread = getpid();
       entry->total_users = 1;
@@ -712,7 +712,7 @@ public:
         }
       }
     }
-  //  fprintf(stderr, "%d: lock acquire in the end, with last thread %d, total users %d and is_acquire %d\n", getpid(), entry->last_thread, entry->total_users, entry->is_acquired);  
+  //  fprintf(stderr, "%d: lock acquire in the end, with last thread %d, total users %d and is_acquire %d\n", getpid(), entry->last_thread, entry->total_users, entry->is_acquired);
     return result;
   }
 
@@ -727,7 +727,7 @@ public:
     entry->waiters = 0;
     entry->head = NULL;
     entry->cond = cond;
-  
+
   //  xmemory::begin(true);
     //Set corresponding entry.
     setSyncEntry(cond, entry);
@@ -790,7 +790,7 @@ public:
     // Linux cann't guarantee the FIFO order.
     while (entry->status != STATUS_READY) {
       __asm__ __volatile__ ("mfence");
-      
+
       // Release current lock.
       lock_release(thelock);
       WRAP(pthread_cond_wait)(&condentry->realcond, &_mutex);
@@ -800,18 +800,18 @@ public:
     // Here, we don't need to wait on fence anymore because this can put current
     // thread to next round, which is really bad.
     // We just need check whether all threads are inside the critical area or not.
-    // That is, no one is outside the critical area. Since we 
+    // That is, no one is outside the critical area. Since we
     // have the token to control the running inside the criical area.
     unlock();
 
-    // Check the token. 
+    // Check the token.
     while (_tokenpos->threadindex != threadindex) {
       sched_yield();
       __asm__ __volatile__ ("mfence");
     }
-    
+
   //  fprintf(stderr, "%d: cond_wait after getting token\n", getpid());
-      
+
     // Now means we have already acquired the lock.
     lock_acquire(thelock);
 
@@ -891,7 +891,7 @@ public:
     // Increment the fence
     incrFence(condentry->waiters);
 
-    // Now no waiters in this cond var. 
+    // Now no waiters in this cond var.
     condentry->waiters = 0;
 
     // Wakeup all waiters on this condentry.
@@ -899,36 +899,36 @@ public:
 
     unlock();
   }
-    
+
   int sig_wait(const sigset_t *set, int *sig, int threadindex) {
     ThreadEntry * entry = &_entries[threadindex];
     ThreadEntry * next;
     int ret;
-    
+
     lock();
-    
+
     // Get next entry.
     next = (ThreadEntry *)entry->next;
-    
+
     // Remove this thread from activelist.
     removeEntry((Entry *)entry, &_activelist);
-    
+
     decrFence();
-    
+
     // Release token to next active thread.
     _tokenpos = next;
-    
+
     unlock();
-    
+
     ret = WRAP(sigwait)(set, sig);
-  
+
     if(ret != 0) {
       return ret;
-    } 
+    }
 
-    // Now I am waken up because I need to handle those signals now.  
+    // Now I am waken up because I need to handle those signals now.
     lock();
-  
+
     if(_tokenpos == NULL) {
       _tokenpos = entry;
     }
@@ -936,12 +936,12 @@ public:
       // IMPORTANT: Add it to next of activelist, we still honor the previous existing order.
       insertHead((Entry *)entry, (Entry **)&_tokenpos);
     }
-  
+
     // Increment the fence.
     incrFence(1);
-    
+
     unlock();
-  
+
     return 0;
   }
 
@@ -1025,7 +1025,7 @@ public:
 
     // Release token to next active thread.
     _tokenpos = nextentry;
-  
+
     STOP_TIMER(serial);
 
     unlock();
@@ -1034,7 +1034,7 @@ public:
     // Then I should let others to get the lock (in order to do other stuff).
     // If I am the last thread, don't do cleanup until after barrier.
     if (!lastThread) {
-      // We can do the atomicCommit safely. 
+      // We can do the atomicCommit safely.
       // First, The token has been passed to others
       // Second, I am not in the token ring (can't be passed the token).
       // Then it won't cause deadlock anymore.
@@ -1069,7 +1069,7 @@ private:
     // Do nothing now.
     return;
   }
-  
+
   inline void * allocSyncEntry(int size) {
     return InternalHeap::getInstance().malloc(size);
   }
@@ -1081,7 +1081,7 @@ private:
   }
 
   inline LockEntry *allocLockEntry(void) {
-    //fprintf(stderr, "%d: alloc lock entry with size %d\n", getpid(), sizeof(LockEntry));  
+    //fprintf(stderr, "%d: alloc lock entry with size %d\n", getpid(), sizeof(LockEntry));
     return ((LockEntry *) allocSyncEntry(sizeof(LockEntry)));
   }
 
@@ -1095,7 +1095,7 @@ private:
 
   void * getSyncEntry(void * entry) {
     void ** ptr = (void **)entry;
-//    fprintf(stderr, "%d: entry %p and synentry 0x%x\n", getpid(), entry, ((int *)entry));   
+//    fprintf(stderr, "%d: entry %p and synentry 0x%x\n", getpid(), entry, ((int *)entry));
     return(*ptr);
   }
 
@@ -1108,7 +1108,7 @@ private:
     *dest = newentry;
 
     //fprintf(stderr, "origentry %p dest %p *dest %p newentry %p\n", origentry, dest, *dest, newentry);
-    // Update the shared copy in the same time. 
+    // Update the shared copy in the same time.
     xmemory::mem_write(dest, newentry);
   }
 
@@ -1117,7 +1117,7 @@ private:
 
     *dest = NULL;
 
-    // Update the shared copy in the same time. 
+    // Update the shared copy in the same time.
     xmemory::mem_write(*dest, NULL);
   }
   inline void lock(void) {

@@ -73,19 +73,19 @@ class xpersist {
 public:
 
   enum { SHARED_PAGE = 0xFFFFFFFF };
-  
-  enum page_access_info { 
+
+  enum page_access_info {
     PAGE_ACCESS_NONE = 0,
     PAGE_ACCESS_READ = 1,
-    PAGE_ACCESS_WRITE = 2 
+    PAGE_ACCESS_WRITE = 2
   };
 
   /// @arg startaddr  the optional starting address of the local memory.
   xpersist(void * startaddr = 0, size_t startsize = 0)
     : _startaddr(startaddr),
-      _startsize(startsize) 
+      _startsize(startsize)
   {
-    // Check predefined globals size is large enough or not. 
+    // Check predefined globals size is large enough or not.
     if (_startsize > 0) {
       if (_startsize > size()) {
         fprintf(stderr, "This persistent region (%ld) is too small (%ld).\n", size(), _startsize);
@@ -156,7 +156,7 @@ public:
     // In order to get the same copy with _persistentMemory for those constructor stuff,
     // we will set to MAP_PRIVATE at first, then memory protection will be opened in initialize().
     _transientMemory = (Type *) mmap(_startaddr, size(),
-                PROT_READ | PROT_WRITE, MAP_SHARED | (_startaddr != NULL ? MAP_FIXED : 0), 
+                PROT_READ | PROT_WRITE, MAP_SHARED | (_startaddr != NULL ? MAP_FIXED : 0),
                 _backingFd, 0);
 
     if (_transientMemory == MAP_FAILED) {
@@ -175,17 +175,17 @@ public:
         TotalPageNums * sizeof(unsigned long), PROT_READ | PROT_WRITE,
         MAP_SHARED, _versionsFd, 0);
 
-    _pageUsers = (struct shareinfo *) mmap(NULL, TotalPageNums * sizeof(struct shareinfo), 
+    _pageUsers = (struct shareinfo *) mmap(NULL, TotalPageNums * sizeof(struct shareinfo),
         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    
-#ifdef LAZY_COMMIT  
+
+#ifdef LAZY_COMMIT
     _pageOwner = (volatile unsigned long *)mmap(NULL, TotalPageNums * sizeof(size_t),
         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    
-    // Local 
+
+    // Local
     _pageInfo = (unsigned long *)mmap(NULL, TotalPageNums * sizeof(size_t),
         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    
+
     _ownedblockinfo = (unsigned long*)mmap(NULL, xdefines::PageSize,
         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
@@ -196,8 +196,8 @@ public:
     }
 
 #endif
-    if (_transientMemory == MAP_FAILED || 
-      _persistentVersions == MAP_FAILED || 
+    if (_transientMemory == MAP_FAILED ||
+      _persistentVersions == MAP_FAILED ||
       _pageUsers == MAP_FAILED ||
       _persistentMemory == MAP_FAILED) {
       fprintf(stderr, "xpersist: mmap error with %s\n", strerror(errno));
@@ -206,7 +206,7 @@ public:
     }
 
 #ifdef GET_CHARACTERISTICS
-    _pageChanges = (struct pagechangeinfo *)mmap (NULL, 
+    _pageChanges = (struct pagechangeinfo *)mmap (NULL,
         TotalPageNums * sizeof(struct pagechangeinfo),
         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 #endif
@@ -287,12 +287,12 @@ public:
       writeProtect(base(), size());
       for(int i = 0; i < TotalPageNums; i++) {
         _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i] = PAGE_ACCESS_READ; 
+        _pageInfo[i] = PAGE_ACCESS_READ;
       }
     }
     else {
       int allocSize = (intptr_t)end - (intptr_t)base();
-      
+
       // For those allocated pages, we set to READ_ONLY.
       if(allocSize > 0) {
         writeProtect(base(), allocSize);
@@ -300,16 +300,16 @@ public:
 
       for(int i = 0; i < allocSize/xdefines::PageSize; i++) {
         _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i]  = PAGE_ACCESS_READ; 
-      } 
-      
+        _pageInfo[i]  = PAGE_ACCESS_READ;
+      }
+
       // All un-used pages can't be read at the first time.
       if(mmap(end, size()-allocSize, PROT_NONE, MAP_PRIVATE | MAP_FIXED,
           _backingFd, allocSize) == MAP_FAILED) {
         fprintf(stderr, "Open protection failed for heap. \n");
         exit(-1);
       }
-      
+
       // Those un-allocated pages can be owned.
       for(int i = allocSize/xdefines::PageSize; i < TotalPageNums; i++) {
         _pageOwner[i] = 0;
@@ -361,15 +361,15 @@ public:
   static inline size_t size() {
     return NElts * sizeof(Type);
   }
-  
+
 #ifdef LAZY_COMMIT
   // Change the page to read-only mode.
   inline void mprotectRead(void * addr, int pageNo) {
     _pageInfo[pageNo] = PAGE_ACCESS_READ;
-    mprotect(addr, xdefines::PageSize, PROT_READ);  
+    mprotect(addr, xdefines::PageSize, PROT_READ);
   }
 #endif
-  
+
   // Change the page to writable mode.
   inline void mprotectWrite(void * addr, int pageNo) {
 #ifdef LAZY_COMMIT
@@ -377,20 +377,20 @@ public:
       _pageInfo[pageNo] = PAGE_ACCESS_WRITE;
     }
 #endif
-    mprotect(addr, xdefines::PageSize, PROT_READ|PROT_WRITE); 
+    mprotect(addr, xdefines::PageSize, PROT_READ|PROT_WRITE);
   }
 
-#ifdef LAZY_COMMIT  
+#ifdef LAZY_COMMIT
   inline bool isSharedPage(int pageNo) {
     return (_pageOwner[pageNo] == SHARED_PAGE);
   }
-  
-  // Those owned page will also set to MAP_PRIVATE and READ_ONLY 
+
+  // Those owned page will also set to MAP_PRIVATE and READ_ONLY
   // in the beginning. The difference is that they don't need to commit
   // immediately in order to reduce the time of serial phases.
   // The function will be called when one thread is getting a new superblock.
   inline void setOwnedPage(void * addr, size_t size) {
-    if(!_isProtected) 
+    if(!_isProtected)
       return;
 
     int pid = getpid();
@@ -398,15 +398,15 @@ public:
     size_t pages = size/xdefines::PageSize;
     char * pageStart = (char *)addr;
     int blocks = _ownedblocks;
-    
-    mprotect(addr, size, PROT_READ);  
-    
+
+    mprotect(addr, size, PROT_READ);
+
     for(int i = startPage; i < startPage+pages; i++) {
       _pageOwner[i] = pid;
-      _pageInfo[i] = PAGE_ACCESS_READ; 
+      _pageInfo[i] = PAGE_ACCESS_READ;
     }
-    
-    // This block are now owned by current thread. 
+
+    // This block are now owned by current thread.
     // In the end, all pages in this block are going to be checked.
     _ownedblockinfo[blocks *2] = startPage;
     _ownedblockinfo[blocks * 2 + 1] = startPage+pages;
@@ -422,28 +422,28 @@ public:
   void handleWrite (void * addr) {
     // Compute the page number of this item
     int pageNo = computePage ((size_t) addr - (size_t) base());
-    unsigned long * pageStart = (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize * pageNo);  
+    unsigned long * pageStart = (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize * pageNo);
     struct xpageinfo * curr = NULL;
 
-#ifdef LAZY_COMMIT  
-    // Check the access type of this page. 
+#ifdef LAZY_COMMIT
+    // Check the access type of this page.
     int accessType = _pageInfo[pageNo];
-    
-    // When we are trying to access other-owned page. 
+
+    // When we are trying to access other-owned page.
     if(accessType == PAGE_ACCESS_NONE) {
       // Current page must be owned by other pages.
-      notifyOwnerToCommit(pageNo); 
-      
-      // Now we set the page to readable. 
+      notifyOwnerToCommit(pageNo);
+
+      // Now we set the page to readable.
       mprotectRead(pageStart, pageNo);
-      
+
       // Add this page to read set??
-      // Since this page is already set to SHARED, there is no need for any further 
+      // Since this page is already set to SHARED, there is no need for any further
       // operations now.
       return;
     }
     else if (accessType == PAGE_ACCESS_READ) {
-      // There are two cases here. 
+      // There are two cases here.
       // (1) I have read other's owned page, now I am writing on it.
       // (2) I tries to write to my owned page in the first, but without previous version.
       mprotectWrite(pageStart, pageNo);
@@ -452,33 +452,33 @@ public:
     else if (accessType == PAGE_ACCESS_WRITE) {
       // One case, I am trying to write to those dirty pages again.
       mprotectWrite(pageStart, pageNo);
-      // Since we are already wrote to this page before, now we are trying to write to 
+      // Since we are already wrote to this page before, now we are trying to write to
       // this page again. Now we should commit old version to the shared copy.
       commitOwnedPage(pageNo, false);
     }
 #else
     mprotectWrite(pageStart, pageNo);
-#endif    
- 
+#endif
+
     // Now one more user are using this page.
     xatomic::increment((unsigned long *)&_pageUsers[pageNo]);
-    
+
     // Add this page to the dirty set.
     curr = xpageentry::getInstance().alloc();
     curr->pageNo = pageNo;
     curr->pageStart = (void *)pageStart;
     curr->isUpdated = 0;
-#ifndef LAZY_COMMIT 
+#ifndef LAZY_COMMIT
     curr->release = true;
 #endif
     curr->version = _persistentVersions[pageNo];
-    
-    // Then add current page to dirty list. 
+
+    // Then add current page to dirty list.
     _dirtiedPagesList.insert (std::pair<int, void *>(pageNo, curr));
-    
+
     return;
   }
-  
+
 
   bool nop() {
     return (_dirtiedPagesList.empty());
@@ -503,7 +503,7 @@ public:
   inline void writePageDiffs(const void * local, const void * twin,
       void * dest, int pageno) {
 #ifdef SSE_SUPPORT
-    // Now we are using the SSE3 instructions to speedup the commits. 
+    // Now we are using the SSE3 instructions to speedup the commits.
     __m128i * localbuf = (__m128i *) local;
     __m128i * twinbuf = (__m128i *) twin;
     __m128i * destbuf = (__m128i *) dest;
@@ -541,7 +541,7 @@ public:
 #endif
   }
 
-  // Create the twin page for the page with specified pageNo. 
+  // Create the twin page for the page with specified pageNo.
   void createTwinPage(int pageNo) {
     int index;
     unsigned long * twin;
@@ -597,49 +597,49 @@ public:
     size_t startpage = 0;
     size_t endpage = ((intptr_t)end - (intptr_t)base())/xdefines::PageSize;
     int i;
-    
+
     // Check all possible pages.
     for(i = startpage; i < endpage; i++) {
       int accessType = _pageInfo[i];
-      
-      // When one page is owned by specified thread,  
+
+      // When one page is owned by specified thread,
       if(_pageOwner[i] == pid) {
         notifyOwnerToCommit(i);
       }
     }
-  
-    return; 
+
+    return;
   }
 
   inline void notifyOwnerToCommit(int pageNo) {
-    // Get the owner information. 
+    // Get the owner information.
     unsigned int owner = _pageOwner[pageNo];
-    
+
     if(owner == SHARED_PAGE) {
       // owner has committed page, we can exit now.
       return;
     }
-    
+
     // Otherwise, we should send a signal to the owner.
     union sigval val;
     val.sival_int = pageNo;
     int i;
-    
+
   notify_owner:
     i = 0;
     if(sigqueue(owner, SIGUSR1, val) != 0) {
       setSharedPage(pageNo);
       return;
     }
-    
+
     // Spin here until the page is set to be SHARED; Ad hoc synchronization.
     while(!isSharedPage(pageNo)) {
       i++;
-      if(i == 100000) 
+      if(i == 100000)
         goto notify_owner;
     }
   }
-  
+
   inline void setSharedPage(int pageNo) {
     if(_pageOwner[pageNo] != SHARED_PAGE) {
       xatomic::exchange(&_pageOwner[pageNo], SHARED_PAGE);
@@ -650,11 +650,11 @@ public:
   inline void cleanupOwnedBlocks() {
       _ownedblocks = 0;
   }
-  
+
   inline void commitOwnedPage(int pageNo, bool setShared) {
     // Check this page's attribute.
     unsigned int owner;
-    
+
     // Get corresponding entry.
     void * addr = (void *)((intptr_t)base() + pageNo * xdefines::PageSize);
     void * share = (void *) ((intptr_t)_persistentMemory + xdefines::PageSize * pageNo);
@@ -663,33 +663,33 @@ public:
 #endif
     INC_COUNTER(dirtypage);
     INC_COUNTER(lazypage);
-    // Commit its previous version. 
+    // Commit its previous version.
     memcpy(share, addr, xdefines::PageSize);
     if(setShared) {
-      // Finally, we should set this page to SHARED state. 
+      // Finally, we should set this page to SHARED state.
       setSharedPage(pageNo);
-  
-      // We also release the private copy when one page is already shared.    
-      madvise(addr, xdefines::PageSize, MADV_DONTNEED); 
+
+      // We also release the private copy when one page is already shared.
+      madvise(addr, xdefines::PageSize, MADV_DONTNEED);
     }
-    
+
     // Update the version number.
     _persistentVersions[pageNo]++;
   }
- 
-  // Commit all pages when the thread is going to exit 
+
+  // Commit all pages when the thread is going to exit
   inline void finalcommit(bool release) {
     int blocks = _ownedblocks;
     int startpage;
     int endpage;
     int j;
-  
+
     // Only checked owned blocks.
     for(int i = 0; i < blocks; i++) {
       startpage = _ownedblockinfo[i*2];
       endpage = _ownedblockinfo[i*2+1];
-    
-      if(release) { 
+
+      if(release) {
         for(j = startpage; j < endpage; j++) {
           int accessType = _pageInfo[j];
           if(_pageOwner[j] == getpid()) {
@@ -738,7 +738,7 @@ public:
       bool isModified = false;
       pageinfo = (struct xpageinfo *)i->second;
       pageNo = pageinfo->pageNo;
-      
+
       // Get the shareinfo and persistent address.
       shareinfo = &_pageUsers[pageNo];
       share = (unsigned long *) ((intptr_t)_persistentMemory + xdefines::PageSize * pageNo);
@@ -751,7 +751,7 @@ public:
 
   #ifdef LAZY_COMMIT
       // update is true before entering into the critical sections.
-      // do the least upates if possible.  
+      // do the least upates if possible.
       if (update) {
 
         // Current page is older than the version of shared mapping, then commit local modifications.
@@ -773,13 +773,13 @@ public:
           isModified = true;
         }
       } else {
-        // Only do commits when the page have not been updated. 
+        // Only do commits when the page have not been updated.
         if(!pageinfo->isUpdated) {
           // When there are multiple writes on this pae, the page cannot be owned.
           // When this page is not owned, then we do commit.
           if(shareinfo->users != 1 || _pageOwner[pageNo] != mypid) {
             pageinfo->release = true;
-          
+
             // If the version is the same as shared, use memcpy to commit.
             if(pageinfo->version == _persistentVersions[pageNo]) {
               memcpy(share, local, xdefines::PageSize);
@@ -795,19 +795,19 @@ public:
               setSharedPage(pageNo);
               writePageDiffs(local, twin, share, pageNo);
             }
-            
+
             isModified = true;
           }
           else {
-            // Only one user on it and pageOwner is myself. 
+            // Only one user on it and pageOwner is myself.
             pageinfo->release = false;
-            
+
             // Now there is one less user on this page.
             shareinfo->users--;
           }
         }
       }
-  #else  
+  #else
       /// If we are not defining "LAZY_COMMIT", then all local modifications has
       //  to be committed to the shared mapping.
       if (update) {
@@ -841,7 +841,7 @@ public:
               // Use the slower page commit, comparing to "twin".
               writePageDiffs(local, twin, share, pageNo);
             }
-            
+
             isModified = true;
          }
       }
@@ -868,14 +868,14 @@ public:
   void updateAll(bool cleanup) {
     struct xpageinfo * pageinfo;
     int    pageNo = 0;
-    
+
     // Dump in-updated page frame for safety!!!
     dirtyListType::iterator i;
     for (i = _dirtiedPagesList.begin(); i != _dirtiedPagesList.end(); ++i) {
       pageinfo = (struct xpageinfo *)i->second;
       pageNo = pageinfo->pageNo;
-      
-      // Since some page frame has been updated in check phase, 
+
+      // Since some page frame has been updated in check phase,
       // Now we don't need to work on these pages anymore.
       if(!pageinfo->isUpdated) {
         updatePage(pageinfo->pageStart, 1, pageinfo->release);
@@ -884,7 +884,7 @@ public:
     // Now there is no need to use dirtiedPagesList any more
     if(cleanup) {
       _dirtiedPagesList.clear();
-      xpageentry::getInstance().cleanup(); 
+      xpageentry::getInstance().cleanup();
     }
   }
 
@@ -902,9 +902,9 @@ private:
   /// @brief Update the given page frame from the backing file.
   void updatePage (void * local, size_t pages, bool release) {
     if(release) {
-      madvise (local, xdefines::PageSize * pages, MADV_DONTNEED);     
+      madvise (local, xdefines::PageSize * pages, MADV_DONTNEED);
     }
-    
+
     // Set this page to PROT_READ again.
     mprotect(local, xdefines::PageSize * pages, PROT_READ);
     //  mprotect(local, xdefines::PageSize, PROT_NONE);
@@ -920,13 +920,13 @@ private:
   const size_t _startsize;
 
   typedef std::pair<int, void *> objType;
-  
+
   // The objects are pairs, mapping void * pointers to sizes.
   typedef HL::STLAllocator<objType, privateheap> dirtyListTypeAllocator;
-  
+
   typedef std::less<int> localComparator;
-  
-  typedef std::multimap<int, void *, localComparator, dirtyListTypeAllocator> dirtyListType; 
+
+  typedef std::multimap<int, void *, localComparator, dirtyListTypeAllocator> dirtyListType;
 
   /// A map of dirtied pages.
   dirtyListType _dirtiedPagesList;
@@ -954,12 +954,12 @@ private:
   // Every time when we are getting a super block, we will update this information.
   // Then it is used to reduce the checking time in final commit. We only checked those
   // blocks owned by me.
-  unsigned long * _ownedblockinfo; 
+  unsigned long * _ownedblockinfo;
   unsigned long _ownedblocks; // How manu blocks are owned by myself.
 
-  // This array are used to save access type and the pointer for previous copy. 
+  // This array are used to save access type and the pointer for previous copy.
   unsigned long * _pageInfo;
-  
+
   volatile unsigned long * _pageOwner;
 #endif
   /// Local version numbers for each page.
@@ -971,8 +971,8 @@ private:
   };
 
   struct shareinfo * _pageUsers;
-  
-  
+
+
   /// The length of the version array.
   enum {  TotalPageNums = sizeof(Type) * NElts / xdefines::PageSize };
 

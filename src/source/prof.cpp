@@ -48,23 +48,23 @@ extern unsigned long *serial_time;
 
 static void get_time(struct timeinfo * ti) {
   unsigned int tlow, thigh;
-  
+
   asm volatile ("rdtsc"
 		: "=a"(tlow),
 		  "=d"(thigh));
-  
+
   ti->low = tlow;
   ti->high = thigh;
 }
 
 static double get_elapsed (struct timeinfo * start, struct timeinfo * stop) {
   double elapsed = 0.0;
-  
+
   elapsed = (double) (stop->low - start->low) + (double) (UINT_MAX)
     * (double) (stop->high - start->high);
   if (stop->low < start->low)
     elapsed -= (double) UINT_MAX;
-  
+
   return elapsed;
 }
 
@@ -81,7 +81,7 @@ void start (struct timeinfo *ti) {
 double stop(struct timeinfo * begin, struct timeinfo * end) {
   double elapsed = 0.0;
   struct timeinfo stop_ti;
-  
+
   if (end == NULL) {
     get_time(&stop_ti);
     elapsed = get_elapsed (begin, &stop_ti);

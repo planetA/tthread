@@ -18,9 +18,9 @@ CXX = g++
 # Get some characteristics about running.
 # -DGET_CHARACTERISTICS
 
-CFLAGS32 = -m32 -msse2 -DX86_32BIT -DSSE_SUPPORT -O3 -DNDEBUG -shared -fPIC -DLAZY_COMMIT -DLOCK_OWNERSHIP -DDETERM_MEMORY_ALLOC -D'CUSTOM_PREFIX(x)=grace\#\#x'
+CFLAGS32 = -m32 -msse2 -DX86_32BIT -DSSE_SUPPORT -O3 -DNDEBUG -shared -fPIC -DLAZY_COMMIT -DLOCK_OWNERSHIP -DDETERM_MEMORY_ALLOC -D'CUSTOM_PREFIX(x)=grace\#\#x' -g
 
-CFLAGS64 = -m64 -msse2 -O3 -DNDEBUG -shared -fPIC -DLAZY_COMMIT -DLOCK_OWNERSHIP -DDETERM_MEMORY_ALLOC -D'CUSTOM_PREFIX(x)=grace\#\#x'
+CFLAGS64 = -m64 -msse2 -O3 -DNDEBUG -shared -fPIC -DLAZY_COMMIT -DLOCK_OWNERSHIP -DDETERM_MEMORY_ALLOC -D'CUSTOM_PREFIX(x)=grace\#\#x' -g
 
 LIBS = -ldl -lpthread
 
@@ -29,7 +29,6 @@ libdthread32.so: $(SRCS) $(DEPS) Makefile
 
 libdthread.so: $(SRCS) $(DEPS) Makefile
 	$(CXX) $(CFLAGS64) $(INCLUDE_DIRS) $(SRCS) -o $@ $(LIBS)
-
 
 clean:
 	rm -f $(TARGETS)

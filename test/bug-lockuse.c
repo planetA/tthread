@@ -13,15 +13,15 @@ void unit_work(void)
 void * child_thread(void * data)
 {
 	pthread_mutex_lock(&g_lock);
-		
+
 	/* Do 1ms computation work. */
 	unit_work();
-		
-	/* Page access */		
+
+	/* Page access */
 	pthread_mutex_lock(&g_lock);
 
 	return NULL;
-} 
+}
 
 
 int main(int argc,char**argv)
