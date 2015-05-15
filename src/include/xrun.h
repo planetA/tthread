@@ -158,11 +158,9 @@ public:
     // Set correponding heap index.
     xmemory::setThreadIndex(_thread_index);
 
-  #ifdef LAZY_COMMIT
     // New thread will not own any blocks in the beginning
     // We should cleanup all blocks information inherited from the parent.
     xmemory::cleanupOwnedBlocks();
-  #endif
 
     return (_thread_index);
   }
@@ -179,9 +177,7 @@ public:
   static inline void threadDeregister(void) {
     waitToken();
 
-#ifdef LAZY_COMMIT
     xmemory::finalcommit(false);
-#endif
 
     DEBUG("%d: thread %d deregister, get token\n", getpid(), _thread_index);
     atomicEnd(false);
@@ -198,13 +194,11 @@ public:
     global_data->thread_index = 1;
   }
 
-#ifdef LAZY_COMMIT
   static inline void forceThreadCommit(void * v) {
     int pid;
     pid = xthread::getThreadPid(v);
     xmemory::forceCommit(pid);
   }
-#endif
 
   /// @return the unique thread index.
   static inline int threadindex(void) {
@@ -221,9 +215,7 @@ public:
 
     atomicEnd(false);
 
-#ifdef LAZY_COMMIT
     xmemory::finalcommit(true);
-#endif
 
     // If fence is already enabled, then we should wait for token to proceed.
     if(_fence_enabled) {
@@ -271,9 +263,7 @@ public:
     }
 
     atomicEnd(false);
-#ifdef LAZY_COMMIT
     xmemory::finalcommit(true);
-#endif
 
     if(!_fence_enabled) {
       startFence();
@@ -321,7 +311,6 @@ public:
 
     atomicEnd(false);
 
-#ifdef LAZY_COMMIT
     // When the thread to be cancel is still there, we are forcing that thread
     // to commit every owned page if we are using lazy commit mechanism.
     // It is important to call this function before xthread::cancel since
@@ -329,7 +318,6 @@ public:
     if(isFound) {
       forceThreadCommit(v);
     }
-#endif
     atomicBegin(true);
     threadindex = xthread::cancel(v);
     isFound = determ::getInstance().cancel(threadindex);

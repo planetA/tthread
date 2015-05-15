@@ -178,7 +178,6 @@ public:
     _pageUsers = (struct shareinfo *) mmap(NULL, TotalPageNums * sizeof(struct shareinfo),
         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-#ifdef LAZY_COMMIT
     _pageOwner = (volatile unsigned long *)mmap(NULL, TotalPageNums * sizeof(size_t),
         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
@@ -195,7 +194,6 @@ public:
       ::abort();
     }
 
-#endif
     if (_transientMemory == MAP_FAILED ||
       _persistentVersions == MAP_FAILED ||
       _pageUsers == MAP_FAILED ||
@@ -278,7 +276,6 @@ public:
   }
 
   void openProtection(void * end) {
-#ifdef LAZY_COMMIT
     // We will set the used area as R/W, while those un-used area will be set to PROT_NONE.
     // For globals, all pages are set to SHARED in the beginning.
     // For heap, only those allocated pages are set to SHARED.
@@ -318,10 +315,6 @@ public:
     }
     _isProtected = true;
     _ownedblocks = 0;
-#else
-    writeProtect(base(), size());
-    _isProtected = true;
-#endif
     _trans = 0;
   }
 
@@ -362,25 +355,20 @@ public:
     return NElts * sizeof(Type);
   }
 
-#ifdef LAZY_COMMIT
   // Change the page to read-only mode.
   inline void mprotectRead(void * addr, int pageNo) {
     _pageInfo[pageNo] = PAGE_ACCESS_READ;
     mprotect(addr, xdefines::PageSize, PROT_READ);
   }
-#endif
 
   // Change the page to writable mode.
   inline void mprotectWrite(void * addr, int pageNo) {
-#ifdef LAZY_COMMIT
     if(_pageOwner[pageNo] == getpid()) {
       _pageInfo[pageNo] = PAGE_ACCESS_WRITE;
     }
-#endif
     mprotect(addr, xdefines::PageSize, PROT_READ|PROT_WRITE);
   }
 
-#ifdef LAZY_COMMIT
   inline bool isSharedPage(int pageNo) {
     return (_pageOwner[pageNo] == SHARED_PAGE);
   }
@@ -416,7 +404,6 @@ public:
       exit(-1);
     }
   }
-#endif
 
   // @ Page fault handler
   void handleAccess (void * addr) {
@@ -425,7 +412,6 @@ public:
     unsigned long * pageStart = (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize * pageNo);
     struct xpageinfo * curr = NULL;
 
-#ifdef LAZY_COMMIT
     // Check the access type of this page.
     int accessType = _pageInfo[pageNo];
 
@@ -456,9 +442,6 @@ public:
       // this page again. Now we should commit old version to the shared copy.
       commitOwnedPage(pageNo, false);
     }
-#else
-    mprotectWrite(pageStart, pageNo);
-#endif
 
     // Now one more user are using this page.
     xatomic::increment((unsigned long *)&_pageUsers[pageNo]);
@@ -468,9 +451,7 @@ public:
     curr->pageNo = pageNo;
     curr->pageStart = (void *)pageStart;
     curr->isUpdated = 0;
-#ifndef LAZY_COMMIT
     curr->release = true;
-#endif
     curr->version = _persistentVersions[pageNo];
 
     // Then add current page to dirty list.
@@ -588,7 +569,6 @@ public:
   inline void recordPageChanges(int pageNo) {}
 #endif
 
-#ifdef LAZY_COMMIT
   // This function will force the process with specified pid to commit all
   // owned-by-it pages.
   // This happens when one thread are trying to call pthread_kill or
@@ -709,7 +689,6 @@ public:
       }
     }
   }
-#endif
 
   // Get the start address of specified page.
   inline void * getPageStart(int pageNo) {
@@ -749,7 +728,6 @@ public:
         createTwinPage(pageNo);
       }
 
-  #ifdef LAZY_COMMIT
       // update is true before entering into the critical sections.
       // do the least upates if possible.
       if (update) {
@@ -807,45 +785,6 @@ public:
           }
         }
       }
-  #else
-      /// If we are not defining "LAZY_COMMIT", then all local modifications has
-      //  to be committed to the shared mapping.
-      if (update) {
-        if(pageinfo->version != _persistentVersions[pageNo]) {
-          unsigned long * twin = (unsigned long *)xbitmap::getInstance().getAddress(shareinfo->bitmapIndex);
-          assert(shareinfo->bitmapIndex != 0);
-          assert(xbitmap::getInstance().getVersion(shareinfo->bitmapIndex) != _persistentVersions[pageNo]);
-
-          recordPageChanges(pageNo);
-          INC_COUNTER(slowpage);
-
-          // Use the slower page commit, comparing to "twin".
-          writePageDiffs(local, twin, share, pageNo);
-
-          // Now we need to update this page since it may affect results of next transaction.
-          updatePage(pageinfo->pageStart, 1, true);
-          pageinfo->isUpdated = true;
-          isModified = true;
-        }
-      } else {
-        if(!pageinfo->isUpdated) {
-            if(pageinfo->version == _persistentVersions[pageNo]) {
-              memcpy(share, local, xdefines::PageSize);
-            }
-            else {
-              unsigned long * twin = (unsigned long *)xbitmap::getInstance().getAddress(shareinfo->bitmapIndex);
-              assert(shareinfo->bitmapIndex != 0);
-
-              recordPageChanges(pageNo);
-              INC_COUNTER(slowpage);
-              // Use the slower page commit, comparing to "twin".
-              writePageDiffs(local, twin, share, pageNo);
-            }
-
-            isModified = true;
-         }
-      }
-    #endif
 
       if (isModified) {
         if (shareinfo->users == 1) {
@@ -950,7 +889,6 @@ private:
 
   unsigned int _trans;
 
-#ifdef LAZY_COMMIT
   // Every time when we are getting a super block, we will update this information.
   // Then it is used to reduce the checking time in final commit. We only checked those
   // blocks owned by me.
@@ -961,7 +899,6 @@ private:
   unsigned long * _pageInfo;
 
   volatile unsigned long * _pageOwner;
-#endif
   /// Local version numbers for each page.
   __m128i allones;
 

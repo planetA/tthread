@@ -48,7 +48,6 @@ public:
     getHeap()->begin(cleanup);
   }
 
-#ifdef LAZY_COMMIT
   void finalcommit(bool release) {
     getHeap()->finalcommit(release);
   }
@@ -56,7 +55,6 @@ public:
   void forceCommit(int pid, void * end) {
     getHeap()->forceCommitOwnedPages(pid, end);
   }
-#endif
 
   void checkandcommit(bool update) {
     getHeap()->checkandcommit(update);
@@ -88,7 +86,6 @@ public:
     getHeap()->handleAccess(ptr);
   }
 
-#ifdef LAZY_COMMIT
   void cleanupOwnedBlocks(void) {
     getHeap()->cleanupOwnedBlocks();
   }
@@ -96,7 +93,6 @@ public:
   void commitOwnedPage(int page_no, bool set_shared) {
     getHeap()->commitOwnedPage(page_no, set_shared);
   }
-#endif
 
   bool mem_write(void * dest, void *val) {
     return getHeap()->mem_write(dest, val);

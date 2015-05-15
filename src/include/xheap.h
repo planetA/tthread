@@ -126,9 +126,7 @@ public:
     _lock->unlock();
 #endif
 
-#ifdef LAZY_COMMIT
     parent::setOwnedPage(p, sz);
-#endif
 
     return p;
   }

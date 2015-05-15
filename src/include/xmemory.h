@@ -167,7 +167,6 @@ public:
     _globals.checkandcommit(update);
   }
 
-#ifdef LAZY_COMMIT
   static inline void forceCommit(int pid) {
     _pheap.forceCommit(pid, _pheap.getend());
   }
@@ -187,7 +186,6 @@ public:
     _pheap.finalcommit(release);
   }
 
-#endif
 
 public:
 
@@ -209,7 +207,6 @@ public:
     }
   }
 
-#ifdef LAZY_COMMIT
   static void signalHandler(int signum, siginfo_t * siginfo, void * context) {
     union sigval signal = siginfo->si_value;
     int page_no;
@@ -217,7 +214,6 @@ public:
     page_no = signal.sival_int;
     xmemory::commitOwnedPage(page_no, true);
   }
-#endif
 
   /// @brief Install a handler for SEGV signals.
   static void installSignalHandler(void) {
@@ -236,9 +232,7 @@ public:
     // Set the following signals to a set
     sigaddset(&siga.sa_mask, SIGSEGV);
     sigaddset(&siga.sa_mask, SIGALRM);
-#ifdef LAZY_COMMIT
     sigaddset(&siga.sa_mask, SIGUSR1);
-#endif
     sigprocmask(SIG_BLOCK, &siga.sa_mask, NULL);
 
     // Point to the handler function.
@@ -254,14 +248,12 @@ public:
       exit(-1);
     }
 
-#ifdef LAZY_COMMIT
     // We set the signal handler
     siga.sa_sigaction = xmemory::signalHandler;
     if (sigaction (SIGUSR1, &siga, NULL) == -1) {
       perror("sigaction(SIGUSR1)");
       exit(-1);
     }
-#endif
 
     sigprocmask(SIG_UNBLOCK, &siga.sa_mask, NULL);
   }
