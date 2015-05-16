@@ -244,33 +244,17 @@ public:
   }
 #endif
 
-  void *writeProtect(void * start, size_t size) {
+  void *setProtection(void *start, size_t size, int prot, int flags) {
     void * area;
     size_t offset = (intptr_t) start - (intptr_t) base();
 
     // Map to readonly private area.
-    area = (Type *) mmap(start, size, PROT_READ, MAP_PRIVATE | MAP_FIXED,
+    area = (Type *) mmap(start, size, prot, flags | MAP_FIXED,
            _backingFd, offset);
     if (area == MAP_FAILED) {
-      fprintf(stderr, "Weird, %d writeProtect failed with error %s!!!\n",
-              getpid(), strerror(errno));
-      fprintf(stderr, "start %p size %ld!!!\n", start, size);
-      exit(-1);
-    }
-    return (area);
-  }
-
-  void * removeProtect(void * start, size_t size) {
-    void * area;
-    size_t offset = (intptr_t) start - (intptr_t) base();
-
-    // Map to writable share area.
-    area = mmap(start, size, PROT_READ | PROT_WRITE, MAP_SHARED
-        | MAP_FIXED, _backingFd, offset);
-
-    if (area == MAP_FAILED) {
-      fprintf(stderr, "Weird, %d remove protect failed!!!\n", getpid());
-      exit(-1);
+      fprintf(stderr, "Change protection failed for pid %d, start %p, size %ld: %s\n",
+              getpid(), start, size, strerror(errno));
+      exit(EXIT_FAILURE);
     }
     return (area);
   }
@@ -281,7 +265,7 @@ public:
     // For heap, only those allocated pages are set to SHARED.
     // Those pages that haven't allocated are set to be PRIVATE at first.
     if(!_isHeap) {
-      writeProtect(base(), size());
+      setProtection(base(), size(), PROT_READ, MAP_PRIVATE);
       for(int i = 0; i < TotalPageNums; i++) {
         _pageOwner[i] = SHARED_PAGE;
         _pageInfo[i] = PAGE_ACCESS_READ;
@@ -292,7 +276,7 @@ public:
 
       // For those allocated pages, we set to READ_ONLY.
       if(allocSize > 0) {
-        writeProtect(base(), allocSize);
+        setProtection(base(), allocSize, PROT_READ, MAP_PRIVATE);
       }
 
       for(int i = 0; i < allocSize/xdefines::PageSize; i++) {
@@ -319,7 +303,7 @@ public:
   }
 
   void closeProtection() {
-    removeProtect(base(), size());
+    setProtection(base(), size(), PROT_READ | PROT_WRITE, MAP_SHARED);
     _isProtected = false;
   }
 
