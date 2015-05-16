@@ -73,7 +73,6 @@ cleanup:
 
 void *sumfile(void *arg)
 {
-  printf("------start\n");
   job_t* job = (job_t*) arg;
   int local_sum = 0;
   char *buf = job->buf;
@@ -85,7 +84,6 @@ void *sumfile(void *arg)
   sum += local_sum;
   pthread_mutex_unlock(&mutexsum);
 
-  printf("-----end\n");
   pthread_exit((void*) 0);
 }
 
