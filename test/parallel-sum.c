@@ -128,6 +128,5 @@ int main(int argc, const char *argv[])
 
   close(fd);
   pthread_mutex_destroy(&mutexsum);
-  pthread_exit(&rc);
   return rc;
 }

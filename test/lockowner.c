@@ -5,8 +5,6 @@
 
 #include "time.h"
 
-#define CORES 8
-
 pthread_mutex_t mutex[CORES];
 
 /* 1ms work in different machine. */
