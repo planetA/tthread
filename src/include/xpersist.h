@@ -54,6 +54,9 @@
 #include "xdefines.h"
 #include "xbitmap.h"
 
+#include "xpagelog.h"
+#include "xpagelogentry.h"
+
 #include "debug.h"
 
 #include "xpageentry.h"
@@ -77,7 +80,9 @@ public:
   enum page_access_info {
     PAGE_ACCESS_NONE = 0,
     PAGE_ACCESS_READ = 1,
-    PAGE_ACCESS_WRITE = 2
+    PAGE_ACCESS_WRITE = 2,
+    PAGE_ACCESS_READ_WRITE = 4,
+    PAGE_UNUSED = 8,
   };
 
   /// @arg startaddr  the optional starting address of the local memory.
@@ -260,41 +265,32 @@ public:
   }
 
   void openProtection(void * end) {
-    // We will set the used area as R/W, while those un-used area will be set to PROT_NONE.
+    // We will set everything to PROT_NONE
     // For globals, all pages are set to SHARED in the beginning.
     // For heap, only those allocated pages are set to SHARED.
     // Those pages that haven't allocated are set to be PRIVATE at first.
     if(!_isHeap) {
-      setProtection(base(), size(), PROT_READ, MAP_PRIVATE);
+      setProtection(base(), size(), PROT_NONE, MAP_PRIVATE);
       for(int i = 0; i < TotalPageNums; i++) {
         _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i] = PAGE_ACCESS_READ;
+        _pageInfo[i] = PAGE_ACCESS_NONE;
       }
     }
     else {
       int allocSize = (intptr_t)end - (intptr_t)base();
 
       // For those allocated pages, we set to READ_ONLY.
-      if(allocSize > 0) {
-        setProtection(base(), allocSize, PROT_READ, MAP_PRIVATE);
-      }
+      setProtection(base(), size(), PROT_NONE, MAP_PRIVATE);
 
       for(int i = 0; i < allocSize/xdefines::PageSize; i++) {
         _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i]  = PAGE_ACCESS_READ;
-      }
-
-      // All un-used pages can't be read at the first time.
-      if(mmap(end, size()-allocSize, PROT_NONE, MAP_PRIVATE | MAP_FIXED,
-          _backingFd, allocSize) == MAP_FAILED) {
-        fprintf(stderr, "Open protection failed for heap. \n");
-        exit(-1);
+        _pageInfo[i]  = PAGE_ACCESS_NONE;
       }
 
       // Those un-allocated pages can be owned.
       for(int i = allocSize/xdefines::PageSize; i < TotalPageNums; i++) {
         _pageOwner[i] = 0;
-        _pageInfo[i] = PAGE_ACCESS_NONE;
+        _pageInfo[i] = PAGE_UNUSED;
       }
     }
     _isProtected = true;
@@ -350,6 +346,14 @@ public:
     if(_pageOwner[pageNo] == getpid()) {
       _pageInfo[pageNo] = PAGE_ACCESS_WRITE;
     }
+    mprotect(addr, xdefines::PageSize, PROT_WRITE);
+  }
+
+  // Change the page to r/w mode.
+  inline void mprotectReadWrite(void * addr, int pageNo) {
+    if(_pageOwner[pageNo] == getpid()) {
+      _pageInfo[pageNo] = PAGE_ACCESS_READ_WRITE;
+    }
     mprotect(addr, xdefines::PageSize, PROT_READ|PROT_WRITE);
   }
 
@@ -371,11 +375,11 @@ public:
     char * pageStart = (char *)addr;
     int blocks = _ownedblocks;
 
-    mprotect(addr, size, PROT_READ);
+    mprotect(addr, size, PROT_NONE);
 
     for(int i = startPage; i < startPage+pages; i++) {
       _pageOwner[i] = pid;
-      _pageInfo[i] = PAGE_ACCESS_READ;
+      _pageInfo[i] = PAGE_ACCESS_NONE;
     }
 
     // This block are now owned by current thread.
@@ -390,60 +394,19 @@ public:
   }
 
   // @ Page fault handler
-  void handleAccess (void * addr) {
+  void handleAccess (void * addr, bool is_write) {
     // Compute the page number of this item
     int pageNo = computePage ((size_t) addr - (size_t) base());
     unsigned long * pageStart = (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize * pageNo);
-    struct xpageinfo * curr = NULL;
 
-    // Check the access type of this page.
-    int accessType = _pageInfo[pageNo];
-
-    // When we are trying to access other-owned page.
-    if(accessType == PAGE_ACCESS_NONE) {
-      // Current page must be owned by other pages.
-      notifyOwnerToCommit(pageNo);
-
-      // Now we set the page to readable.
-      mprotectRead(pageStart, pageNo);
-
-      // Add this page to read set??
-      // Since this page is already set to SHARED, there is no need for any further
-      // operations now.
-      return;
+    if (is_write) {
+      handleWrite(pageNo, pageStart);
+    } else {
+      handleRead(pageNo, pageStart);
     }
-    else if (accessType == PAGE_ACCESS_READ) {
-      // There are two cases here.
-      // (1) I have read other's owned page, now I am writing on it.
-      // (2) I tries to write to my owned page in the first, but without previous version.
-      mprotectWrite(pageStart, pageNo);
-      // Now page is writable, add this page to dirty set.
-    }
-    else if (accessType == PAGE_ACCESS_WRITE) {
-      // One case, I am trying to write to those dirty pages again.
-      mprotectWrite(pageStart, pageNo);
-      // Since we are already wrote to this page before, now we are trying to write to
-      // this page again. Now we should commit old version to the shared copy.
-      commitOwnedPage(pageNo, false);
-    }
-
-    // Now one more user are using this page.
-    xatomic::increment((unsigned long *)&_pageUsers[pageNo]);
-
-    // Add this page to the dirty set.
-    curr = xpageentry::getInstance().alloc();
-    curr->pageNo = pageNo;
-    curr->pageStart = (void *)pageStart;
-    curr->isUpdated = 0;
-    curr->release = true;
-    curr->version = _persistentVersions[pageNo];
-
-    // Then add current page to dirty list.
-    _dirtiedPagesList.insert (std::pair<int, void *>(pageNo, curr));
 
     return;
   }
-
 
   bool nop() {
     return (_dirtiedPagesList.empty());
@@ -564,7 +527,6 @@ public:
 
     // Check all possible pages.
     for(i = startpage; i < endpage; i++) {
-      int accessType = _pageInfo[i];
 
       // When one page is owned by specified thread,
       if(_pageOwner[i] == pid) {
@@ -655,7 +617,6 @@ public:
 
       if(release) {
         for(j = startpage; j < endpage; j++) {
-          int accessType = _pageInfo[j];
           if(_pageOwner[j] == getpid()) {
             commitOwnedPage(j, true);
           }
@@ -664,7 +625,6 @@ public:
       else {
         // We do not release the private copy when one thread is exit in order to improve the performance.
         for(j = startpage; j < endpage; j++) {
-          int accessType = _pageInfo[j];
           if(_pageOwner[j] == getpid()) {
             commitOwnedPage(j, false);
             setSharedPage(j);
@@ -831,6 +791,88 @@ private:
     // Set this page to PROT_READ again.
     mprotect(local, xdefines::PageSize * pages, PROT_READ);
     //  mprotect(local, xdefines::PageSize, PROT_NONE);
+  }
+
+  inline void handleRead(int pageNo, unsigned long * pageStart) {
+    xpagelog::getInstance().add(xpagelogentry(pageNo, xpagelogentry::READ));
+
+    switch(_pageInfo[pageNo]) {
+      case PAGE_UNUSED: // When we are trying to access other-owned page.
+        // Current page must be owned by other pages.
+        notifyOwnerToCommit(pageNo);
+
+        // Now we set the page to readable.
+        mprotectRead(pageStart, pageNo);
+      case PAGE_ACCESS_NONE:
+        // read a page the first time
+        mprotectRead(pageStart, pageNo);
+        break;
+      case PAGE_ACCESS_WRITE:
+        // read a page the first time
+        mprotectReadWrite(pageStart, pageNo);
+        break;
+      default:
+        assert(0); // invalid state -> BUG!
+    }
+  }
+
+  inline void handleWrite(int pageNo, unsigned long * pageStart) {
+    xpagelog::getInstance().add(xpagelogentry(pageNo, xpagelogentry::WRITE));
+
+    // Check the access type of this page.
+    switch(_pageInfo[pageNo]) {
+      case PAGE_UNUSED: // When we are trying to access other-owned page.
+        // Current page must be owned by other pages.
+        notifyOwnerToCommit(pageNo);
+
+        // Now we set the page to readable.
+        mprotectRead(pageStart, pageNo);
+
+        // Add this page to read set??
+        // Since this page is already set to SHARED, there is no need for any further
+        // operations now.
+        return;
+      case PAGE_ACCESS_NONE:
+        // write to a page the first time
+        mprotectWrite(pageStart, pageNo);
+        break;
+      case PAGE_ACCESS_READ:
+        // There are two cases here.
+        // (1) I have read other's owned page, now I am writing on it.
+        // (2) I tries to write to my owned page in the first, but without previous version.
+        mprotectReadWrite(pageStart, pageNo);
+        // Now page is writable, add this page to dirty set.
+        break;
+      case PAGE_ACCESS_READ_WRITE:
+        // One case, I am trying to write to those dirty pages again.
+        mprotectReadWrite(pageStart, pageNo);
+        // Since we are already wrote to this page before, now we are trying to write to
+        // this page again. Now we should commit old version to the shared copy.
+        commitOwnedPage(pageNo, false);
+      case PAGE_ACCESS_WRITE:
+        // One case, I am trying to write to those dirty pages again.
+        mprotectWrite(pageStart, pageNo);
+        // Since we are already wrote to this page before, now we are trying to write to
+        // this page again. Now we should commit old version to the shared copy.
+        commitOwnedPage(pageNo, false);
+      default:
+        assert(0); // invalid state
+    }
+
+    // Now one more user are using this page.
+    xatomic::increment((unsigned long *)&_pageUsers[pageNo]);
+
+    // Add this page to the dirty set.
+    struct xpageinfo * curr = NULL;
+    curr = xpageentry::getInstance().alloc();
+    curr->pageNo = pageNo;
+    curr->pageStart = (void *)pageStart;
+    curr->isUpdated = 0;
+    curr->release = true;
+    curr->version = _persistentVersions[pageNo];
+
+    // Then add current page to dirty list.
+    _dirtiedPagesList.insert (std::pair<int, void *>(pageNo, curr));
   }
 
   /// True if current xpersist.h is a heap.

@@ -460,6 +460,7 @@ public:
   // we should unlock() this lock if abort(), otherwise, it will
   // cause the dead-lock().
   static void mutex_lock(pthread_mutex_t * mutex) {
+    xthread::startThunk();
 
     if (!_fence_enabled) {
       if(_children_threads_count == 0) {
@@ -523,6 +524,8 @@ getLockAgain:
   }
 
   static void mutex_unlock(pthread_mutex_t * mutex) {
+    xthread::startThunk();
+
     if (!_fence_enabled)
       return;
 
@@ -556,6 +559,8 @@ getLockAgain:
 
   // Add the barrier support.
   static int barrier_wait(pthread_barrier_t *barrier) {
+    xthread::startThunk();
+
     if (!_fence_enabled) {
       if(_children_threads_count == 0) {
         return 0;
@@ -578,6 +583,8 @@ getLockAgain:
 
   // Support for sigwait() functions in order to avoid deadlock.
   static int sig_wait(const sigset_t *set, int *sig) {
+    xthread::startThunk();
+
     int ret;
     waitToken();
     atomicEnd(false);
@@ -591,6 +598,8 @@ getLockAgain:
   }
 
   static void cond_wait(void * cond, void * lock) {
+    xthread::startThunk();
+
     // corresponding lock should be acquired before.
     assert(_token_holding == true);
     //assert(determ::getInstance().lock_is_acquired() == true);
@@ -604,6 +613,8 @@ getLockAgain:
 
 
   static void cond_broadcast(void * cond) {
+    xthread::startThunk();
+
     if (!_fence_enabled)
       return;
 
@@ -623,6 +634,8 @@ getLockAgain:
   }
 
   static void cond_signal(void * cond) {
+    xthread::startThunk();
+
     if (!_fence_enabled)
       return;
 

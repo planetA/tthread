@@ -70,6 +70,8 @@ void finalize() {
 	PRINT_COUNTER(dirtypage);
 	PRINT_COUNTER(lazypage);
 	PRINT_COUNTER(shorttrans);
+
+  xpagelog::getInstance().print();
 }
 
 extern "C" {

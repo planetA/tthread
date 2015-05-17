@@ -32,6 +32,7 @@
 
 unsigned int xthread::_nestingLevel = 0;
 int xthread::_tid;
+int xthread::_thunkId;
 
 void * xthread::spawn(threadFunction * fn, void * arg, int parent_index) {
   // Allocate an object to hold the thread's return value.

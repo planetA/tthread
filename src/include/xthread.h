@@ -52,6 +52,9 @@ private:
 	/// What is this thread's PID?
 	static int _tid;
 
+	/// represent sub-computation between synchronisation points
+	static int _thunkId;
+
 public:
 
 	//xthread(void) : _nestingLevel(0), _protected(false) {}
@@ -73,8 +76,20 @@ public:
 		return _tid;
 	}
 
+  static inline int getThunkId(void) {
+    return _thunkId;
+  }
+
 	static inline void setId(int id) {
+		if (id != _tid) {
+			// reset thunkId for every new thread
+			_thunkId = 0;
+		}
 		_tid = id;
+	}
+
+	static inline void startThunk() {
+		_thunkId++;
 	}
 
 private:

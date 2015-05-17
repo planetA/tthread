@@ -35,6 +35,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <ucontext.h>
 #endif
 
 #include <set>
@@ -51,6 +52,8 @@
 #include "xpageentry.h"
 #include "objectheader.h"
 #include "internalheap.h"
+
+#include "xpagelog.h"
 // Encapsulates all memory spaces (globals & heap).
 
 class xmemory {
@@ -84,6 +87,8 @@ public:
 
     // Initialize the internal heap.
     InternalHeap::getInstance().initialize();
+
+    xpagelog::getInstance().initialize();
   }
 
   static void finalize(void) {
@@ -149,11 +154,11 @@ public:
     }
   }
 
-  static inline void handleAccess(void * addr) {
+  static inline void handleAccess(void * addr, bool is_write) {
     if (_pheap.inRange(addr)) {
-      _pheap.handleAccess(addr);
+      _pheap.handleAccess(addr, is_write);
     } else if (_globals.inRange(addr)) {
-      _globals.handleAccess(addr);
+      _globals.handleAccess(addr, is_write);
     }
     else {
       // None of the above - something is wrong.
@@ -192,12 +197,14 @@ public:
   /* Signal-related functions for tracking page accesses. */
 
   /// @brief Signal handler to trap SEGVs.
-  static void segvHandle(int signum, siginfo_t * siginfo, void * context) {
+  static void segvHandle(int signum, siginfo_t * siginfo, void* context) {
     void * addr = siginfo->si_addr; // address of access
 
     // Check if this was a SEGV that we are supposed to trap.
     if (siginfo->si_code == SEGV_ACCERR) {
-      xmemory::handleAccess(addr);
+      // XXX this check is x86_64 specific
+      bool is_write = ((ucontext_t*)context)->uc_mcontext.gregs[REG_ERR] & 0x2;
+      xmemory::handleAccess(addr, is_write);
     } else if (siginfo->si_code == SEGV_MAPERR) {
       fprintf (stderr, "%d : map error with addr %p!\n", getpid(), addr);
       ::abort();
