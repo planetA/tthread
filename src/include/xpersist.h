@@ -189,7 +189,7 @@ public:
 
     _isProtected = false;
 
-    DEBUG("xpersist intialize: transient = %p, persistent = %p, size = %x",
+    DEBUG("xpersist intialize: transient = %p, persistent = %p, size = %zx",
           _transientMemory,
           _persistentMemory,
           size());

@@ -599,9 +599,9 @@ public:
     myentry->status = STATUS_READY;
 
     DEBUG("%d: pthread_join, pass token to %d before unlock\n",
-          _tokenpos->threadindex);
+          myindex, _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: pthread_join, pass token to %d before unlock\n",
-                   _tokenpos->threadindex);
+                   myindex, _tokenpos->threadindex);
 
     unlock();
 
@@ -665,9 +665,9 @@ public:
     _tokenpos = nextentry;
 
     DEBUG("%d: deregistering. Token is passed to %d\n",
-          getpid(), (ThreadEntry *)_tokenpos->threadindex);
+          getpid(), _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: deregistering. Token is passed to %d\n", threadindex,
-                   (ThreadEntry *)_tokenpos->threadindex);
+                   _tokenpos->threadindex);
 
     unlock();
   }

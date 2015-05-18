@@ -83,7 +83,7 @@ public:
     assert(GLOBALS_SIZE <= xdefines::MAX_GLOBALS_SIZE);
 # define NDEBUG 1
 #endif // ifdef NDEBUG
-    DEBUG("GLOBALS_START is %lx, global_start %lx\n",
+    DEBUG("GLOBALS_START is %lx, global_start %d\n",
           GLOBALS_START,
           __data_start);
   }

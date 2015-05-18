@@ -182,7 +182,7 @@ public:
 
     xmemory::finalcommit(false);
 
-    DEBUG("%d: thread %d deregister, get token\n", getpid(), _thread_index);
+    DEBUG("%d: thread %lu deregister, get token\n", getpid(), _thread_index);
     atomicEnd(false);
 
     // Remove current thread and decrease the fence
