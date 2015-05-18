@@ -1,13 +1,13 @@
 #define _XOPEN_SOURCE 700
-#include <pthread.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <sys/mman.h>
 #include <linux/limits.h>
 #include <pthread.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #define PAGE_SIZE (4096)
@@ -28,20 +28,24 @@ int setup_test_input()
 {
   const char template[] = "tracetest.XXXXXX";
   char fname[PATH_MAX];
+
   strcpy(fname, template);
   int testfd = mkstemp(fname);
+
   if (testfd < 0) {
     perror("Could not create tempfile");
     return -1;
   }
 
   int rc = ftruncate(testfd, NUM_BYTES);
+
   if (rc < 0) {
     perror("Failed to resize tempfile");
     goto cleanup;
   }
 
   void *buf = mmap(0, NUM_BYTES, PROT_WRITE, MAP_SHARED, testfd, 0);
+
   if (buf == MAP_FAILED) {
     perror("Failed to create mapping");
     goto cleanup;
@@ -49,6 +53,7 @@ int setup_test_input()
 
   memset(buf, 1, NUM_BYTES);
   rc = munmap(buf, NUM_BYTES);
+
   if (rc < 0) {
     perror("Failed to unmap file");
     goto cleanup;
@@ -65,7 +70,7 @@ int setup_test_input()
 
   return testfd2;
 
-cleanup:
+  cleanup:
   unlink(fname);
   close(testfd);
   return -1;
@@ -73,9 +78,10 @@ cleanup:
 
 void *sumfile(void *arg)
 {
-  job_t* job = (job_t*) arg;
+  job_t *job = (job_t *)arg;
   int local_sum = 0;
   char *buf = job->buf;
+
   for (int i = 0; i < job->size; i++) {
     local_sum += buf[i];
   }
@@ -84,16 +90,18 @@ void *sumfile(void *arg)
   sum += local_sum;
   pthread_mutex_unlock(&mutexsum);
 
-  pthread_exit((void*) 0);
+  pthread_exit((void *)0);
 }
 
 int main(int argc, const char *argv[])
 {
   int fd = setup_test_input();
+
   if (fd < 0) {
     return 1;
   }
   void *buf = mmap(0, NUM_BYTES, PROT_READ, MAP_SHARED, fd, 0);
+
   if (buf == MAP_FAILED) {
     perror("Failed to create mapping");
     close(fd);
@@ -106,6 +114,7 @@ int main(int argc, const char *argv[])
   pthread_mutex_init(&mutexsum, NULL);
 
   const int per_thread = (NUM_BYTES / NUM_THREADS);
+
   for (int i = 0; i < NUM_THREADS; i++) {
     job_t job = {
       .buf = buf + (per_thread * i),
@@ -117,10 +126,12 @@ int main(int argc, const char *argv[])
   pthread_attr_destroy(&attr);
 
   void *status;
+
   for (int i = 0; i < NUM_THREADS; i++) {
     pthread_join(threads[i], &status);
   }
   int rc = 0;
+
   if (sum != NUM_BYTES) {
     printf("Expected sum to equal %d, got: %d\n", NUM_BYTES, sum);
     rc = 1;

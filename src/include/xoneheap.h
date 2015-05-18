@@ -1,23 +1,23 @@
 // -*- C++ -*-
 
 /*
- Author: Emery Berger, http://www.cs.umass.edu/~emery
+   Author: Emery Berger, http://www.cs.umass.edu/~emery
 
- Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
+   Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
 
@@ -35,15 +35,17 @@
 template<class SourceHeap>
 class xoneheap {
 public:
-  xoneheap() {
-  }
+
+  xoneheap() {}
 
   void initialize(void) {
     getHeap()->initialize();
   }
+
   void finalize(void) {
     getHeap()->finalize();
   }
+
   void begin(bool cleanup) {
     getHeap()->begin(cleanup);
   }
@@ -52,7 +54,7 @@ public:
     getHeap()->finalcommit(release);
   }
 
-  void forceCommit(int pid, void * end) {
+  void forceCommit(int pid, void *end) {
     getHeap()->forceCommitOwnedPages(pid, end);
   }
 
@@ -60,7 +62,7 @@ public:
     getHeap()->checkandcommit(update);
   }
 
-  void * getend(void) {
+  void *getend(void) {
     return getHeap()->getend();
   }
 
@@ -71,6 +73,7 @@ public:
   void openProtection(void *end) {
     getHeap()->openProtection(end);
   }
+
   void closeProtection(void) {
     getHeap()->closeProtection();
   }
@@ -79,10 +82,11 @@ public:
     return getHeap()->nop();
   }
 
-  bool inRange(void * ptr) {
+  bool inRange(void *ptr) {
     return getHeap()->inRange(ptr);
   }
-  void handleAccess(void * ptr, bool is_write) {
+
+  void handleAccess(void *ptr, bool is_write) {
     getHeap()->handleAccess(ptr, is_write);
   }
 
@@ -94,7 +98,7 @@ public:
     getHeap()->commitOwnedPage(page_no, set_shared);
   }
 
-  bool mem_write(void * dest, void *val) {
+  bool mem_write(void *dest, void *val) {
     return getHeap()->mem_write(dest, val);
   }
 
@@ -102,24 +106,27 @@ public:
     return getHeap()->setThreadIndex(index);
   }
 
-  void * malloc(size_t sz) {
+  void *malloc(size_t sz) {
     return getHeap()->malloc(sz);
   }
-  void free(void * ptr) {
+
+  void free(void *ptr) {
     getHeap()->free(ptr);
   }
-  size_t getSize(void * ptr) {
+
+  size_t getSize(void *ptr) {
     return getHeap()->getSize(ptr);
   }
+
 private:
 
-  SourceHeap * getHeap(void) {
+  SourceHeap *getHeap(void) {
     static char heapbuf[sizeof(SourceHeap)];
-    static SourceHeap * _heap = new (heapbuf) SourceHeap;
-    //fprintf (stderr, "heapbuf is %p\n", _heap);
+    static SourceHeap *_heap = new (heapbuf)SourceHeap;
+
+    // fprintf (stderr, "heapbuf is %p\n", _heap);
     return _heap;
   }
-
 };
 
 #endif // _XONEHEAP_H_

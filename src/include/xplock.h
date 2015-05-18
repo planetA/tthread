@@ -2,11 +2,11 @@
 #define _XPLOCK_H_
 
 #if !defined(_WIN32)
-#include <pthread.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif
+# include <pthread.h>
+# include <sys/mman.h>
+# include <sys/types.h>
+# include <unistd.h>
+#endif // if !defined(_WIN32)
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -35,7 +35,12 @@ public:
     pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
 
     // Instantiate the lock structure inside a shared mmap.
-    _lock = (pthread_mutex_t *)mmap(NULL, xdefines::PageSize, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    _lock = (pthread_mutex_t *)mmap(NULL,
+                                    xdefines::PageSize,
+                                    PROT_READ | PROT_WRITE,
+                                    MAP_SHARED | MAP_ANONYMOUS,
+                                    -1,
+                                    0);
     pthread_mutex_init(_lock, &attr);
   }
 
@@ -52,7 +57,7 @@ public:
 private:
 
   /// A pointer to the lock.
-  pthread_mutex_t * _lock;
+  pthread_mutex_t *_lock;
 };
 
-#endif
+#endif // ifndef _XPLOCK_H_

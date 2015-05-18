@@ -1,21 +1,22 @@
 #ifndef __LIST_H__
 #define __LIST_H__
+
 /*
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+ */
 
 /*
  * @file   list.h
@@ -26,11 +27,11 @@
 #include <map>
 
 #if !defined(_WIN32)
-#include <pthread.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif
+# include <pthread.h>
+# include <sys/mman.h>
+# include <sys/types.h>
+# include <unistd.h>
+#endif // if !defined(_WIN32)
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -38,21 +39,21 @@
 
 extern "C" {
 struct Entry {
-  Entry * prev;
-  Entry * next;
+  Entry *prev;
+  Entry *next;
 };
 
-inline bool isEmpty(Entry ** head) {
-  return (*head == NULL ? true : false);
+inline bool isEmpty(Entry **head) {
+  return *head == NULL ? true : false;
 }
 
-inline Entry * nextEntry(Entry * current) {
+inline Entry *nextEntry(Entry *current) {
   return current->next;
 }
 
-inline void moveWholeList(Entry * prev, Entry ** src) {
-  Entry * next;
-  Entry * srchead, *srctail;
+inline void moveWholeList(Entry *prev, Entry **src) {
+  Entry *next;
+  Entry *srchead, *srctail;
 
   if (*src == NULL) {
     // Nothing to move
@@ -73,13 +74,12 @@ inline void moveWholeList(Entry * prev, Entry ** src) {
   srctail->next = next;
   prev->next = srchead;
 
-  //If we move out all whole list, now *src is point to NULL.
+  // If we move out all whole list, now *src is point to NULL.
   *src = NULL;
-  return;
 }
 
 // Insert one entry to specified list.
-inline void insertTail(Entry * entry, Entry ** head) {
+inline void insertTail(Entry *entry, Entry **head) {
   int i = 0;
 
   // If it is empty, simply set head pointer to current node.
@@ -88,8 +88,8 @@ inline void insertTail(Entry * entry, Entry ** head) {
     entry->prev = entry;
     entry->next = entry;
   } else {
-    Entry * header = *head;
-    Entry * tail = header->prev;
+    Entry *header = *head;
+    Entry *tail = header->prev;
 
     // Modify the next and previous entry.
     tail->next = entry;
@@ -99,17 +99,16 @@ inline void insertTail(Entry * entry, Entry ** head) {
     entry->prev = tail;
     entry->next = header;
   }
-  return;
 }
 
 // Insert one entry to specified list. Here, we assume that
 // the target list is not empty (at least one element inside).
-inline void insertHead(Entry * entry, Entry ** head) {
+inline void insertHead(Entry *entry, Entry **head) {
   int i = 0;
 
   // If it is empty, simply set head pointer to current node.
-  Entry * header = *head;
-  Entry * next = header->next;
+  Entry *header = *head;
+  Entry *next = header->next;
 
   // Modify the next and previous entry.
   header->next = entry;
@@ -118,31 +117,30 @@ inline void insertHead(Entry * entry, Entry ** head) {
   // Modify the global head pointer.
   entry->prev = header;
   entry->next = next;
-  return;
 }
 
 // Insert one entry to specified list.
-inline void insertNext(Entry * entry, Entry * prev) {
-  Entry * next = prev->next;
+inline void insertNext(Entry *entry, Entry *prev) {
+  Entry *next = prev->next;
 
   // Modify correponding pointers.
   next->prev = entry;
   entry->prev = prev;
   entry->next = next;
   prev->next = entry;
-  return;
 }
 
 // Remove one entry from specified list.
-inline void removeEntry(Entry * entry, Entry ** head) {
-  Entry * prev, *next;
+inline void removeEntry(Entry *entry, Entry **head) {
+  Entry *prev, *next;
 
   assert(*head != NULL);
 
   prev = entry->prev;
   next = entry->next;
 
-  if (prev == entry && next == entry) {
+  if ((prev == entry)
+      && (next == entry)) {
     // This is the last entry in this list.
     *head = NULL;
   } else {
@@ -157,35 +155,36 @@ inline void removeEntry(Entry * entry, Entry ** head) {
   }
 }
 
-inline void printEntries(Entry ** head) {
-  Entry * first, * entry;
+inline void printEntries(Entry **head) {
+  Entry *first, *entry;
   int i = 0;
+
   entry = *head;
   first = entry;
 
   fprintf(stderr, "%d: PRINTENTY first %p\n", getpid(), first);
+
   do {
-    if(!entry)
+    if (!entry) {
       break;
+    }
     fprintf(stderr, "%d: PRINTENTRY %d, entry %p\n", getpid(), i++, entry);
     entry = entry->next;
-  }while(entry != first && i <10);
-
-  return;
+  } while (entry != first
+           && i < 10);
 }
 
 // Remove the head entry from specified list.
 // We also return the address for this entry.
-inline Entry * removeHeadEntry(Entry ** head) {
+inline Entry *removeHeadEntry(Entry **head) {
   // If list is empty.
   if (*head == NULL) {
     return NULL;
   }
 
-  Entry * header = *head;
+  Entry *header = *head;
   removeEntry(header, head);
-  return (header);
+  return header;
 }
-
 };
 #endif /* __ALIVETHREADS_H__ */

@@ -5,18 +5,21 @@
 
 class xpagelogentry {
 public:
+
   enum accessType {
     WRITE,
     READ,
   };
 
 private:
+
   int pageNo;
   int threadIndex;
   int thunkId;
   accessType access;
 
 public:
+
   xpagelogentry(int pageNo, accessType access)
     : pageNo(pageNo),
     access(access)
@@ -28,12 +31,15 @@ public:
   inline int getPageNo() {
     return pageNo;
   }
+
   inline int getThreadIndex() {
     return threadIndex;
   }
+
   inline int getThunkId() {
     return thunkId;
   }
+
   inline int getAccess() {
     return access;
   }

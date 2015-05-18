@@ -6,9 +6,9 @@
 #include <errno.h>
 
 #if !defined(_WIN32)
-#include <sys/wait.h>
-#include <sys/types.h>
-#endif
+# include <sys/types.h>
+# include <sys/wait.h>
+#endif // if !defined(_WIN32)
 
 #include <stdlib.h>
 
@@ -22,7 +22,7 @@
 
 extern "C" {
 // The type of a pthread function.
-typedef void * threadFunction(void *);
+typedef void *threadFunction (void *);
 }
 
 class xrun;
@@ -30,82 +30,98 @@ class xrun;
 class xthread {
 private:
 
-	/// @class ThreadStatus
-	/// @brief Holds the thread id and the return value.
-	class ThreadStatus {
-	public:
-		ThreadStatus(void * r, bool f) : retval(r), forked(f) {}
+  /// @class ThreadStatus
+  /// @brief Holds the thread id and the return value.
+  class ThreadStatus {
+public:
 
-		ThreadStatus(void) {}
+    ThreadStatus(void *r, bool f) : retval(r), forked(f) {}
 
-		volatile int tid;
+    ThreadStatus(void) {}
 
-		int threadIndex;
-		void * retval;
+    volatile int tid;
 
-		bool forked;
-	};
+    int threadIndex;
+    void *retval;
 
-	/// Current nesting level (i.e., how deep we are in recursive threads).
-	static unsigned int _nestingLevel;
+    bool forked;
+  };
 
-	/// What is this thread's PID?
-	static int _tid;
+  /// Current nesting level (i.e., how deep we are in recursive threads).
+  static unsigned int _nestingLevel;
 
-	/// represent sub-computation between synchronisation points
-	static int _thunkId;
+  /// What is this thread's PID?
+  static int _tid;
+
+  /// represent sub-computation between synchronisation points
+  static int _thunkId;
 
 public:
 
-	//xthread(void) : _nestingLevel(0), _protected(false) {}
+  // xthread(void) : _nestingLevel(0), _protected(false) {}
 
-	static void * spawn(threadFunction * fn, void * arg, int threadindex);
+  static void *spawn(threadFunction *fn,
+                     void           *arg,
+                     int            threadindex);
 
-	static void join(void * v, void ** result);
+  static void join(void *v,
+                   void **result);
 
-	static int cancel(void * v);
-	static int thread_kill(void * v, int sig);
+  static int cancel(void *v);
+  static int thread_kill(void *v,
+                         int  sig);
 
-	// The following functions are trying to get id or thread index of specified thread.
-	static int getThreadIndex(void *v);
-	static int getThreadPid(void *v);
+  // The following functions are trying to get id or thread index of specified
+  // thread.
+  static int getThreadIndex(void *v);
+  static int getThreadPid(void *v);
 
-	// getId is trying to get id for current thread, the function
-	// is called by current thread.
-	static inline int getId(void) {
-		return _tid;
-	}
+  // getId is trying to get id for current thread, the function
+  // is called by current thread.
+  static inline int getId(void) {
+    return _tid;
+  }
 
   static inline int getThunkId(void) {
     return _thunkId;
   }
 
-	static inline void setId(int id) {
-		if (id != _tid) {
-			// reset thunkId for every new thread
-			_thunkId = 0;
-		}
-		_tid = id;
-	}
+  static inline void setId(int id) {
+    if (id != _tid) {
+      // reset thunkId for every new thread
+      _thunkId = 0;
+    }
+    _tid = id;
+  }
 
-	static inline void startThunk() {
-		_thunkId++;
-	}
+  static inline void startThunk() {
+    _thunkId++;
+  }
 
 private:
 
-	static void * forkSpawn(threadFunction * fn, ThreadStatus * t, void * arg, int threadindex);
+  static void *forkSpawn(threadFunction *fn,
+                         ThreadStatus   *t,
+                         void           *arg,
+                         int            threadindex);
 
-	static void run_thread(threadFunction * fn, ThreadStatus * t, void * arg);
+  static void run_thread(threadFunction *fn,
+                         ThreadStatus   *t,
+                         void           *arg);
 
-	/// @return a chunk of memory shared across processes.
-	static void * allocateSharedObject(size_t sz) {
-		return mmap(NULL, sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	}
+  /// @return a chunk of memory shared across processes.
+  static void *allocateSharedObject(size_t sz) {
+    return mmap(NULL,
+                sz,
+                PROT_READ | PROT_WRITE,
+                MAP_SHARED | MAP_ANONYMOUS,
+                -1,
+                0);
+  }
 
-	static void freeSharedObject(void * ptr, size_t sz) {
-		munmap(ptr, sz);
-	}
+  static void freeSharedObject(void *ptr, size_t sz) {
+    munmap(ptr, sz);
+  }
 };
 
-#endif
+#endif // ifndef _XTHREAD_H_

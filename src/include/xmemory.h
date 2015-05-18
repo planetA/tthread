@@ -1,20 +1,21 @@
 // -*- C++ -*-
+
 /*
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+ */
 
 /*
  * @file   xmemory.h
@@ -30,13 +31,13 @@
 #include <signal.h>
 
 #if !defined(_WIN32)
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <ucontext.h>
-#endif
+# include <fcntl.h>
+# include <sys/socket.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <ucontext.h>
+# include <unistd.h>
+#endif // if !defined(_WIN32)
 
 #include <set>
 
@@ -46,23 +47,26 @@
 #include "heaplayers/stlallocator.h"
 #include "warpheap.h"
 
-#include "xoneheap.h"
 #include "xheap.h"
+#include "xoneheap.h"
 
-#include "xpageentry.h"
-#include "objectheader.h"
 #include "internalheap.h"
+#include "objectheader.h"
+#include "xpageentry.h"
 
 #include "xpagelog.h"
+
 // Encapsulates all memory spaces (globals & heap).
 
 class xmemory {
 private:
+
   /// The globals region.
   static xglobals _globals;
 
   /// Protected heap.
-  static warpheap<xdefines::NUM_HEAPS, xdefines::PROTECTEDHEAP_CHUNK, xoneheap<xheap<xdefines::PROTECTEDHEAP_SIZE> > > _pheap;
+  static warpheap<xdefines::NUM_HEAPS, xdefines::PROTECTEDHEAP_CHUNK,
+                  xoneheap<xheap<xdefines::PROTECTEDHEAP_SIZE> > >_pheap;
 
   /// A signal stack, for catching signals.
   static stack_t _sigstk;
@@ -76,11 +80,13 @@ public:
 
   static void initialize(void) {
     DEBUG("initializing xmemory");
+
     // Intercept SEGV signals (used for trapping initial reads and
     // writes to pages).
     installSignalHandler();
 
-    // Call _pheap so that xheap.h can be initialized at first and then can work normally.
+    // Call _pheap so that xheap.h can be initialized at first and then can work
+    // normally.
     _pheap.initialize();
     _globals.initialize();
     xpageentry::getInstance().initialize();
@@ -105,13 +111,15 @@ public:
   }
 
   static inline void *malloc(size_t sz) {
-    void * ptr = _pheap.malloc(_heapid, sz);
+    void *ptr = _pheap.malloc(_heapid, sz);
+
     return ptr;
   }
 
-  static inline void * realloc(void * ptr, size_t sz) {
+  static inline void *realloc(void *ptr, size_t sz) {
     size_t s = getSize(ptr);
-    void * newptr = malloc(sz);
+    void *newptr = malloc(sz);
+
     if (newptr) {
       size_t copySz = (s < sz) ? s : sz;
       memcpy(newptr, ptr, copySz);
@@ -120,12 +128,12 @@ public:
     return newptr;
   }
 
-  static inline void free(void * ptr) {
+  static inline void free(void *ptr) {
     return _pheap.free(_heapid, ptr);
   }
 
   /// @return the allocated size of a dynamically-allocated object.
-  static inline size_t getSize(void * ptr) {
+  static inline size_t getSize(void *ptr) {
     // Just pass the pointer along to the heap.
     return _pheap.getSize(ptr);
   }
@@ -146,21 +154,20 @@ public:
     _pheap.begin(cleanup);
   }
 
-  static void mem_write(void * dest, void *val) {
-    if(_pheap.inRange(dest)) {
+  static void mem_write(void *dest, void *val) {
+    if (_pheap.inRange(dest)) {
       _pheap.mem_write(dest, val);
-    } else if(_globals.inRange(dest)) {
+    } else if (_globals.inRange(dest)) {
       _globals.mem_write(dest, val);
     }
   }
 
-  static inline void handleAccess(void * addr, bool is_write) {
+  static inline void handleAccess(void *addr, bool is_write) {
     if (_pheap.inRange(addr)) {
       _pheap.handleAccess(addr, is_write);
     } else if (_globals.inRange(addr)) {
       _globals.handleAccess(addr, is_write);
-    }
-    else {
+    } else {
       // None of the above - something is wrong.
       fprintf(stderr, "%d: wrong faulted address\n", getpid());
       assert(0);
@@ -191,30 +198,30 @@ public:
     _pheap.finalcommit(release);
   }
 
-
 public:
 
   /* Signal-related functions for tracking page accesses. */
 
   /// @brief Signal handler to trap SEGVs.
-  static void segvHandle(int signum, siginfo_t * siginfo, void* context) {
-    void * addr = siginfo->si_addr; // address of access
+  static void segvHandle(int signum, siginfo_t *siginfo, void *context) {
+    void *addr = siginfo->si_addr; // address of access
 
     // Check if this was a SEGV that we are supposed to trap.
     if (siginfo->si_code == SEGV_ACCERR) {
       // XXX this check is x86_64 specific
-      bool is_write = ((ucontext_t*)context)->uc_mcontext.gregs[REG_ERR] & 0x2;
+      bool is_write = ((ucontext_t *)context)->uc_mcontext.gregs[REG_ERR] & 0x2;
       xmemory::handleAccess(addr, is_write);
     } else if (siginfo->si_code == SEGV_MAPERR) {
-      fprintf (stderr, "%d : map error with addr %p!\n", getpid(), addr);
+      fprintf(stderr, "%d : map error with addr %p!\n", getpid(), addr);
       ::abort();
     } else {
-      fprintf (stderr, "%d : other access error with addr %p.\n", getpid(), addr);
+      fprintf(stderr, "%d : other access error with addr %p.\n", getpid(),
+              addr);
       ::abort();
     }
   }
 
-  static void signalHandler(int signum, siginfo_t * siginfo, void * context) {
+  static void signalHandler(int signum, siginfo_t *siginfo, void *context) {
     union sigval signal = siginfo->si_value;
     int page_no;
 
@@ -225,13 +232,15 @@ public:
   /// @brief Install a handler for SEGV signals.
   static void installSignalHandler(void) {
 #if defined(linux)
+
     // Set up an alternate signal stack.
     _sigstk.ss_sp = mmap(NULL, SIGSTKSZ, PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANON, -1, 0);
+                         MAP_PRIVATE | MAP_ANON, -1, 0);
     _sigstk.ss_size = SIGSTKSZ;
     _sigstk.ss_flags = 0;
-    sigaltstack(&_sigstk, (stack_t *) 0);
-#endif
+    sigaltstack(&_sigstk, (stack_t *)0);
+#endif // if defined(linux)
+
     // Now set up a signal handler for SIGSEGV events.
     struct sigaction siga;
     sigemptyset(&siga.sa_mask);
@@ -245,11 +254,12 @@ public:
     // Point to the handler function.
 #if defined(linux)
     siga.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART | SA_NODEFER;
-#else
+#else // if defined(linux)
     siga.sa_flags = SA_SIGINFO | SA_RESTART;
-#endif
+#endif // if defined(linux)
 
     siga.sa_sigaction = xmemory::segvHandle;
+
     if (sigaction(SIGSEGV, &siga, NULL) == -1) {
       perror("sigaction(SIGSEGV)");
       exit(-1);
@@ -257,7 +267,8 @@ public:
 
     // We set the signal handler
     siga.sa_sigaction = xmemory::signalHandler;
-    if (sigaction (SIGUSR1, &siga, NULL) == -1) {
+
+    if (sigaction(SIGUSR1, &siga, NULL) == -1) {
       perror("sigaction(SIGUSR1)");
       exit(-1);
     }
@@ -266,4 +277,4 @@ public:
   }
 };
 
-#endif
+#endif // ifndef _XMEMORY_H_

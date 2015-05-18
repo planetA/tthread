@@ -1,23 +1,23 @@
 // -*- C++ -*-
 
 /*
- Author: Emery Berger, http://www.cs.umass.edu/~emery
+   Author: Emery Berger, http://www.cs.umass.edu/~emery
 
- Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
+   Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
 
@@ -31,11 +31,11 @@
 
 #ifndef _XDEFINES_H_
 #define _XDEFINES_H_
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <syscall.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
 
 #include "prof.h"
 
@@ -48,21 +48,22 @@ extern runtime_data_t *global_data;
 
 class xdefines {
 public:
-  enum { STACK_SIZE = 1024 * 1024 } ; // 1 * 1048576 };
-  //enum { PROTECTEDHEAP_SIZE = 1048576UL * 2048}; // FIX ME 512 };
+
+  enum { STACK_SIZE = 1024 * 1024 };              // 1 * 1048576 };
+  // enum { PROTECTEDHEAP_SIZE = 1048576UL * 2048}; // FIX ME 512 };
 #ifdef X86_32BIT
-  enum { PROTECTEDHEAP_SIZE = 1048576UL * 1024}; // FIX ME 512 };
-#else
-  enum { PROTECTEDHEAP_SIZE = 1048576UL * 4096}; // FIX ME 512 };
-#endif
+  enum { PROTECTEDHEAP_SIZE = 1048576UL * 1024 }; // FIX ME 512 };
+#else // ifdef X86_32BIT
+  enum { PROTECTEDHEAP_SIZE = 1048576UL * 4096 }; // FIX ME 512 };
+#endif // ifdef X86_32BIT
   enum { PROTECTEDHEAP_CHUNK = 10485760 };
 
   enum { MAX_GLOBALS_SIZE = 1048576UL * 40 };
   enum { INTERNALHEAP_SIZE = 1048576UL * 100 }; // FIXME 10M
   enum { PageSize = 4096UL };
-  enum { PAGE_SIZE_MASK = (PageSize-1) };
-  enum { NUM_HEAPS = 32 }; // was 16
+  enum { PAGE_SIZE_MASK = (PageSize - 1) };
+  enum { NUM_HEAPS = 32 };                      // was 16
   enum { LOCK_OWNER_BUDGET = 10 };
 };
 
-#endif
+#endif // ifndef _XDEFINES_H_

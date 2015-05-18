@@ -3,21 +3,21 @@
 #define _XBITMAP_H_
 
 /*
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+ */
 
 /*
  * @file   xbitmap.h
@@ -28,99 +28,104 @@
 #include <errno.h>
 
 #if !defined(_WIN32)
-#include <sys/wait.h>
-#include <sys/types.h>
-#endif
+# include <sys/types.h>
+# include <sys/wait.h>
+#endif // if !defined(_WIN32)
 
 #include <stdlib.h>
 
 #include "xdefines.h"
 
 class xbitmap {
-	// Now one bitmap for each page is 512 bytes.
-	enum {
-		BITMAP_SIZE_PER_PAGE = 4096
-	};
-	enum {
-		INITIAL_PAGES = 81920
-	};
+  // Now one bitmap for each page is 512 bytes.
+  enum {
+    BITMAP_SIZE_PER_PAGE = 4096
+  };
+  enum {
+    INITIAL_PAGES = 81920
+  };
 
 public:
-	xbitmap() {
-	}
 
-	static xbitmap& getInstance(void) {
-		static char buf[sizeof(xbitmap)];
-		static xbitmap * theOneTrueObject = new (buf) xbitmap();
-		return *theOneTrueObject;
-	}
+  xbitmap() {}
 
-	void initialize(void) {
-		int offset = 0;
-		char * ptr;
+  static xbitmap& getInstance(void) {
+    static char buf[sizeof(xbitmap)];
+    static xbitmap *theOneTrueObject = new (buf)xbitmap();
 
-		ptr = (char *) mmap(NULL, BITMAP_SIZE_PER_PAGE * (INITIAL_PAGES + 10),
-				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    return *theOneTrueObject;
+  }
 
-		if (ptr == NULL) {
-			fprintf(stderr, "%d fail to initialize bit map: %s\n", getpid(),
-					strerror(errno));
-			::abort();
-		}
+  void initialize(void) {
+    int offset = 0;
+    char *ptr;
 
-		// Assign the address for different variables.
-		_cur = (int *) &ptr[offset];
-		offset += sizeof(int);
+    ptr = (char *)mmap(NULL, BITMAP_SIZE_PER_PAGE * (INITIAL_PAGES + 10),
+                       PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1,
+                       0);
 
-		_versionStart = (int *) &ptr[offset];
+    if (ptr == NULL) {
+      fprintf(stderr, "%d fail to initialize bit map: %s\n", getpid(),
+              strerror(errno));
+      ::abort();
+    }
 
-		_pageStart = (int*)((intptr_t) ptr + 2 * xdefines::PageSize);
+    // Assign the address for different variables.
+    _cur = (int *)&ptr[offset];
+    offset += sizeof(int);
 
-		// We will start as one since we think that bitmapIndex equal to 0 means no bitmap before.
-		*_cur = 1;
-		_total = INITIAL_PAGES;
-	}
+    _versionStart = (int *)&ptr[offset];
 
-	int get(void) {
-		int index;
+    _pageStart = (int *)((intptr_t)ptr + 2 * xdefines::PageSize);
 
-		if ((*_cur + 1) < _total) {
-			index = *_cur;
-			(*_cur)++;
-		} else {
-			// we may want to increase the size of bitmap automatically in the future.
-			fprintf(stderr, "%d: not enough bitmap _cur is %d????\n", getpid(), *_cur);
-			assert(0);
-		}
-		return index;
-	}
+    // We will start as one since we think that bitmapIndex equal to 0 means no
+    // bitmap before.
+    *_cur = 1;
+    _total = INITIAL_PAGES;
+  }
 
-	void * getAddress(int index) {
-		return ((void *) ((intptr_t) _pageStart + index * BITMAP_SIZE_PER_PAGE));
-	}
+  int get(void) {
+    int index;
 
-	void setVersion(int index, int version) {
-		_versionStart[index] = version;
-	}
+    if ((*_cur + 1) < _total) {
+      index = *_cur;
+      (*_cur)++;
+    } else {
+      // we may want to increase the size of bitmap automatically in the future.
+      fprintf(stderr, "%d: not enough bitmap _cur is %d????\n", getpid(),
+              *_cur);
+      assert(0);
+    }
+    return index;
+  }
 
-	int getVersion(int index) {
-		assert(index != 0);
-		return (_versionStart[index]);
-	}
+  void *getAddress(int index) {
+    return (void *)((intptr_t)_pageStart + index * BITMAP_SIZE_PER_PAGE);
+  }
 
-	// Cleanup will be called for every transaction.
-	void cleanup(void) {
-		// First, all used bitmap can be zeroed.
-		//		memset(_pageStart, 0 , (*_cur) * BITMAP_SIZE_PER_PAGE);
-		*_cur = 1;
-	}
+  void setVersion(int index, int version) {
+    _versionStart[index] = version;
+  }
+
+  int getVersion(int index) {
+    assert(index != 0);
+    return _versionStart[index];
+  }
+
+  // Cleanup will be called for every transaction.
+  void cleanup(void) {
+    // First, all used bitmap can be zeroed.
+    //		memset(_pageStart, 0 , (*_cur) * BITMAP_SIZE_PER_PAGE);
+    *_cur = 1;
+  }
 
 private:
-	// Current index of entry that need to be allocated.
-	int _total;
-	int * _cur;
-	int * _versionStart;
-	void * _pageStart;
+
+  // Current index of entry that need to be allocated.
+  int _total;
+  int *_cur;
+  int *_versionStart;
+  void *_pageStart;
 };
 
-#endif
+#endif // ifndef _XBITMAP_H_

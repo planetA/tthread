@@ -1,39 +1,43 @@
 #include <pthread.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Global lock */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void unit_work(void)
 {
-	int i;
-	for(i = 0; i < 100; i++) ;
-}
-void * child_thread(void * data)
-{
-	pthread_mutex_lock(&g_lock);
+  int i;
 
-	/* Do 1ms computation work. */
-	unit_work();
-
-	/* Page access */
-	pthread_mutex_lock(&g_lock);
-
-	return NULL;
+  for (i = 0; i < 100; i++) {}
 }
 
-
-int main(int argc,char**argv)
+void *child_thread(void *data)
 {
-	const int nThreads = 8;
-	pthread_t waiters[nThreads];
-	int i;
-	for(i = 0; i < nThreads; i++)
-		pthread_create (&waiters[i], NULL, child_thread, NULL);
+  pthread_mutex_lock(&g_lock);
 
-	for(i = 0; i < nThreads; i++)
-		pthread_join (waiters[i], NULL);
+  /* Do 1ms computation work. */
+  unit_work();
 
-	return 0;
+  /* Page access */
+  pthread_mutex_lock(&g_lock);
+
+  return NULL;
+}
+
+int main(int argc, char **argv)
+{
+  const int nThreads = 8;
+  pthread_t waiters[nThreads];
+  int i;
+
+  for (i = 0; i < nThreads; i++) {
+    pthread_create(&waiters[i], NULL, child_thread, NULL);
+  }
+
+  for (i = 0; i < nThreads; i++) {
+    pthread_join(waiters[i], NULL);
+  }
+
+  return 0;
 }

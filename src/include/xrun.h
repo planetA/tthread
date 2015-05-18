@@ -1,23 +1,23 @@
 // -*- C++ -*-
 
 /*
- Author: Emery Berger, http://www.cs.umass.edu/~emery
+   Author: Emery Berger, http://www.cs.umass.edu/~emery
 
- Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
+   Copyright (c) 2007-8 Emery Berger, University of Massachusetts Amherst.
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
 
@@ -56,8 +56,8 @@
 #include "debug.h"
 
 class xrun {
-
 private:
+
   static volatile bool _initialized;
   static volatile bool _protection_enabled;
   static size_t _master_thread_id;
@@ -68,7 +68,7 @@ private:
   static bool _token_holding;
 #ifdef TIME_CHECKING
   static struct timeinfo tstart;
-#endif
+#endif // ifdef TIME_CHECKING
 
 public:
 
@@ -112,8 +112,9 @@ public:
   // When there is only one thread in the system, memory is not
   // protected to avoid the memory protection overhead.
   static void openMemoryProtection(void) {
-    if (_protection_enabled)
+    if (_protection_enabled) {
       return;
+    }
 
     xmemory::openProtection();
     _protection_enabled = true;
@@ -122,6 +123,7 @@ public:
   // Close memory protection when there is only one thread alive.
   static void closeMemoryProtection(void) {
     xmemory::closeProtection();
+
     _protection_enabled = false;
   }
 
@@ -144,7 +146,8 @@ public:
   static inline int childRegister(int pid, int parentindex) {
     int threads;
 
-    // Get the global thread index for this thread, which will be used internally.
+    // Get the global thread index for this thread, which will be used
+    // internally.
     _thread_index = xatomic::increment_and_return(&global_data->thread_index);
     _lock_count = 0;
     _token_holding = false;
@@ -162,7 +165,7 @@ public:
     // We should cleanup all blocks information inherited from the parent.
     xmemory::cleanupOwnedBlocks();
 
-    return (_thread_index);
+    return _thread_index;
   }
 
   // New created threads are waiting until notify by main thread.
@@ -181,6 +184,7 @@ public:
 
     DEBUG("%d: thread %d deregister, get token\n", getpid(), _thread_index);
     atomicEnd(false);
+
     // Remove current thread and decrease the fence
     determ::getInstance().deregisterThread(_thread_index);
   }
@@ -194,8 +198,9 @@ public:
     global_data->thread_index = 1;
   }
 
-  static inline void forceThreadCommit(void * v) {
+  static inline void forceThreadCommit(void *v) {
     int pid;
+
     pid = xthread::getThreadPid(v);
     xmemory::forceCommit(pid);
   }
@@ -206,9 +211,9 @@ public:
   }
 
   /// @brief Spawn a thread.
-  static inline void * spawn(threadFunction * fn, void * arg) {
+  static inline void *spawn(threadFunction *fn, void *arg) {
     // If system is not protected, we should open protection.
-    if(!_protection_enabled) {
+    if (!_protection_enabled) {
       openMemoryProtection();
       atomicBegin(true);
     }
@@ -218,15 +223,18 @@ public:
     xmemory::finalcommit(true);
 
     // If fence is already enabled, then we should wait for token to proceed.
-    if(_fence_enabled) {
+    if (_fence_enabled) {
       waitToken();
 
       // In order to speedup the performance, we try to create as many children
-      // as possible once. So we set the _fence_enabled to false now, then current
+      // as possible once. So we set the _fence_enabled to false now, then
+      // current
       // thread don't need to wait on token anymore.
-      // Since other threads are either waiting on internal fence or waiting on the parent notification,
+      // Since other threads are either waiting on internal fence or waiting on
+      // the parent notification,
       // it will be fine to do so.
-      // When current thread are trying to wakeup the children threads, it will set
+      // When current thread are trying to wakeup the children threads, it will
+      // set
       // _fence_enabled to true again.
       _fence_enabled = false;
       _children_threads_count = 0;
@@ -234,7 +242,7 @@ public:
 
     _children_threads_count++;
 
-    void * ptr = xthread::spawn(fn, arg, _thread_index);
+    void *ptr = xthread::spawn(fn, arg, _thread_index);
 
     // Start a new transaction
     atomicBegin(true);
@@ -243,7 +251,7 @@ public:
   }
 
   /// @brief Wait for a thread.
-  static inline void join(void * v, void ** result) {
+  static inline void join(void *v, void **result) {
     int  child_threadindex = 0;
     bool wakeupChildren = false;
 
@@ -258,14 +266,14 @@ public:
     // No need to wait when fence is not started since join is the first
     // synchronization after spawning, other thread should wait for
     // the notification from me.
-    if(_fence_enabled) {
+    if (_fence_enabled) {
       waitToken();
     }
 
     atomicEnd(false);
     xmemory::finalcommit(true);
 
-    if(!_fence_enabled) {
+    if (!_fence_enabled) {
       startFence();
       wakeupChildren = true;
     }
@@ -273,9 +281,12 @@ public:
     // Get the joinee's thread index.
     child_threadindex = xthread::getThreadIndex(v);
 
-    // When child is not finished, current thread should wait on cond var until child is exited.
-    // It is possible that children has been exited, then it will make sure this.
-    determ::getInstance().join(child_threadindex, _thread_index, wakeupChildren);
+    // When child is not finished, current thread should wait on cond var until
+    // child is exited.
+    // It is possible that children has been exited, then it will make sure
+    // this.
+    determ::getInstance().join(child_threadindex, _thread_index,
+                               wakeupChildren);
 
     // Release the token.
     putToken();
@@ -291,7 +302,7 @@ public:
 
     // Check whether we can close protection at all.
     // If current thread is the only alive thread, then close the protection.
-    if(determ::getInstance().isSingleAliveThread()) {
+    if (determ::getInstance().isSingleAliveThread()) {
       closeMemoryProtection();
 
       // Do some cleanup for fence.
@@ -315,7 +326,7 @@ public:
     // to commit every owned page if we are using lazy commit mechanism.
     // It is important to call this function before xthread::cancel since
     // threadindex or threadpid information will be destroyed xthread::cancel.
-    if(isFound) {
+    if (isFound) {
       forceThreadCommit(v);
     }
     atomicBegin(true);
@@ -333,7 +344,8 @@ public:
   inline void kill(void *v, int sig) {
     int threadindex;
 
-    if(sig == SIGKILL || sig == SIGTERM) {
+    if ((sig == SIGKILL)
+        || (sig == SIGTERM)) {
       cancel(v);
     }
 
@@ -355,69 +367,79 @@ public:
   }
 
   /* Heap-related functions. */
-  static inline void * malloc(size_t sz) {
-    void * ptr = xmemory::malloc(sz);
-    //fprintf(stderr, "%d : malloc sz %d with ptr %p\n", _thread_index, sz, ptr);
+  static inline void *malloc(size_t sz) {
+    void *ptr = xmemory::malloc(sz);
+
+    // fprintf(stderr, "%d : malloc sz %d with ptr %p\n", _thread_index, sz,
+    // ptr);
     return ptr;
   }
 
-  static inline void * calloc(size_t nmemb, size_t sz) {
-    void * ptr = xmemory::malloc(nmemb * sz);
+  static inline void *calloc(size_t nmemb, size_t sz) {
+    void *ptr = xmemory::malloc(nmemb * sz);
+
     memset(ptr, 0, nmemb * sz);
     return ptr;
   }
 
   // In fact, we can delay to open its information about heap.
-  static inline void free(void * ptr) {
+  static inline void free(void *ptr) {
     xmemory::free(ptr);
   }
 
-  static inline size_t getSize(void * ptr) {
+  static inline size_t getSize(void *ptr) {
     return xmemory::getSize(ptr);
   }
 
-  static inline void * realloc(void * ptr, size_t sz) {
-    void * newptr;
-    //fprintf(stderr, "realloc ptr %p sz %x\n", ptr, sz);
+  static inline void *realloc(void *ptr, size_t sz) {
+    void *newptr;
+
+    // fprintf(stderr, "realloc ptr %p sz %x\n", ptr, sz);
     if (ptr == NULL) {
       newptr = xmemory::malloc(sz);
       return newptr;
     }
+
     if (sz == 0) {
       xmemory::free(ptr);
       return NULL;
     }
 
     newptr = xmemory::realloc(ptr, sz);
-    //fprintf(stderr, "realloc ptr %p sz %x\n", newptr, sz);
+
+    // fprintf(stderr, "realloc ptr %p sz %x\n", newptr, sz);
     return newptr;
   }
 
   ///// conditional variable functions.
-  static void cond_init(void * cond) {
+  static void cond_init(void *cond) {
     determ::getInstance().cond_init(cond);
   }
 
-  static void cond_destroy(void * cond) {
+  static void cond_destroy(void *cond) {
     determ::getInstance().cond_destroy(cond);
   }
 
   // Barrier support
   static int barrier_init(pthread_barrier_t *barrier, unsigned int count) {
-    //printf("BARRIERI_init with count %d\n", count);
+    // printf("BARRIERI_init with count %d\n", count);
     determ::getInstance().barrier_init(barrier, count);
+
     return 0;
   }
 
   static int barrier_destroy(pthread_barrier_t *barrier) {
     determ::getInstance().barrier_destroy(barrier);
+
     return 0;
   }
 
   ///// mutex functions
-  /// FIXME: maybe it is better to save those actual mutex address in original mutex.
-  static int mutex_init(pthread_mutex_t * mutex) {
+  /// FIXME: maybe it is better to save those actual mutex address in original
+  // mutex.
+  static int mutex_init(pthread_mutex_t *mutex) {
     determ::getInstance().lock_init((void *)mutex);
+
     return 0;
   }
 
@@ -451,22 +473,22 @@ public:
   // we will use condvar here.
   static void putToken(void) {
     // release the token and pass the token to next.
-    //fprintf(stderr, "%d: putToken\n", _thread_index);
+    // fprintf(stderr, "%d: putToken\n", _thread_index);
     determ::getInstance().putToken(_thread_index);
-  //  fprintf(stderr, "%d: putToken\n", getpid());
+
+    //  fprintf(stderr, "%d: putToken\n", getpid());
   }
 
   // FIXME: if we are trying to remove atomicEnd() before mutex_lock(),
   // we should unlock() this lock if abort(), otherwise, it will
   // cause the dead-lock().
-  static void mutex_lock(pthread_mutex_t * mutex) {
+  static void mutex_lock(pthread_mutex_t *mutex) {
     xthread::startThunk();
 
     if (!_fence_enabled) {
-      if(_children_threads_count == 0) {
+      if (_children_threads_count == 0) {
         return;
-      }
-      else {
+      } else {
         startFence();
 
         // Waking up all waiting children
@@ -480,38 +502,43 @@ public:
     // when lock_count equals to 0.
     _lock_count++;
 
-    if(determ::getInstance().lock_isowner(mutex) || determ::getInstance().isSingleWorkingThread()) {
+    if (determ::getInstance().lock_isowner(mutex)
+        || determ::getInstance().isSingleWorkingThread()) {
       // Then there is no need to acquire the lock.
       bool result = determ::getInstance().lock_acquire(mutex);
-      if(result == false) {
+
+      if (result == false) {
         goto getLockAgain;
       }
       return;
-    }
-    else {
-getLockAgain:
-      // If we are not holding the token, trying to get the token in the beginning.
-      if(!_token_holding) {
+    } else {
+      getLockAgain:
+
+      // If we are not holding the token, trying to get the token in the
+      // beginning.
+      if (!_token_holding) {
         waitToken();
         _token_holding = true;
         atomicEnd(false);
-  //      atomicEnd(true);
+
+        //      atomicEnd(true);
         atomicBegin(true);
       }
 
-    //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
+      //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
 
       // We are trying to get current lock.
       // Whenver someone didn't release the lock, getLock should be false.
       bool getLock = determ::getInstance().lock_acquire(mutex);
 
-  //  fprintf(stderr, "%d: mutex_lock 4 with getlock %d\n", getpid(), getLock);
-      if(getLock == false) {
+      //  fprintf(stderr, "%d: mutex_lock 4 with getlock %d\n", getpid(),
+      // getLock);
+      if (getLock == false) {
         // If we can't get lock, let other threads to move on first
         // in order to maintain the semantics of pthreads.
         // Current thread simply pass the token and wait for
         // next run.
-        //atomicEnd(true);
+        // atomicEnd(true);
         atomicEnd(false);
         putToken();
         atomicBegin(true);
@@ -519,15 +546,15 @@ getLockAgain:
         _token_holding = false;
         goto getLockAgain;
       }
-
     }
   }
 
-  static void mutex_unlock(pthread_mutex_t * mutex) {
+  static void mutex_unlock(pthread_mutex_t *mutex) {
     xthread::startThunk();
 
-    if (!_fence_enabled)
+    if (!_fence_enabled) {
       return;
+    }
 
     // Decrement the lock account
     _lock_count--;
@@ -536,24 +563,28 @@ getLockAgain:
     // Unlock current lock.
     determ::getInstance().lock_release(mutex);
 
-      // Since multiple lock are considering as one big lock,
+    // Since multiple lock are considering as one big lock,
     // we only do transaction end operations when no one is holding the lock.
     // However, when lock is owned, there is no need to close the transaction.
-    // But for another case, there is only one thread and not any more(by sending out singal).
-    //if(_lock_count == 0 && _token_holding && !determ::getInstance().isSingleWorkingThread())
-    if(_lock_count == 0 && _token_holding)
+    // But for another case, there is only one thread and not any more(by
+    // sending out singal).
+    // if(_lock_count == 0 && _token_holding &&
+    // !determ::getInstance().isSingleWorkingThread())
+    if ((_lock_count == 0)
+        && _token_holding)
     {
-        atomicEnd(false);
-        putToken();
-        _token_holding = false;
+      atomicEnd(false);
+      putToken();
+      _token_holding = false;
 
-        atomicBegin(true);
-        waitFence();
+      atomicBegin(true);
+      waitFence();
     }
   }
 
-  static int mutex_destroy(pthread_mutex_t * mutex) {
+  static int mutex_destroy(pthread_mutex_t *mutex) {
     determ::getInstance().lock_destroy(mutex);
+
     return 0;
   }
 
@@ -562,10 +593,9 @@ getLockAgain:
     xthread::startThunk();
 
     if (!_fence_enabled) {
-      if(_children_threads_count == 0) {
+      if (_children_threads_count == 0) {
         return 0;
-      }
-      else {
+      } else {
         startFence();
 
         // Waking up all waiting children
@@ -573,7 +603,7 @@ getLockAgain:
       }
     }
 
-    //fprintf(stderr, "%d : barier wait\n", getpid());
+    // fprintf(stderr, "%d : barier wait\n", getpid());
     waitToken();
     atomicEnd(false);
     determ::getInstance().barrier_wait(barrier, _thread_index);
@@ -586,24 +616,28 @@ getLockAgain:
     xthread::startThunk();
 
     int ret;
+
     waitToken();
     atomicEnd(false);
 
     ret = determ::getInstance().sig_wait(set, sig, _thread_index);
-    if(ret == 0) {
+
+    if (ret == 0) {
       atomicBegin(true);
     }
 
     return ret;
   }
 
-  static void cond_wait(void * cond, void * lock) {
+  static void cond_wait(void *cond, void *lock) {
     xthread::startThunk();
 
     // corresponding lock should be acquired before.
     assert(_token_holding == true);
-    //assert(determ::getInstance().lock_is_acquired() == true);
+
+    // assert(determ::getInstance().lock_is_acquired() == true);
     atomicEnd(false);
+
     // We have to release token in cond_wait, otherwise
     // it can cause deadlock!!! Some other threads
     // waiting for the token be no progress at all.
@@ -611,15 +645,15 @@ getLockAgain:
     atomicBegin(true);
   }
 
-
-  static void cond_broadcast(void * cond) {
+  static void cond_broadcast(void *cond) {
     xthread::startThunk();
 
-    if (!_fence_enabled)
+    if (!_fence_enabled) {
       return;
+    }
 
     // If broadcast is sent out under the lock, no need to get token.
-    if(!_token_holding) {
+    if (!_token_holding) {
       waitToken();
     }
 
@@ -627,28 +661,30 @@ getLockAgain:
     determ::getInstance().cond_broadcast(cond);
     atomicBegin(true);
 
-    if(!_token_holding) {
+    if (!_token_holding) {
       putToken();
       waitFence();
     }
   }
 
-  static void cond_signal(void * cond) {
+  static void cond_signal(void *cond) {
     xthread::startThunk();
 
-    if (!_fence_enabled)
+    if (!_fence_enabled) {
       return;
+    }
 
-    if(!_token_holding) {
+    if (!_token_holding) {
       waitToken();
     }
 
     atomicEnd(false);
-    //fprintf(stderr, "%d: cond_signal\n", getpid());
+
+    // fprintf(stderr, "%d: cond_signal\n", getpid());
     determ::getInstance().cond_signal(cond);
     atomicBegin(true);
 
-    if(!_token_holding) {
+    if (!_token_holding) {
       putToken();
       waitFence();
     }
@@ -658,8 +694,9 @@ getLockAgain:
   static void atomicBegin(bool cleanup) {
     fflush(stdout);
 
-    if (!_protection_enabled)
+    if (!_protection_enabled) {
       return;
+    }
 
     // Now start.
     xmemory::begin(cleanup);
@@ -670,12 +707,13 @@ getLockAgain:
     // Flush the stdout.
     fflush(stdout);
 
-    if (!_protection_enabled)
+    if (!_protection_enabled) {
       return;
+    }
 
     // Commit all private modifications to shared mapping
     xmemory::commit(update);
   }
 };
 
-#endif
+#endif // ifndef _XRUN_H_
