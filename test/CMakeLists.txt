@@ -12,9 +12,8 @@ foreach(testprog bug-atom bug-deadlock bug-deadlock1 bug-lockuse bug-order bug-r
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)
 
-add_executable (bug-init bug-init-32bit.cxx)
+add_executable (bug-init bug-init-32bit.cpp)
 target_link_libraries (bug-init LINK_PUBLIC dthread)
 add_test(bug-init bug-init)
 
 set(CMAKE_C_FLAGS "-std=c99")
-
