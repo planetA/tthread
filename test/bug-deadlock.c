@@ -4,6 +4,7 @@
  */
 #include <pthread.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define NUM_OF_PHIL 5 /* Number of philosphers */
 #define N        NUM_OF_PHIL
@@ -77,7 +78,7 @@ void eat(void)
 }
 
 void *philosopher(void *para) {
-  int mine = (int)para;
+  int mine = (intptr_t)para;
   int i = 0;
 
   while (i < 2) {
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
 
   /* Create specified philosopher's thread. */
   for (i = 0; i < NUM_OF_PHIL; i++) {
-    pthread_create(&waiters[i], 0, philosopher, (void *)i);
+    pthread_create(&waiters[i], 0, philosopher, (void *)(intptr_t)i);
   }
 
   for (i = 0; i < NUM_OF_PHIL; i++) {

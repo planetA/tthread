@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +44,7 @@ void *child_thread(void *data)
   for (i = 0; i < rounds; i++)
   {
     pthread_mutex_lock(&mutex[threadid]);
-    fprintf(stderr, "threadid:%d\n", threadid);
+    fprintf(stderr, "threadid:%lu\n", threadid);
     fflush(stderr);
 
     /* Do 1ms computation work. */
@@ -73,7 +74,7 @@ int main(int argc, char **argv)
   }
 
   for (int i = 0; i < CORES; i++) {
-    pthread_create(&threads[i], NULL, child_thread, (void *)i);
+    pthread_create(&threads[i], NULL, child_thread, (void *)(uintptr_t)i);
   }
 
   for (i = 0; i < CORES; i++) {

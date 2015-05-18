@@ -56,7 +56,6 @@ void initialize() {
                                        MAP_SHARED | MAP_ANONYMOUS,
                                        -1,
                                        0);
-
   global_data->thread_index = 1;
   DEBUG("after mapping global data structure");
   xrun::initialize();

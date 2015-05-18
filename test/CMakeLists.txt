@@ -18,3 +18,4 @@ target_link_libraries(bug-init LINK_PUBLIC dthread)
 add_test(bug-init bug-init)
 
 set(CMAKE_C_FLAGS "-std=c99")
+add_definitions(-D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE)

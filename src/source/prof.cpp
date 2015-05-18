@@ -39,7 +39,7 @@
 
 #include "prof.h"
 
-#define MAX_BUFFER  32768
+#define MAX_BUFFER 32768
 double cpu_freq = 23.2750708008;
 
 extern int allocTimes;

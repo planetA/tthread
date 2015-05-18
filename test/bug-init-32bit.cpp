@@ -4,9 +4,9 @@
 using namespace std;
 
 int main() {
+  // int* i = new int;
+  int *i = (int *)malloc(sizeof(int));
 
-  //int* i = new int;
-  int* i = (int*) malloc(sizeof(int));
   *i = 10;
   cout << i << endl;
 
