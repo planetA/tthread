@@ -6,6 +6,7 @@
  * @brief  Log page read/write access by threads to build a data graph
  */
 #include <algorithm>
+#include <stdexcept>
 
 #include "xatomic.h"
 #include "xpagelogentry.h"
@@ -23,6 +24,7 @@ public:
   };
 
   void initialize(void) {
+    // TODO increase memory on demand
     void *buf = mmap(NULL, sizeof(xpagelogentry) * SIZE_LIMIT,
                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
@@ -57,6 +59,20 @@ public:
       ::abort();
     }
     _log[page] = e;
+  }
+
+  // for testing purpose only
+  inline void reset() {
+    _last_entry = 0;
+  }
+
+  // for testing purpose only
+  inline xpagelogentry get(int i) {
+    if ((i < 0)
+        || (i >= SIZE_LIMIT)) {
+      throw std::out_of_range("not in range of log");
+    }
+    return _log[i];
   }
 
   void print() {
