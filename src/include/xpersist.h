@@ -480,9 +480,9 @@ public:
   }
 
   /// @brief Start a transaction.
-  inline void begin(bool cleanup) {
+  inline void begin() {
     // Update all pages related in this dirty page list
-    updateAll(cleanup);
+    updateAll();
   }
 
 #ifndef SSE_SUPPORT
@@ -847,7 +847,7 @@ public:
   }
 
   /// @brief Update every page frame from the backing file if necessary.
-  void updateAll(bool cleanup) {
+  void updateAll() {
     struct xpageinfo *pageinfo;
     int    pageNo = 0;
 
@@ -866,10 +866,8 @@ public:
     }
 
     // Now there is no need to use dirtiedPagesList any more
-    if (cleanup) {
-      _dirtiedPagesList.clear();
-      xpageentry::getInstance().cleanup();
-    }
+    _dirtiedPagesList.clear();
+    xpageentry::getInstance().cleanup();
   }
 
   /// @brief Commit all writes.

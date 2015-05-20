@@ -167,15 +167,15 @@ public:
   }
 
   /// @brief Call this before every transaction begins.
-  void begin(bool cleanup) {
+  void begin() {
     sanityCheck();
-    parent::begin(cleanup);
+    parent::begin();
   }
 
   /// @brief Call this when a transaction commits.
-  void commit(bool update) {
+  void commit() {
     sanityCheck();
-    parent::commit(update);
+    parent::commit();
   }
 
   // These should never be used.

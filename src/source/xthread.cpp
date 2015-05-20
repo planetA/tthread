@@ -141,7 +141,7 @@ void *xthread::forkSpawn(threadFunction *fn,
 
 // @brief Execute the thread.
 void xthread::run_thread(threadFunction *fn, ThreadStatus *t, void *arg) {
-  xrun::atomicBegin(true);
+  xrun::atomicBegin();
   void *result = fn(arg);
   xrun::threadDeregister();
 

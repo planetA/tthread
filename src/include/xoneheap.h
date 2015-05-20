@@ -46,8 +46,8 @@ public:
     getHeap()->finalize();
   }
 
-  void begin(bool cleanup) {
-    getHeap()->begin(cleanup);
+  void begin() {
+    getHeap()->begin();
   }
 
   void finalcommit(bool release) {

@@ -803,7 +803,6 @@ public:
     entry->head = NULL;
     entry->cond = cond;
 
-    //  xmemory::begin(true);
     // Set corresponding entry.
     setSyncEntry(cond, entry);
 
@@ -1126,12 +1125,12 @@ public:
       // First, The token has been passed to others
       // Second, I am not in the token ring (can't be passed the token).
       // Then it won't cause deadlock anymore.
-      xmemory::begin(true);
+      xmemory::begin();
     }
     WRAP(pthread_barrier_wait)(&barentry->real_barr);
 
     if (lastThread) {
-      xmemory::begin(true);
+      xmemory::begin();
     }
   }
 

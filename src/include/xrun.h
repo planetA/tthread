@@ -215,7 +215,7 @@ public:
     // If system is not protected, we should open protection.
     if (!_protection_enabled) {
       openMemoryProtection();
-      atomicBegin(true);
+      atomicBegin();
     }
 
     atomicEnd(false);
@@ -245,7 +245,7 @@ public:
     void *ptr = xthread::spawn(fn, arg, _thread_index);
 
     // Start a new transaction
-    atomicBegin(true);
+    atomicBegin();
 
     return ptr;
   }
@@ -298,7 +298,7 @@ public:
     waitFence();
 
     // Start next transaction.
-    atomicBegin(true);
+    atomicBegin();
 
     // Check whether we can close protection at all.
     // If current thread is the only alive thread, then close the protection.
@@ -329,7 +329,7 @@ public:
     if (isFound) {
       forceThreadCommit(v);
     }
-    atomicBegin(true);
+    atomicBegin();
     threadindex = xthread::cancel(v);
     isFound = determ::getInstance().cancel(threadindex);
 
@@ -357,7 +357,7 @@ public:
     atomicEnd(false);
     threadindex = xthread::thread_kill(v, sig);
 
-    atomicBegin(true);
+    atomicBegin();
 
     // Put token and wait on fence if I waitToken before.
     if (!_token_holding) {
@@ -522,7 +522,7 @@ public:
         atomicEnd(false);
 
         //      atomicEnd(true);
-        atomicBegin(true);
+        atomicBegin();
       }
 
       //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
@@ -541,7 +541,7 @@ public:
         // atomicEnd(true);
         atomicEnd(false);
         putToken();
-        atomicBegin(true);
+        atomicBegin();
         waitFence();
         _token_holding = false;
         goto getLockAgain;
@@ -577,7 +577,7 @@ public:
       putToken();
       _token_holding = false;
 
-      atomicBegin(true);
+      atomicBegin();
       waitFence();
     }
   }
@@ -623,7 +623,7 @@ public:
     ret = determ::getInstance().sig_wait(set, sig, _thread_index);
 
     if (ret == 0) {
-      atomicBegin(true);
+      atomicBegin();
     }
 
     return ret;
@@ -642,7 +642,7 @@ public:
     // it can cause deadlock!!! Some other threads
     // waiting for the token be no progress at all.
     determ::getInstance().cond_wait(_thread_index, cond, lock);
-    atomicBegin(true);
+    atomicBegin();
   }
 
   static void cond_broadcast(void *cond) {
@@ -659,7 +659,7 @@ public:
 
     atomicEnd(false);
     determ::getInstance().cond_broadcast(cond);
-    atomicBegin(true);
+    atomicBegin();
 
     if (!_token_holding) {
       putToken();
@@ -682,7 +682,7 @@ public:
 
     // fprintf(stderr, "%d: cond_signal\n", getpid());
     determ::getInstance().cond_signal(cond);
-    atomicBegin(true);
+    atomicBegin();
 
     if (!_token_holding) {
       putToken();
@@ -691,7 +691,7 @@ public:
   }
 
   /// @brief Start a transaction.
-  static void atomicBegin(bool cleanup) {
+  static void atomicBegin() {
     fflush(stdout);
 
     if (!_protection_enabled) {
@@ -699,7 +699,7 @@ public:
     }
 
     // Now start.
-    xmemory::begin(cleanup);
+    xmemory::begin();
   }
 
   /// @brief End a transaction, aborting it if necessary.

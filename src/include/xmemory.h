@@ -148,10 +148,10 @@ public:
     _pheap.closeProtection();
   }
 
-  static inline void begin(bool cleanup) {
+  static inline void begin() {
     // Reset global and heap protection.
-    _globals.begin(cleanup);
-    _pheap.begin(cleanup);
+    _globals.begin();
+    _pheap.begin();
   }
 
   static void mem_write(void *dest, void *val) {
