@@ -58,8 +58,8 @@ public:
     getHeap()->forceCommitOwnedPages(pid, end);
   }
 
-  void checkandcommit(bool update) {
-    getHeap()->checkandcommit(update);
+  void checkandcommit() {
+    getHeap()->checkandcommit();
   }
 
   void *getend(void) {

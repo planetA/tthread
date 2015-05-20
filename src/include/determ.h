@@ -809,7 +809,6 @@ public:
     // Initialize the real conditional entry.
     WRAP(pthread_cond_init)(&entry->realcond, &_condattr);
 
-    // xmemory::commit(false);
     assert(entry->waiters == 0
            || entry->head != NULL);
     return entry;

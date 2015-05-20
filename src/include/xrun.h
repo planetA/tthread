@@ -183,7 +183,7 @@ public:
     xmemory::finalcommit(false);
 
     DEBUG("%d: thread %lu deregister, get token\n", getpid(), _thread_index);
-    atomicEnd(false);
+    atomicEnd();
 
     // Remove current thread and decrease the fence
     determ::getInstance().deregisterThread(_thread_index);
@@ -218,7 +218,7 @@ public:
       atomicBegin();
     }
 
-    atomicEnd(false);
+    atomicEnd();
 
     xmemory::finalcommit(true);
 
@@ -270,7 +270,7 @@ public:
       waitToken();
     }
 
-    atomicEnd(false);
+    atomicEnd();
     xmemory::finalcommit(true);
 
     if (!_fence_enabled) {
@@ -320,7 +320,7 @@ public:
       waitToken();
     }
 
-    atomicEnd(false);
+    atomicEnd();
 
     // When the thread to be cancel is still there, we are forcing that thread
     // to commit every owned page if we are using lazy commit mechanism.
@@ -354,7 +354,7 @@ public:
       waitToken();
     }
 
-    atomicEnd(false);
+    atomicEnd();
     threadindex = xthread::thread_kill(v, sig);
 
     atomicBegin();
@@ -519,9 +519,8 @@ public:
       if (!_token_holding) {
         waitToken();
         _token_holding = true;
-        atomicEnd(false);
+        atomicEnd();
 
-        //      atomicEnd(true);
         atomicBegin();
       }
 
@@ -538,8 +537,7 @@ public:
         // in order to maintain the semantics of pthreads.
         // Current thread simply pass the token and wait for
         // next run.
-        // atomicEnd(true);
-        atomicEnd(false);
+        atomicEnd();
         putToken();
         atomicBegin();
         waitFence();
@@ -573,7 +571,7 @@ public:
     if ((_lock_count == 0)
         && _token_holding)
     {
-      atomicEnd(false);
+      atomicEnd();
       putToken();
       _token_holding = false;
 
@@ -605,7 +603,7 @@ public:
 
     // fprintf(stderr, "%d : barier wait\n", getpid());
     waitToken();
-    atomicEnd(false);
+    atomicEnd();
     determ::getInstance().barrier_wait(barrier, _thread_index);
 
     return 0;
@@ -618,7 +616,7 @@ public:
     int ret;
 
     waitToken();
-    atomicEnd(false);
+    atomicEnd();
 
     ret = determ::getInstance().sig_wait(set, sig, _thread_index);
 
@@ -636,7 +634,7 @@ public:
     assert(_token_holding == true);
 
     // assert(determ::getInstance().lock_is_acquired() == true);
-    atomicEnd(false);
+    atomicEnd();
 
     // We have to release token in cond_wait, otherwise
     // it can cause deadlock!!! Some other threads
@@ -657,7 +655,7 @@ public:
       waitToken();
     }
 
-    atomicEnd(false);
+    atomicEnd();
     determ::getInstance().cond_broadcast(cond);
     atomicBegin();
 
@@ -678,7 +676,7 @@ public:
       waitToken();
     }
 
-    atomicEnd(false);
+    atomicEnd();
 
     // fprintf(stderr, "%d: cond_signal\n", getpid());
     determ::getInstance().cond_signal(cond);
@@ -703,7 +701,7 @@ public:
   }
 
   /// @brief End a transaction, aborting it if necessary.
-  static void atomicEnd(bool update) {
+  static void atomicEnd() {
     // Flush the stdout.
     fflush(stdout);
 
@@ -712,7 +710,7 @@ public:
     }
 
     // Commit all private modifications to shared mapping
-    xmemory::commit(update);
+    xmemory::commit();
   }
 };
 

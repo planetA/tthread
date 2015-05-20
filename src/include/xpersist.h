@@ -728,7 +728,7 @@ public:
   }
 
   // Commit local modifications to shared mapping
-  inline void checkandcommit(bool update) {
+  inline void checkandcommit() {
     struct shareinfo *shareinfo = NULL;
     struct xpageinfo *pageinfo = NULL;
     int pageNo;
@@ -765,67 +765,40 @@ public:
         createTwinPage(pageNo);
       }
 
-      // update is true before entering into the critical sections.
-      // do the least upates if possible.
-      if (update) {
-        // Current page is older than the version of shared mapping, then commit
-        // local modifications.
-        if (pageinfo->version != _persistentVersions[pageNo]) {
-          unsigned long *twin =
-            (unsigned long *)xbitmap::getInstance().getAddress(
-              shareinfo->bitmapIndex);
-          assert(shareinfo->bitmapIndex != 0);
-          assert(xbitmap::getInstance().getVersion(
-                   shareinfo->bitmapIndex) != _persistentVersions[pageNo]);
+      // Only do commits when the page have not been updated.
+      if (!pageinfo->isUpdated) {
+        // When there are multiple writes on this pae, the page cannot be
+        // owned.
+        // When this page is not owned, then we do commit.
+        if ((shareinfo->users != 1)
+            || (_pageOwner[pageNo] != mypid)) {
+          pageinfo->release = true;
 
-          recordPageChanges(pageNo);
-          INC_COUNTER(slowpage);
-
-          // Use the slower page commit, comparing to "twin".
-          writePageDiffs(local, twin, share, pageNo);
-          setSharedPage(pageNo);
-
-          // Update this page since it may affect results of next transaction.
-          updatePage(pageinfo->pageStart, 1, true);
-          pageinfo->isUpdated = true;
-          isModified = true;
-        }
-      } else {
-        // Only do commits when the page have not been updated.
-        if (!pageinfo->isUpdated) {
-          // When there are multiple writes on this pae, the page cannot be
-          // owned.
-          // When this page is not owned, then we do commit.
-          if ((shareinfo->users != 1)
-              || (_pageOwner[pageNo] != mypid)) {
-            pageinfo->release = true;
-
-            // If the version is the same as shared, use memcpy to commit.
-            if (pageinfo->version == _persistentVersions[pageNo]) {
-              memcpy(share, local, xdefines::PageSize);
-            } else {
-              // slow commits
-              unsigned long *twin =
-                (unsigned long *)xbitmap::getInstance().getAddress(
-                  shareinfo->bitmapIndex);
-              assert(shareinfo->bitmapIndex != 0);
-
-              recordPageChanges(pageNo);
-              INC_COUNTER(slowpage);
-
-              // Use the slower page commit, comparing to "twin".
-              setSharedPage(pageNo);
-              writePageDiffs(local, twin, share, pageNo);
-            }
-
-            isModified = true;
+          // If the version is the same as shared, use memcpy to commit.
+          if (pageinfo->version == _persistentVersions[pageNo]) {
+            memcpy(share, local, xdefines::PageSize);
           } else {
-            // Only one user on it and pageOwner is myself.
-            pageinfo->release = false;
+            // slow commits
+            unsigned long *twin =
+              (unsigned long *)xbitmap::getInstance().getAddress(
+                shareinfo->bitmapIndex);
+            assert(shareinfo->bitmapIndex != 0);
 
-            // Now there is one less user on this page.
-            shareinfo->users--;
+            recordPageChanges(pageNo);
+            INC_COUNTER(slowpage);
+
+            // Use the slower page commit, comparing to "twin".
+            setSharedPage(pageNo);
+            writePageDiffs(local, twin, share, pageNo);
           }
+
+          isModified = true;
+        } else {
+          // Only one user on it and pageOwner is myself.
+          pageinfo->release = false;
+
+          // Now there is one less user on this page.
+          shareinfo->users--;
         }
       }
 

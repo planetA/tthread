@@ -174,9 +174,9 @@ public:
     }
   }
 
-  static inline void commit(bool update) {
-    _pheap.checkandcommit(update);
-    _globals.checkandcommit(update);
+  static inline void commit() {
+    _pheap.checkandcommit();
+    _globals.checkandcommit();
   }
 
   static inline void forceCommit(int pid) {
