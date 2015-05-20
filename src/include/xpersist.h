@@ -331,11 +331,11 @@ public:
     // For heap, only those allocated pages are set to SHARED.
     // Those pages that haven't allocated are set to be PRIVATE at first.
     if (!_isHeap) {
-      setProtection(base(), size(), PROT_NONE, MAP_PRIVATE);
+      setProtection(base(), size(), PROT_READ, MAP_PRIVATE);
 
       for (int i = 0; i < TotalPageNums; i++) {
         _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i] = PAGE_ACCESS_NONE;
+        _pageInfo[i] = PAGE_ACCESS_READ;
       }
     } else {
       int allocSize = (intptr_t)end - (intptr_t)base();
