@@ -95,6 +95,10 @@ public:
     InternalHeap::getInstance().initialize();
 
     xpagelog::getInstance().initialize();
+
+    // initialize memory protection so page access can be tracked from the
+    // beginning
+    setCopyOnWrite(false);
   }
 
   static void finalize(void) {
@@ -138,14 +142,9 @@ public:
     return _pheap.getSize(ptr);
   }
 
-  static void openProtection(void) {
-    _globals.openProtection(NULL);
-    _pheap.openProtection(_pheap.getend());
-  }
-
-  static void closeProtection(void) {
-    _globals.closeProtection();
-    _pheap.closeProtection();
+  static void setCopyOnWrite(bool copyOnWrite) {
+    _globals.setCopyOnWrite(NULL, copyOnWrite);
+    _pheap.setCopyOnWrite(_pheap.getend(), copyOnWrite);
   }
 
   static inline void begin() {

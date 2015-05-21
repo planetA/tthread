@@ -59,7 +59,7 @@ class xrun {
 private:
 
   static volatile bool _initialized;
-  static volatile bool _protection_enabled;
+  static volatile bool _isCopyOnWrite;
   static size_t _master_thread_id;
   static size_t _thread_index;
   static bool _fence_enabled;
@@ -77,7 +77,7 @@ public:
     DEBUG("initializing xrun");
 
     _initialized = false;
-    _protection_enabled = false;
+    _isCopyOnWrite = false;
     _children_threads_count = 0;
     _lock_count = 0;
     _token_holding = false;
@@ -108,23 +108,16 @@ public:
     }
   }
 
-  // Control whether we will protect memory or not.
+  // Control whether we will copy on writed memory or not.
   // When there is only one thread in the system, memory is not
-  // protected to avoid the memory protection overhead.
-  static void openMemoryProtection(void) {
-    if (_protection_enabled) {
+  // copy on write to avoid the overhead of merging pages back.
+  static void setCopyOnWrite(bool copyOnWrite) {
+    if (copyOnWrite == _isCopyOnWrite) {
       return;
     }
+    _isCopyOnWrite = copyOnWrite;
 
-    xmemory::openProtection();
-    _protection_enabled = true;
-  }
-
-  // Close memory protection when there is only one thread alive.
-  static void closeMemoryProtection(void) {
-    xmemory::closeProtection();
-
-    _protection_enabled = false;
+    xmemory::setCopyOnWrite(copyOnWrite);
   }
 
   static void finalize(void) {
@@ -213,8 +206,8 @@ public:
   /// @brief Spawn a thread.
   static inline void *spawn(threadFunction *fn, void *arg) {
     // If system is not protected, we should open protection.
-    if (!_protection_enabled) {
-      openMemoryProtection();
+    if (!_isCopyOnWrite) {
+      setCopyOnWrite(true);
       atomicBegin();
     }
 
@@ -303,7 +296,7 @@ public:
     // Check whether we can close protection at all.
     // If current thread is the only alive thread, then close the protection.
     if (determ::getInstance().isSingleAliveThread()) {
-      closeMemoryProtection();
+      setCopyOnWrite(false);
 
       // Do some cleanup for fence.
       closeFence();
@@ -692,7 +685,7 @@ public:
   static void atomicBegin() {
     fflush(stdout);
 
-    if (!_protection_enabled) {
+    if (!_isCopyOnWrite) {
       return;
     }
 
@@ -705,7 +698,7 @@ public:
     // Flush the stdout.
     fflush(stdout);
 
-    if (!_protection_enabled) {
+    if (!_isCopyOnWrite) {
       return;
     }
 

@@ -67,8 +67,6 @@ extern "C" int madvise(caddr_t addr,
                        int     advice);
 #endif // if defined(sun)
 
-// #define fprintf(...)
-
 /**
  * @class xpersist
  * @brief Makes a range of memory persistent and consistent.
@@ -187,7 +185,7 @@ public:
       ::abort();
     }
 
-    _isProtected = false;
+    _isCopyOnWrite = false;
 
     DEBUG("xpersist intialize: transient = %p, persistent = %p, size = %zx",
           _transientMemory,
@@ -275,8 +273,8 @@ public:
   }
 
   void finalize() {
-    if (_isProtected) {
-      closeProtection();
+    if (_isCopyOnWrite) {
+      setProtection(base(), size(), PROT_READ | PROT_WRITE, MAP_SHARED);
     }
 
 #ifdef GET_CHARACTERISTICS
@@ -305,33 +303,15 @@ public:
 
 #endif // ifdef GET_CHARACTERISTICS
 
-  void *setProtection(void *start, size_t size, int prot, int flags) {
-    void *area;
-    size_t offset = (intptr_t)start - (intptr_t)base();
+  void setCopyOnWrite(void *end, bool copyOnWrite) {
+    int writeSemantic = copyOnWrite ? MAP_PRIVATE : MAP_SHARED;
 
-    // Map to readonly private area.
-    area = (Type *)mmap(start, size, prot, flags | MAP_FIXED,
-                        _backingFd, offset);
-
-    if (area == MAP_FAILED) {
-      fprintf(stderr,
-              "Change protection failed for pid %d, start %p, size %ld: %s\n",
-              getpid(),
-              start,
-              size,
-              strerror(errno));
-      exit(EXIT_FAILURE);
-    }
-    return area;
-  }
-
-  void openProtection(void *end) {
     // We will set everything to PROT_NONE
-    // For globals, all pages are set to SHARED in the beginning.
-    // For heap, only those allocated pages are set to SHARED.
+    // For globals, all pages are set to SHARED_PAGE in the beginning.
+    // For heap, only those allocated pages are set to SHARED_PAGE.
     // Those pages that haven't allocated are set to be PRIVATE at first.
     if (!_isHeap) {
-      setProtection(base(), size(), PROT_READ, MAP_PRIVATE);
+      setProtection(base(), size(), PROT_READ, writeSemantic);
 
       for (int i = 0; i < TotalPageNums; i++) {
         _pageOwner[i] = SHARED_PAGE;
@@ -340,8 +320,7 @@ public:
     } else {
       int allocSize = (intptr_t)end - (intptr_t)base();
 
-      // For those allocated pages, we set to READ_ONLY.
-      setProtection(base(), size(), PROT_NONE, MAP_PRIVATE);
+      setProtection(base(), size(), PROT_NONE, writeSemantic);
 
       for (int i = 0; i < allocSize / xdefines::PageSize; i++) {
         _pageOwner[i] = SHARED_PAGE;
@@ -354,14 +333,10 @@ public:
         _pageInfo[i] = PAGE_UNUSED;
       }
     }
-    _isProtected = true;
+
     _ownedblocks = 0;
     _trans = 0;
-  }
-
-  void closeProtection() {
-    setProtection(base(), size(), PROT_READ | PROT_WRITE, MAP_SHARED);
-    _isProtected = false;
+    _isCopyOnWrite = copyOnWrite;
   }
 
   void setThreadIndex(int index) {
@@ -431,7 +406,7 @@ public:
   // immediately in order to reduce the time of serial phases.
   // The function will be called when one thread is getting a new superblock.
   inline void setOwnedPage(void *addr, size_t size) {
-    if (!_isProtected) {
+    if (!_isCopyOnWrite) {
       return;
     }
 
@@ -467,6 +442,11 @@ public:
     unsigned long *pageStart =
       (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize *
                         pageNo);
+
+    xpagelogentry e = xpagelogentry(pageNo,
+                                    is_write ? xpagelogentry::WRITE :
+                                    xpagelogentry::READ);
+    xpagelog::getInstance().add(e);
 
     if (is_write) {
       handleWrite(pageNo, pageStart);
@@ -850,6 +830,26 @@ public:
 
 private:
 
+  void *setProtection(void *start, size_t size, int prot, int flags) {
+    void *area;
+    size_t offset = (intptr_t)start - (intptr_t)base();
+
+    // Map to readonly private area.
+    area = (Type *)mmap(start, size, prot, flags | MAP_FIXED,
+                        _backingFd, offset);
+
+    if (area == MAP_FAILED) {
+      fprintf(stderr,
+              "Change protection failed for pid %d, start %p, size %ld: %s\n",
+              getpid(),
+              start,
+              size,
+              strerror(errno));
+      exit(EXIT_FAILURE);
+    }
+    return area;
+  }
+
   inline size_t computePage(size_t index) {
     return (index * sizeof(Type)) / xdefines::PageSize;
   }
@@ -867,8 +867,6 @@ private:
   }
 
   inline void handleRead(int pageNo, unsigned long *pageStart) {
-    xpagelog::getInstance().add(xpagelogentry(pageNo, xpagelogentry::READ));
-
     switch (_pageInfo[pageNo]) {
     case PAGE_UNUSED: // When we are trying to access other-owned page.
       // Current page must be owned by other pages.
@@ -895,8 +893,6 @@ private:
   }
 
   inline void handleWrite(int pageNo, unsigned long *pageStart) {
-    xpagelog::getInstance().add(xpagelogentry(pageNo, xpagelogentry::WRITE));
-
     // Check the access type of this page.
     switch (_pageInfo[pageNo]) {
     case PAGE_UNUSED: // When we are trying to access other-owned page.
@@ -953,6 +949,11 @@ private:
       assert(0); // invalid state
     }
 
+    // page is set SHARED, so just write through
+    if (!_isCopyOnWrite) {
+      return;
+    }
+
     // Now one more user are using this page.
     xatomic::increment((unsigned long *)&_pageUsers[pageNo]);
 
@@ -1000,7 +1001,7 @@ private:
   /// The persistent (backed to disk) memory.
   Type *_persistentMemory;
 
-  bool _isProtected;
+  bool _isCopyOnWrite;
 
   /// The file descriptor for the versions.
   int _versionsFd;

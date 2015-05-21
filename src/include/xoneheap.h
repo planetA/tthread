@@ -70,12 +70,8 @@ public:
     getHeap()->stats();
   }
 
-  void openProtection(void *end) {
-    getHeap()->openProtection(end);
-  }
-
-  void closeProtection(void) {
-    getHeap()->closeProtection();
+  void setCopyOnWrite(void *end, bool copyOnWrite) {
+    getHeap()->setCopyOnWrite(end, true);
   }
 
   bool nop(void) {

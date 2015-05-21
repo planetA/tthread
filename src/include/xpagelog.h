@@ -15,7 +15,7 @@ class xpagelog {
 private:
 
   xpagelogentry *_log;
-  volatile long unsigned int _last_entry;
+  volatile long unsigned *_next_entry;
 
 public:
 
@@ -28,12 +28,14 @@ public:
     void *buf = mmap(NULL, sizeof(xpagelogentry) * SIZE_LIMIT,
                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
+
     if (buf == MAP_FAILED) {
       fprintf(stderr, "xpagelog: mmap error with %s\n", strerror(errno));
       ::abort();
     }
-    _log = (xpagelogentry *)buf;
-    _last_entry = 0;
+    _next_entry = (long unsigned *)buf;
+    _log = (xpagelogentry *)(_next_entry + 1);
+    *_next_entry = 0;
   }
 
   static xpagelog& getInstance(void) {
@@ -52,9 +54,9 @@ public:
   }
 
   void add(xpagelogentry e) {
-    int page = xatomic::increment_and_return(&_last_entry);
+    int page = xatomic::increment_and_return(_next_entry);
 
-    if ((page + 1) > SIZE_LIMIT) {
+    if ((page - 1) > SIZE_LIMIT) {
       fprintf(stderr, "pagelog size limit reached\n");
       ::abort();
     }
@@ -62,14 +64,18 @@ public:
   }
 
   // for testing purpose only
-  inline void reset() {
-    _last_entry = 0;
+  void reset() {
+    *_next_entry = 0;
+  }
+
+  unsigned long len() {
+    return *_next_entry;
   }
 
   // for testing purpose only
-  inline xpagelogentry get(int i) {
-    if ((i < 0)
-        || (i >= SIZE_LIMIT)) {
+  xpagelogentry get(unsigned long i) {
+    if ((i >= SIZE_LIMIT)
+        || (*_next_entry == 0)) {
       throw std::out_of_range("not in range of log");
     }
     return _log[i];
@@ -78,12 +84,21 @@ public:
   void print() {
     fprintf(stderr, "______RESULT_______\n");
 
-    int llen = SIZE_LIMIT < (_last_entry + 1) ? SIZE_LIMIT : (_last_entry + 1);
+    long unsigned int llen, size = *_next_entry;
+
+    if (SIZE_LIMIT < size) {
+      llen = SIZE_LIMIT;
+    } else {
+      llen = size;
+    }
 
     for (int i = 0; i < llen; i++) {
       xpagelogentry e = _log[i];
+
       fprintf(stderr, "threadIndex: %d, thunkId: %d, pageNo: %d, access: %s\n",
-              e.getThreadIndex(), e.getThunkId(), e.getPageNo(),
+              e.getThreadIndex(),
+              e.getThunkId(),
+              e.getPageNo(),
               e.getAccess() == xpagelogentry::READ ? "read" : "write");
     }
   }
