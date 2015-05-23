@@ -8,7 +8,6 @@ struct xpageinfo {
 
   // Used to save start address for this page.
   void *pageStart;
-  bool isUpdated;
   bool isShared;
   bool release;
 };
