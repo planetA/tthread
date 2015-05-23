@@ -80,7 +80,6 @@ public:
   enum page_access_info {
     PAGE_ACCESS_NONE = 0,
     PAGE_ACCESS_READ = 1,
-    PAGE_ACCESS_WRITE = 2,
     PAGE_ACCESS_READ_WRITE = 4,
     PAGE_UNUSED = 8,
   };
@@ -310,14 +309,7 @@ public:
     // For globals, all pages are set to SHARED_PAGE in the beginning.
     // For heap, only those allocated pages are set to SHARED_PAGE.
     // Those pages that haven't allocated are set to be PRIVATE at first.
-    if (!_isHeap) {
-      setProtection(base(), size(), PROT_READ, writeSemantic);
-
-      for (int i = 0; i < TotalPageNums; i++) {
-        _pageOwner[i] = SHARED_PAGE;
-        _pageInfo[i] = PAGE_ACCESS_READ;
-      }
-    } else {
+    if (_isHeap) {
       int allocSize = (intptr_t)end - (intptr_t)base();
 
       setProtection(base(), size(), PROT_NONE, writeSemantic);
@@ -331,6 +323,13 @@ public:
       for (int i = allocSize / xdefines::PageSize; i < TotalPageNums; i++) {
         _pageOwner[i] = 0;
         _pageInfo[i] = PAGE_UNUSED;
+      }
+    } else {
+      setProtection(base(), size(), PROT_READ, writeSemantic);
+
+      for (int i = 0; i < TotalPageNums; i++) {
+        _pageOwner[i] = SHARED_PAGE;
+        _pageInfo[i] = PAGE_ACCESS_READ;
       }
     }
 
@@ -379,14 +378,6 @@ public:
   inline void mprotectRead(void *addr, int pageNo) {
     _pageInfo[pageNo] = PAGE_ACCESS_READ;
     mprotect(addr, xdefines::PageSize, PROT_READ);
-  }
-
-  // Change the page to writable mode.
-  inline void mprotectWrite(void *addr, int pageNo) {
-    if (_pageOwner[pageNo] == getpid()) {
-      _pageInfo[pageNo] = PAGE_ACCESS_WRITE;
-    }
-    mprotect(addr, xdefines::PageSize, PROT_WRITE);
   }
 
   // Change the page to r/w mode.
@@ -881,12 +872,6 @@ private:
       mprotectRead(pageStart, pageNo);
       break;
 
-    case PAGE_ACCESS_WRITE:
-
-      // read a page the first time
-      mprotectReadWrite(pageStart, pageNo);
-      break;
-
     default:
       assert(0); // invalid state -> BUG!
     }
@@ -911,7 +896,7 @@ private:
     case PAGE_ACCESS_NONE:
 
       // write to a page the first time
-      mprotectWrite(pageStart, pageNo);
+      mprotectReadWrite(pageStart, pageNo);
       break;
 
     case PAGE_ACCESS_READ:
@@ -929,16 +914,6 @@ private:
 
       // One case, I am trying to write to those dirty pages again.
       mprotectReadWrite(pageStart, pageNo);
-
-      // Since we are already wrote to this page before, now we are trying to
-      // write to
-      // this page again. Now we should commit old version to the shared copy.
-      commitOwnedPage(pageNo, false);
-
-    case PAGE_ACCESS_WRITE:
-
-      // One case, I am trying to write to those dirty pages again.
-      mprotectWrite(pageStart, pageNo);
 
       // Since we are already wrote to this page before, now we are trying to
       // write to

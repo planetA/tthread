@@ -14,7 +14,7 @@ public:
 private:
 
   int pageNo;
-  int threadIndex;
+  int threadId;
   int thunkId;
   accessType access;
 
@@ -22,18 +22,17 @@ public:
 
   xpagelogentry(int pageNo, accessType access)
     : pageNo(pageNo),
-    access(access)
-  {
-    threadIndex = xthread::getId();
-    thunkId = xthread::getThunkId();
-  }
+    access(access),
+    threadId(xthread::getId()),
+    thunkId(xthread::getThunkId())
+  {}
 
   inline int getPageNo() {
     return pageNo;
   }
 
-  inline int getThreadIndex() {
-    return threadIndex;
+  inline int getThreadId() {
+    return threadId;
   }
 
   inline int getThunkId() {

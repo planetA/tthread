@@ -96,7 +96,7 @@ public:
       xpagelogentry e = _log[i];
 
       fprintf(stderr, "threadIndex: %d, thunkId: %d, pageNo: %d, access: %s\n",
-              e.getThreadIndex(),
+              e.getThreadId(),
               e.getThunkId(),
               e.getPageNo(),
               e.getAccess() == xpagelogentry::READ ? "read" : "write");
