@@ -70,14 +70,7 @@ public:
     _position = (volatile char **)base;
     _remaining = (volatile size_t *)(base + 1 * sizeof(char *));
     _magic = (size_t *)(base + 2 * sizeof(void *));
-#ifdef DETERM_MEMORY_ALLOC
-    _mutex = (pthread_mutex_t *)(base + 3 * sizeof(void *));
-    pthread_mutex_init(_mutex, NULL);
-
-    // *((void **)_mutex) = NULL;
-#else // ifdef DETERM_MEMORY_ALLOC
     _lock = new (base + 3 * sizeof(void *))xplock;
-#endif // ifdef DETERM_MEMORY_ALLOC
 
     // Initialize the following content according the values of xpersist class.
     // _start =(char*) ((intptr_t)parent::base() - 0x4000);
@@ -108,12 +101,7 @@ public:
     // Roud up the size to page aligned.
     sz = xdefines::PageSize * ((sz + xdefines::PageSize - 1)
                                / xdefines::PageSize);
-
-#ifdef DETERM_MEMORY_ALLOC
-    pthread_mutex_lock(_mutex);
-#else // ifdef DETERM_MEMORY_ALLOC
     _lock->lock();
-#endif // ifdef DETERM_MEMORY_ALLOC
 
     if (*_remaining == 0) {
       fprintf(stderr,
@@ -148,11 +136,7 @@ public:
 
     //		fprintf(stderr, "%d: xheapmalloc %p ~ %p. sz %x\n", getpid(),p,
     // newptr, sz);
-#ifdef DETERM_MEMORY_ALLOC
-    pthread_mutex_unlock(_mutex);
-#else // ifdef DETERM_MEMORY_ALLOC
     _lock->unlock();
-#endif // ifdef DETERM_MEMORY_ALLOC
 
     parent::setOwnedPage(p, sz);
 
@@ -160,9 +144,6 @@ public:
   }
 
   void initialize() {
-#ifdef DETERM_MEMORY_ALLOC
-    pthread_mutex_init(_mutex, NULL);
-#endif // ifdef DETERM_MEMORY_ALLOC
     parent::initialize();
   }
 
@@ -211,14 +192,10 @@ private:
 
   size_t *_magic;
 
-#ifdef DETERM_MEMORY_ALLOC
-  pthread_mutex_t *_mutex;
-#else // ifdef DETERM_MEMORY_ALLOC
 
   // We will use a lock to protect the allocation request from different
   // threads.
   xplock *_lock;
-#endif // ifdef DETERM_MEMORY_ALLOC
 };
 
 #endif // ifndef DTHREADS_XHEAP_H
