@@ -1,5 +1,3 @@
-// #include "xpagelog.h"
-#include <assert.h>
 #include <iostream>
 #include <pthread.h>
 #include <unistd.h>
@@ -24,30 +22,13 @@ MU_TEST(test_read_after_read) {
   mu_check(log.get(0).getThreadId() == getpid());
   mu_check(log.get(0).getPageNo() > 0);
 
+  // access the same page again
   char c2 = heapbuf[PAGE_SIZE + 1];
   mu_check(log.len() == 1);
 
+  // access the next page again
   char c3 = heapbuf[PAGE_SIZE * 2];
   mu_check(log.len() == 2);
-}
-
-MU_TEST(test_read_after_write) {
-  char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
-  xpagelog log = xpagelog::getInstance();
-
-  log.reset();
-  heapbuf[PAGE_SIZE] = 1;
-  mu_check(log.len() == 1);
-  mu_check(log.get(0).getAccess() == xpagelogentry::WRITE);
-
-  // read after write will not appear in the log
-  mu_check(heapbuf[PAGE_SIZE] == 1);
-  mu_check(log.len() == 1);
-}
-
-MU_TEST(test_write_after_read) {
-  char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
-  xpagelog log = xpagelog::getInstance();
 }
 
 MU_TEST(test_write_after_write) {
@@ -66,10 +47,42 @@ MU_TEST(test_write_after_write) {
   mu_check(log.len() == 2);
 }
 
+MU_TEST(test_read_after_write) {
+  char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
+  xpagelog log = xpagelog::getInstance();
+
+  log.reset();
+  heapbuf[PAGE_SIZE] = 1;
+  mu_check(log.len() == 1);
+  mu_check(log.get(0).getAccess() == xpagelogentry::WRITE);
+
+  // read after write will not appear in the log,
+  // because x86 mmu does not support this kind of protection
+  mu_check(heapbuf[PAGE_SIZE] == 1);
+  mu_check(log.len() == 1);
+}
+
+MU_TEST(test_write_after_read) {
+  char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
+  xpagelog log = xpagelog::getInstance();
+
+  log.reset();
+  mu_check(heapbuf[PAGE_SIZE] == 0);
+  mu_check(log.len() == 1);
+  mu_check(log.get(0).getAccess() == xpagelogentry::READ);
+
+  heapbuf[PAGE_SIZE] = 1;
+  mu_check(log.len() == 2);
+  mu_check(log.get(1).getAccess() == xpagelogentry::WRITE);
+}
+
 MU_TEST_SUITE(test_suite) {
   MU_RUN_TEST(test_read_after_read);
+
   MU_RUN_TEST(test_write_after_write);
+
   MU_RUN_TEST(test_read_after_write);
+
   MU_RUN_TEST(test_write_after_read);
 }
 

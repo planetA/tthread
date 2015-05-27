@@ -29,6 +29,7 @@
  */
 
 #include <assert.h>
+#include <execinfo.h>
 #include <stdint.h>
 
 #include "debug.h"
@@ -57,10 +58,35 @@ void initialize() {
                                        -1,
                                        0);
   global_data->thread_index = 1;
+
+  // In glibc backtrace() invokes _dl_init() on the first call, which triggers
+  // malloc. To avoid pagefaults, call backtrace once on startup
+  void *array[1];
+  backtrace(array, 1);
+
   DEBUG("after mapping global data structure");
   xrun::initialize();
   initialized = true;
 }
+
+// Get instruction pointer of caller
+// this function is implemented as a macro, because
+// it would otherwise appear in the backtrace
+//
+// glibc's backtrace uses libgcc,
+// which uses pthread_mutex_lock to obtain backtrace
+// to avoid infinite recursion (because pthread_mutex_lock),
+// because our pthread_mutex_lock also calls this macro, disable
+// the lock during this function call
+#define CALLER ({                       \
+    bool was_initialized = initialized; \
+    initialized = false;                \
+    void *array[2];                     \
+    int size = backtrace(array, 2);     \
+    assert(size == 2);                  \
+    initialized = was_initialized;      \
+    array[1];                           \
+  })
 
 void finalize() {
   DEBUG("finalizing libdthread");
@@ -77,7 +103,9 @@ void finalize() {
   PRINT_COUNTER(lazypage);
   PRINT_COUNTER(shorttrans);
 
+#ifdef DEBUG
   xpagelog::getInstance().print();
+#endif // ifdef DEBUG
 }
 
 extern "C" {
@@ -106,7 +134,9 @@ void *malloc(size_t sz) {
 void *calloc(size_t nmemb, size_t sz) {
   void *ptr;
 
-  if (!initialized) {
+  if (initialized) {
+    ptr = xrun::calloc(nmemb, sz);
+  } else {
     DEBUG("Pre-initialization calloc call forwarded to mmap");
     ptr = mmap(NULL,
                sz * nmemb,
@@ -115,8 +145,6 @@ void *calloc(size_t nmemb, size_t sz) {
                -1,
                0);
     memset(ptr, 0, sz * nmemb);
-  } else {
-    ptr = xrun::calloc(nmemb, sz);
   }
 
   if (ptr == NULL) {
@@ -130,7 +158,6 @@ void *calloc(size_t nmemb, size_t sz) {
 }
 
 void free(void *ptr) {
-  // assert(initialized);
   if (initialized) {
     xrun::free(ptr);
   } else {
@@ -144,7 +171,6 @@ void *memalign(size_t boundary, size_t size) {
 }
 
 size_t malloc_usable_size(void *ptr) {
-  // assert(initialized);
   if (initialized) {
     return xrun::getSize(ptr);
   } else {
@@ -154,7 +180,6 @@ size_t malloc_usable_size(void *ptr) {
 }
 
 void *realloc(void *ptr, size_t sz) {
-  // assert(initialized);
   if (initialized) {
     return xrun::realloc(ptr, sz);
   } else {
@@ -183,7 +208,7 @@ void pthread_exit(void *value_ptr) {
 
 int pthread_cancel(pthread_t thread) {
   if (initialized) {
-    xrun::cancel((void *)thread);
+    xrun::cancel(CALLER, (void *)thread);
   }
   return 0;
 }
@@ -213,7 +238,7 @@ int pthread_kill(pthread_t thread, int sig) {
 }
 
 int sigwait(const sigset_t *set, int *sig) {
-  return xrun::sig_wait(set, sig);
+  return xrun::sig_wait(CALLER, set, sig);
 }
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *) {
@@ -225,7 +250,7 @@ int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *) {
 
 int pthread_mutex_lock(pthread_mutex_t *mutex) {
   if (initialized) {
-    xrun::mutex_lock(mutex);
+    xrun::mutex_lock(CALLER, mutex);
   }
   return 0;
 }
@@ -237,7 +262,7 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex) {
 
 int pthread_mutex_unlock(pthread_mutex_t *mutex) {
   if (initialized) {
-    xrun::mutex_unlock(mutex);
+    xrun::mutex_unlock(CALLER, mutex);
   }
   return 0;
 }
@@ -276,23 +301,20 @@ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
 
 int pthread_create(pthread_t *tid, const pthread_attr_t *attr, void *(*fn)(
                      void *), void *arg) {
-  // assert(initialized);
   if (initialized) {
-    *tid = (pthread_t)xrun::spawn(fn, arg);
+    *tid = (pthread_t)xrun::spawn(CALLER, fn, arg);
   }
   return 0;
 }
 
 int pthread_join(pthread_t tid, void **val) {
-  // assert(initialized);
   if (initialized) {
-    xrun::join((void *)tid, val);
+    xrun::join(CALLER, (void *)tid, val);
   }
   return 0;
 }
 
 int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr) {
-  // assert(initialized);
   if (initialized) {
     xrun::cond_init((void *)cond);
   }
@@ -300,31 +322,27 @@ int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr) {
 }
 
 int pthread_cond_broadcast(pthread_cond_t *cond) {
-  // assert(initialized);
   if (initialized) {
-    xrun::cond_broadcast((void *)cond);
+    xrun::cond_broadcast(CALLER, (void *)cond);
   }
   return 0;
 }
 
 int pthread_cond_signal(pthread_cond_t *cond) {
-  // assert(initialized);
   if (initialized) {
-    xrun::cond_signal((void *)cond);
+    xrun::cond_signal(CALLER, (void *)cond);
   }
   return 0;
 }
 
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
-  // assert(initialized);
   if (initialized) {
-    xrun::cond_wait((void *)cond, (void *)mutex);
+    xrun::cond_wait(CALLER, (void *)cond, (void *)mutex);
   }
   return 0;
 }
 
 int pthread_cond_destroy(pthread_cond_t *cond) {
-  // assert(initialized);
   if (initialized) {
     xrun::cond_destroy(cond);
   }
@@ -335,7 +353,6 @@ int pthread_cond_destroy(pthread_cond_t *cond) {
 int pthread_barrier_init(pthread_barrier_t           *barrier,
                          const pthread_barrierattr_t *attr,
                          unsigned int                count) {
-  // assert(initialized);
   if (initialized) {
     return xrun::barrier_init(barrier, count);
   }
@@ -343,7 +360,6 @@ int pthread_barrier_init(pthread_barrier_t           *barrier,
 }
 
 int pthread_barrier_destroy(pthread_barrier_t *barrier) {
-  // assert(initialized);
   if (initialized) {
     return xrun::barrier_destroy(barrier);
   }
@@ -351,7 +367,6 @@ int pthread_barrier_destroy(pthread_barrier_t *barrier) {
 }
 
 int pthread_barrier_wait(pthread_barrier_t *barrier) {
-  // assert(initialized);
   if (initialized) {
     return xrun::barrier_wait(barrier);
   }

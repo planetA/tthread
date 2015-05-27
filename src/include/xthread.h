@@ -55,12 +55,14 @@ public:
 
   /// represent sub-computation between synchronisation points
   static int _thunkId;
+  const static void *_thunkStart;
 
 public:
 
   // xthread(void) : _nestingLevel(0), _protected(false) {}
 
-  static void *spawn(threadFunction *fn,
+  static void *spawn(const void     *caller,
+                     threadFunction *fn,
                      void           *arg,
                      int            threadindex);
 
@@ -86,6 +88,10 @@ public:
     return _thunkId;
   }
 
+  static const inline void *getThunkStart(void) {
+    return _thunkStart;
+  }
+
   static inline void setId(int id) {
     if (id != _tid) {
       // reset thunkId for every new thread
@@ -94,18 +100,21 @@ public:
     _tid = id;
   }
 
-  static inline void startThunk() {
+  static inline void startThunk(const void *caller) {
     _thunkId++;
+    _thunkStart = caller;
   }
 
 private:
 
-  static void *forkSpawn(threadFunction *fn,
+  static void *forkSpawn(const void     *caller,
+                         threadFunction *fn,
                          ThreadStatus   *t,
                          void           *arg,
                          int            threadindex);
 
-  static void run_thread(threadFunction *fn,
+  static void run_thread(const void     *caller,
+                         threadFunction *fn,
                          ThreadStatus   *t,
                          void           *arg);
 

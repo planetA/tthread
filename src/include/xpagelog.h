@@ -6,6 +6,7 @@
  * @brief  Log page read/write access by threads to build a data graph
  */
 #include <algorithm>
+#include <execinfo.h>
 #include <stdexcept>
 
 #include "xatomic.h"
@@ -82,7 +83,7 @@ public:
   }
 
   void print() {
-    fprintf(stderr, "______RESULT_______\n");
+    fprintf(stderr, "______Page Access Result_______\n");
 
     long unsigned int llen, size = *_next_entry;
 
@@ -95,11 +96,20 @@ public:
     for (int i = 0; i < llen; i++) {
       xpagelogentry e = _log[i];
 
-      fprintf(stderr, "threadIndex: %d, thunkId: %d, pageNo: %d, access: %s\n",
+      fprintf(stderr,
+              "threadIndex: %d, thunkId: %d, pageNo: %d, access: %s, issued at: ",
               e.getThreadId(),
               e.getThunkId(),
               e.getPageNo(),
               e.getAccess() == xpagelogentry::READ ? "read" : "write");
+
+      // hacky solution to print backtrace without using malloc
+      void *issuerAddress = const_cast<void *>(e.getFirstIssuerAddress());
+      backtrace_symbols_fd(&issuerAddress, 1, fileno(stderr));
+
+      void *thunkStart = const_cast<void *>(e.getThunkStart());
+      fprintf(stderr, "\tthunk_start: ");
+      backtrace_symbols_fd(&thunkStart, 1, fileno(stderr));
     }
   }
 };

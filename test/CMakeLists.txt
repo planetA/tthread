@@ -13,7 +13,7 @@ foreach(testprog bug-atom bug-deadlock bug-deadlock1 bug-lockuse bug-order bug-r
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)
 
-foreach(testprog bug-init-32bit pageaccess-handler)
+foreach(testprog bug-init-32bit pageaccesslog-test thunkcounter-test)
 add_executable(${testprog} ${testprog}.cpp)
 target_link_libraries(${testprog} LINK_PUBLIC dthread)
 add_test(${testprog} ${testprog})

@@ -28,7 +28,9 @@
 #ifndef _XMEMORY_H_
 #define _XMEMORY_H_
 
+#include <execinfo.h>
 #include <signal.h>
+#include <stdio.h>
 
 #if !defined(_WIN32)
 # include <fcntl.h>
@@ -161,11 +163,13 @@ public:
     }
   }
 
-  static inline void handleAccess(void *addr, bool is_write) {
+  static inline void handleAccess(void       *addr,
+                                  bool       is_write,
+                                  const void *issuerAddress) {
     if (_pheap.inRange(addr)) {
-      _pheap.handleAccess(addr, is_write);
+      _pheap.handleAccess(addr, is_write, issuerAddress);
     } else if (_globals.inRange(addr)) {
-      _globals.handleAccess(addr, is_write);
+      _globals.handleAccess(addr, is_write, issuerAddress);
     } else {
       // None of the above - something is wrong.
       fprintf(stderr, "%d: wrong faulted address\n", getpid());
@@ -202,15 +206,18 @@ public:
   /* Signal-related functions for tracking page accesses. */
 
   /// @brief Signal handler to trap SEGVs.
-  static void segvHandle(int signum, siginfo_t *siginfo, void *context) {
+  static void segvHandle(int signum, siginfo_t *siginfo, void *unused) {
     void *addr = siginfo->si_addr; // address of access
+    ucontext *context = (ucontext *)unused;
+    void *pc = (void *)context->uc_mcontext.gregs[REG_RIP];
 
     // Check if this was a SEGV that we are supposed to trap.
     if (siginfo->si_code == SEGV_ACCERR) {
       // XXX this check is x86_64 specific
       bool is_write = ((ucontext_t *)context)->uc_mcontext.gregs[REG_ERR] & 0x2;
-      xmemory::handleAccess(addr, is_write);
+      xmemory::handleAccess(addr, is_write, pc);
     } else if (siginfo->si_code == SEGV_MAPERR) {
+      backtrace_symbols_fd(&pc, 1, fileno(stdin));
       fprintf(stderr, "%d : map error with addr %p!\n", getpid(), addr);
       ::abort();
     } else {

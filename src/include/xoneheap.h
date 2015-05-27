@@ -82,8 +82,8 @@ public:
     return getHeap()->inRange(ptr);
   }
 
-  void handleAccess(void *ptr, bool is_write) {
-    getHeap()->handleAccess(ptr, is_write);
+  void handleAccess(void *ptr, bool is_write, const void *issuerAddress) {
+    getHeap()->handleAccess(ptr, is_write, issuerAddress);
   }
 
   void cleanupOwnedBlocks(void) {

@@ -204,11 +204,11 @@ public:
   }
 
   /// @brief Spawn a thread.
-  static inline void *spawn(threadFunction *fn, void *arg) {
+  static inline void *spawn(const void *caller, threadFunction *fn, void *arg) {
     // If system is not protected, we should open protection.
     if (!_isCopyOnWrite) {
       setCopyOnWrite(true);
-      atomicBegin();
+      atomicBegin(caller);
     }
 
     atomicEnd();
@@ -235,16 +235,16 @@ public:
 
     _children_threads_count++;
 
-    void *ptr = xthread::spawn(fn, arg, _thread_index);
+    void *ptr = xthread::spawn(caller, fn, arg, _thread_index);
 
     // Start a new transaction
-    atomicBegin();
+    atomicBegin(caller);
 
     return ptr;
   }
 
   /// @brief Wait for a thread.
-  static inline void join(void *v, void **result) {
+  static inline void join(const void *caller, void *v, void **result) {
     int  child_threadindex = 0;
     bool wakeupChildren = false;
 
@@ -291,7 +291,7 @@ public:
     waitFence();
 
     // Start next transaction.
-    atomicBegin();
+    atomicBegin(caller);
 
     // Check whether we can close protection at all.
     // If current thread is the only alive thread, then close the protection.
@@ -304,7 +304,7 @@ public:
   }
 
   /// @brief Do a pthread_cancel
-  static inline void cancel(void *v) {
+  static inline void cancel(const void *caller, void *v) {
     int threadindex;
     bool isFound = false;
 
@@ -322,7 +322,7 @@ public:
     if (isFound) {
       forceThreadCommit(v);
     }
-    atomicBegin();
+    atomicBegin(caller);
     threadindex = xthread::cancel(v);
     isFound = determ::getInstance().cancel(threadindex);
 
@@ -334,12 +334,12 @@ public:
     }
   }
 
-  inline void kill(void *v, int sig) {
+  inline void kill(const void *caller, void *v, int sig) {
     int threadindex;
 
     if ((sig == SIGKILL)
         || (sig == SIGTERM)) {
-      cancel(v);
+      cancel(caller, v);
     }
 
     // If I am not holding the token, wait on token to guarantee determinism.
@@ -350,7 +350,7 @@ public:
     atomicEnd();
     threadindex = xthread::thread_kill(v, sig);
 
-    atomicBegin();
+    atomicBegin(caller);
 
     // Put token and wait on fence if I waitToken before.
     if (!_token_holding) {
@@ -475,9 +475,7 @@ public:
   // FIXME: if we are trying to remove atomicEnd() before mutex_lock(),
   // we should unlock() this lock if abort(), otherwise, it will
   // cause the dead-lock().
-  static void mutex_lock(pthread_mutex_t *mutex) {
-    xthread::startThunk();
-
+  static void mutex_lock(const void *caller, pthread_mutex_t *mutex) {
     if (!_fence_enabled) {
       if (_children_threads_count == 0) {
         return;
@@ -514,7 +512,7 @@ public:
         _token_holding = true;
         atomicEnd();
 
-        atomicBegin();
+        atomicBegin(caller);
       }
 
       //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
@@ -532,7 +530,7 @@ public:
         // next run.
         atomicEnd();
         putToken();
-        atomicBegin();
+        atomicBegin(caller);
         waitFence();
         _token_holding = false;
         goto getLockAgain;
@@ -540,9 +538,7 @@ public:
     }
   }
 
-  static void mutex_unlock(pthread_mutex_t *mutex) {
-    xthread::startThunk();
-
+  static void mutex_unlock(const void *caller, pthread_mutex_t *mutex) {
     if (!_fence_enabled) {
       return;
     }
@@ -568,7 +564,7 @@ public:
       putToken();
       _token_holding = false;
 
-      atomicBegin();
+      atomicBegin(caller);
       waitFence();
     }
   }
@@ -581,8 +577,6 @@ public:
 
   // Add the barrier support.
   static int barrier_wait(pthread_barrier_t *barrier) {
-    xthread::startThunk();
-
     if (!_fence_enabled) {
       if (_children_threads_count == 0) {
         return 0;
@@ -603,9 +597,7 @@ public:
   }
 
   // Support for sigwait() functions in order to avoid deadlock.
-  static int sig_wait(const sigset_t *set, int *sig) {
-    xthread::startThunk();
-
+  static int sig_wait(void *caller, const sigset_t *set, int *sig) {
     int ret;
 
     waitToken();
@@ -614,15 +606,13 @@ public:
     ret = determ::getInstance().sig_wait(set, sig, _thread_index);
 
     if (ret == 0) {
-      atomicBegin();
+      atomicBegin(caller);
     }
 
     return ret;
   }
 
-  static void cond_wait(void *cond, void *lock) {
-    xthread::startThunk();
-
+  static void cond_wait(const void *caller, void *cond, void *lock) {
     // corresponding lock should be acquired before.
     assert(_token_holding == true);
 
@@ -633,12 +623,10 @@ public:
     // it can cause deadlock!!! Some other threads
     // waiting for the token be no progress at all.
     determ::getInstance().cond_wait(_thread_index, cond, lock);
-    atomicBegin();
+    atomicBegin(caller);
   }
 
-  static void cond_broadcast(void *cond) {
-    xthread::startThunk();
-
+  static void cond_broadcast(const void *caller, void *cond) {
     if (!_fence_enabled) {
       return;
     }
@@ -650,7 +638,7 @@ public:
 
     atomicEnd();
     determ::getInstance().cond_broadcast(cond);
-    atomicBegin();
+    atomicBegin(caller);
 
     if (!_token_holding) {
       putToken();
@@ -658,9 +646,7 @@ public:
     }
   }
 
-  static void cond_signal(void *cond) {
-    xthread::startThunk();
-
+  static void cond_signal(const void *caller, void *cond) {
     if (!_fence_enabled) {
       return;
     }
@@ -673,7 +659,7 @@ public:
 
     // fprintf(stderr, "%d: cond_signal\n", getpid());
     determ::getInstance().cond_signal(cond);
-    atomicBegin();
+    atomicBegin(caller);
 
     if (!_token_holding) {
       putToken();
@@ -682,12 +668,14 @@ public:
   }
 
   /// @brief Start a transaction.
-  static void atomicBegin() {
+  static void atomicBegin(const void *caller) {
     fflush(stdout);
 
     if (!_isCopyOnWrite) {
       return;
     }
+
+    xthread::startThunk(caller);
 
     // Now start.
     xmemory::begin();

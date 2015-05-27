@@ -33,14 +33,18 @@
 unsigned int xthread::_nestingLevel = 0;
 int xthread::_tid;
 int xthread::_thunkId;
+const void *xthread::_thunkStart;
 
-void *xthread::spawn(threadFunction *fn, void *arg, int parent_index) {
+void *xthread::spawn(const void     *caller,
+                     threadFunction *fn,
+                     void           *arg,
+                     int            parent_index) {
   // Allocate an object to hold the thread's return value.
   void *buf = allocateSharedObject(4096);
   HL::sassert<(4096 > sizeof(ThreadStatus))>checkSize;
   ThreadStatus *t = new (buf)ThreadStatus;
 
-  return forkSpawn(fn, t, arg, parent_index);
+  return forkSpawn(caller, fn, t, arg, parent_index);
 }
 
 /// @brief Get thread index for this thread.
@@ -103,7 +107,8 @@ int xthread::thread_kill(void *v, int sig)
   return threadindex;
 }
 
-void *xthread::forkSpawn(threadFunction *fn,
+void *xthread::forkSpawn(const void     *caller,
+                         threadFunction *fn,
                          ThreadStatus   *t,
                          void           *arg,
                          int            parent_index) {
@@ -131,7 +136,7 @@ void *xthread::forkSpawn(threadFunction *fn,
     xrun::waitParentNotify();
 
     _nestingLevel++;
-    run_thread(fn, t, arg);
+    run_thread(caller, fn, t, arg);
     _nestingLevel--;
 
     _exit(0);
@@ -140,8 +145,11 @@ void *xthread::forkSpawn(threadFunction *fn,
 }
 
 // @brief Execute the thread.
-void xthread::run_thread(threadFunction *fn, ThreadStatus *t, void *arg) {
-  xrun::atomicBegin();
+void xthread::run_thread(const void     *caller,
+                         threadFunction *fn,
+                         ThreadStatus   *t,
+                         void           *arg) {
+  xrun::atomicBegin(caller);
   void *result = fn(arg);
   xrun::threadDeregister();
 

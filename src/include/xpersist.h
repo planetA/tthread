@@ -427,7 +427,7 @@ public:
   }
 
   // @ Page fault handler
-  void handleAccess(void *addr, bool is_write) {
+  void handleAccess(void *addr, bool is_write, const void *issuerAddress) {
     // Compute the page number of this item
     int pageNo = computePage((size_t)addr - (size_t)base());
     unsigned long *pageStart =
@@ -436,7 +436,8 @@ public:
 
     xpagelogentry e = xpagelogentry(pageNo,
                                     is_write ? xpagelogentry::WRITE :
-                                    xpagelogentry::READ);
+                                    xpagelogentry::READ,
+                                    issuerAddress);
     xpagelog::getInstance().add(e);
 
     if (is_write) {
