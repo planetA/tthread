@@ -293,8 +293,8 @@ public:
     // Start next transaction.
     atomicBegin(caller);
 
-    // Check whether we can close protection at all.
-    // If current thread is the only alive thread, then close the protection.
+    // Check whether we can copy on write at all.
+    // If current thread is the only alive thread, then disable copy on write.
     if (determ::getInstance().isSingleAliveThread()) {
       setCopyOnWrite(false);
 

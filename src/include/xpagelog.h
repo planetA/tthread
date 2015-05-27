@@ -55,13 +55,13 @@ public:
   }
 
   void add(xpagelogentry e) {
-    int page = xatomic::increment_and_return(_next_entry);
+    int next = xatomic::increment_and_return(_next_entry);
 
-    if ((page - 1) > SIZE_LIMIT) {
+    if ((next - 1) > SIZE_LIMIT) {
       fprintf(stderr, "pagelog size limit reached\n");
       ::abort();
     }
-    _log[page] = e;
+    _log[next] = e;
   }
 
   // for testing purpose only
@@ -97,10 +97,10 @@ public:
       xpagelogentry e = _log[i];
 
       fprintf(stderr,
-              "threadIndex: %d, thunkId: %d, pageNo: %d, access: %s, issued at: ",
+              "threadIndex: %d, thunkId: %d, pageStart: %p, access: %s, issued at: ",
               e.getThreadId(),
               e.getThunkId(),
-              e.getPageNo(),
+              e.getPageStart(),
               e.getAccess() == xpagelogentry::READ ? "read" : "write");
 
       // hacky solution to print backtrace without using malloc

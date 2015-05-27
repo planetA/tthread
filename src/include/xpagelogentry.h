@@ -14,7 +14,7 @@ public:
 private:
 
   // page within the memory location
-  int pageNo;
+  void *pageStart;
 
   // process id, which accessed the memory
   int threadId;
@@ -34,8 +34,8 @@ private:
 
 public:
 
-  xpagelogentry(int pageNo, accessType access, const void *issuerAddress)
-    : pageNo(pageNo),
+  xpagelogentry(void *pageStart, accessType access, const void *issuerAddress)
+    : pageStart(pageStart),
     access(access),
     threadId(xthread::getId()),
     thunkId(xthread::getThunkId()),
@@ -43,8 +43,8 @@ public:
     firstIssuerAddress(issuerAddress)
   {}
 
-  inline int getPageNo() {
-    return pageNo;
+  inline void *getPageStart() {
+    return pageStart;
   }
 
   inline int getThreadId() {

@@ -20,7 +20,7 @@ MU_TEST(test_read_after_read) {
   mu_check(log.len() == 1);
   mu_check(log.get(0).getAccess() == xpagelogentry::READ);
   mu_check(log.get(0).getThreadId() == getpid());
-  mu_check(log.get(0).getPageNo() > 0);
+  mu_check(log.get(0).getPageStart() > 0);
 
   // access the same page again
   char c2 = heapbuf[PAGE_SIZE + 1];
