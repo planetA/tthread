@@ -1,7 +1,7 @@
 // -*- C++ -*-
 
-#ifndef DTHREADS_XPERSIST_H
-#define DTHREADS_XPERSIST_H
+#ifndef _XPERSIST_H_
+#define _XPERSIST_H_
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -102,7 +102,7 @@ public:
 
     // Get a temporary file name (which had better not be NFS-mounted...).
     char _backingFname[L_tmpnam];
-    sprintf(_backingFname, "dthreadsMXXXXXX");
+    sprintf(_backingFname, "tthreadsMXXXXXX");
     _backingFd = mkstemp(_backingFname);
 
     if (_backingFd == -1) {
@@ -122,7 +122,7 @@ public:
     char _versionsFname[L_tmpnam];
 
     // Get another temporary file name (which had better not be NFS-mounted...).
-    sprintf(_versionsFname, "dthreadsVXXXXXX");
+    sprintf(_versionsFname, "tthreadsVXXXXXX");
     _versionsFd = mkstemp(_versionsFname);
 
     if (_versionsFd == -1) {
@@ -439,6 +439,9 @@ public:
                                     xpagelogentry::READ,
                                     issuerAddress);
     xpagelog::getInstance().add(e);
+
+    // DEBUG("pagefault at %p until %p in process %d", addr,
+    //      ((char *)addr) + xdefines::PageSize, xthread::getId());
 
     if (is_write) {
       handleWrite(pageNo, pageStart);
@@ -1011,4 +1014,4 @@ private:
   int _threadindex;
 };
 
-#endif // ifndef DTHREADS_XPERSIST_H
+#endif // ifndef _XPERSIST_H_

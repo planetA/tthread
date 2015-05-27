@@ -28,8 +28,8 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
-#ifndef DTHREADS_XHEAP_H
-#define DTHREADS_XHEAP_H
+#ifndef _XHEAP_H_
+#define _XHEAP_H_
 
 #include "debug.h"
 #include "xdefines.h"
@@ -198,4 +198,4 @@ private:
   xplock *_lock;
 };
 
-#endif // ifndef DTHREADS_XHEAP_H
+#endif // ifndef _XHEAP_H_

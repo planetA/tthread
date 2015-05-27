@@ -47,7 +47,7 @@ runtime_data_t *global_data;
 static bool initialized = false;
 
 void initialize() {
-  DEBUG("intializing libdthread");
+  DEBUG("intializing libtthread");
 
   init_real_functions();
 
@@ -89,7 +89,7 @@ void initialize() {
   })
 
 void finalize() {
-  DEBUG("finalizing libdthread");
+  DEBUG("finalizing libtthread");
   initialized = false;
 
   // xrun::finalize();

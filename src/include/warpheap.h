@@ -28,8 +28,8 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
-#ifndef DTHREADS_WARPHEAP_H
-#define DTHREADS_WARPHEAP_H
+#ifndef _WARPHEAP_H_
+#define _WARPHEAP_H_
 
 #include "heaplayers/util/sassert.h"
 #include "real.h"
