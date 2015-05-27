@@ -16,6 +16,15 @@ if(NOT LIBDL_FOUND)
   message(SEND_ERROR "libdl required")
 endif(NOT LIBDL_FOUND)
 
+INCLUDE (CheckCXXSourceCompiles)
+CHECK_CXX_SOURCE_COMPILES(
+"
+int main()
+{
+__builtin_return_address(0);
+}
+" HAS_BUILTIN_RETURN_ADDRESS)
+
 add_subdirectory(src)
 add_subdirectory(test)
 

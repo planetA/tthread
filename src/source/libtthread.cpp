@@ -59,16 +59,22 @@ void initialize() {
                                        0);
   global_data->thread_index = 1;
 
+#ifndef BUILTIN_RETURN_ADDRESS
+
   // In glibc backtrace() invokes _dl_init() on the first call, which triggers
   // malloc. To avoid pagefaults, call backtrace once on startup
   void *array[1];
   backtrace(array, 1);
+#endif // ifdef BUILTIN_RETURN_ADDRESS
 
   DEBUG("after mapping global data structure");
   xrun::initialize();
   initialized = true;
 }
 
+#ifdef BUILTIN_RETURN_ADDRESS
+# define CALLER (__builtin_return_address(0))
+#else // ifdef BUILTIN_RETURN_ADDRESS
 // Get instruction pointer of caller
 // this function is implemented as a macro, because
 // it would otherwise appear in the backtrace
@@ -78,7 +84,7 @@ void initialize() {
 // to avoid infinite recursion (because pthread_mutex_lock),
 // because our pthread_mutex_lock also calls this macro, disable
 // the lock during this function call
-#define CALLER ({                       \
+# define CALLER ({                      \
     bool was_initialized = initialized; \
     initialized = false;                \
     void *array[2];                     \
@@ -87,6 +93,7 @@ void initialize() {
     initialized = was_initialized;      \
     array[1];                           \
   })
+#endif // ifdef BUILTIN_RETURN_ADDRESS
 
 void finalize() {
   DEBUG("finalizing libtthread");
