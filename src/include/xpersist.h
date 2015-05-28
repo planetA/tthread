@@ -434,7 +434,8 @@ public:
       (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize *
                         pageNo);
 
-    xpagelogentry e = xpagelogentry(pageStart,
+    xpagelogentry e = xpagelogentry(addr,
+                                    pageStart,
                                     is_write ? xpagelogentry::WRITE :
                                     xpagelogentry::READ,
                                     issuerAddress);

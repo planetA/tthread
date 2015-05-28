@@ -13,8 +13,14 @@ public:
 
 private:
 
+  // memory address at which the first page fault was triggered
+  const void *firstAccessedAddress;
+
   // page within the memory location
   void *pageStart;
+
+  // how memory was access (read/write)
+  accessType access;
 
   // process id, which accessed the memory
   int threadId;
@@ -29,13 +35,14 @@ private:
   // return address, which issued the first page fault on this page
   const void *firstIssuerAddress;
 
-  // how memory was access (read/write)
-  accessType access;
-
 public:
 
-  xpagelogentry(void *pageStart, accessType access, const void *issuerAddress)
-    : pageStart(pageStart),
+  xpagelogentry(const void *address,
+                void       *pageStart,
+                accessType access,
+                const void *issuerAddress)
+    : firstAccessedAddress(address),
+    pageStart(pageStart),
     access(access),
     threadId(xthread::getId()),
     thunkId(xthread::getThunkId()),
@@ -61,6 +68,10 @@ public:
 
   inline int getAccess() {
     return access;
+  }
+
+  inline const void *getFirstAccessedAddress() {
+    return firstAccessedAddress;
   }
 
   inline const void *getFirstIssuerAddress() {

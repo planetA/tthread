@@ -97,9 +97,10 @@ public:
       xpagelogentry e = _log[i];
 
       fprintf(stderr,
-              "threadIndex: %d, thunkId: %d, pageStart: %p, access: %s, issued at: ",
+              "threadIndex: %d, thunkId: %d, address: %p, pageStart: %p, access: %s, issued at: ",
               e.getThreadId(),
               e.getThunkId(),
+              e.getFirstAccessedAddress(),
               e.getPageStart(),
               e.getAccess() == xpagelogentry::READ ? "read" : "write");
 

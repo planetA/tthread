@@ -43,7 +43,6 @@ MU_TEST(test_write_from_child) {
 pthread_mutex_t mutex[2];
 void *read_after_lock(void *data) {
   *((char *)data) = 'b';
-  fprintf(stderr, "set b\n");
   pthread_mutex_unlock(&mutex[0]); // unlock parent
 
   pthread_mutex_lock(&mutex[1]);   // wait for parent to check
@@ -63,9 +62,7 @@ MU_TEST(test_read_after_lock) {
 
   pthread_create(&thread, NULL, read_after_lock, heap);
 
-  fprintf(stderr, "before %d\n", __LINE__);
   pthread_mutex_lock(&mutex[0]); // wait for child to unlock
-  fprintf(stderr, "after %d\n", __LINE__);
 
   mu_check(*heap == 'b');
 
