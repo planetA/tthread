@@ -843,10 +843,11 @@ private:
       madvise(local, xdefines::PageSize * pages, MADV_DONTNEED);
     }
 
-    // Set this page to PROT_READ again.
-    mprotect(local, xdefines::PageSize * pages, PROT_READ);
-
-    //  mprotect(local, xdefines::PageSize, PROT_NONE);
+    // reset page protection
+    // keep globals at is at the moment, to avoid double page fault in page
+    // fault handler
+    int protection = _isHeap ? PROT_NONE : PROT_READ;
+    mprotect(local, xdefines::PageSize * pages, protection);
   }
 
   inline void handleRead(int pageNo, unsigned long *pageStart) {
