@@ -16,13 +16,13 @@ runs = 3
 cores = 'current'
 
 if len(sys.argv) == 1:
-	print 'Usage: '+sys.argv[0]+' <benchmark names> <config names> <runs>'
-	print 'Configs:'
+	print('Usage: '+sys.argv[0]+' <benchmark names> <config names> <runs>')
+	print('Configs:')
 	for c in all_configs:
-		print '  '+c
-	print 'Benchmarks:'
+		print('  '+c)
+	print('Benchmarks:')
 	for b in all_benchmarks:
-		print '  '+b
+		print('  '+b)
 	sys.exit(1)
 
 benchmarks = []
@@ -74,7 +74,7 @@ elif cores == 2:
 	os.system('echo 0 > /sys/devices/system/cpu/cpu7/online')
 
 if runs < 4:
-        print 'Warning: with fewer than 4 runs per benchmark, all runs are averaged. Request at least 4 runs to discard the min and max runs from the average.'
+        print('Warning: with fewer than 4 runs per benchmark, all runs are averaged. Request at least 4 runs to discard the min and max runs from the average.')
 
 data = {}
 try:
@@ -84,7 +84,7 @@ try:
 			data[benchmark][config] = []
 	
 			for n in range(0, runs):
-				print 'Running '+benchmark+'.'+config
+				print('Running '+benchmark+'.'+config)
 				os.chdir('tests/'+benchmark)
 				
 				start_time = os.times()[4]
@@ -98,22 +98,22 @@ try:
 				os.chdir('../..')
 
 except:
-	print 'Aborted!'
+	print('Aborted!')
 	
-print 'benchmark',
+print('benchmark')
 for config in configs:
-	print '\t'+config,
-print
+	print('\t'+config)
+print()
 
 for benchmark in benchmarks:
-	print benchmark,
+	print(benchmark)
 	for config in configs:
 		if benchmark in data and config in data[benchmark] and len(data[benchmark][config]) == runs:
 			if len(data[benchmark][config]) >= 4:
 				mean = (sum(data[benchmark][config])-max(data[benchmark][config])-min(data[benchmark][config]))/(runs-2)
 			else:
 				mean = sum(data[benchmark][config])/runs
-			print '\t'+str(mean),
+			print('\t'+str(mean))
 		else:
-			print '\tNOT RUN',
-	print
+			print('\tNOT RUN')
+	print()
