@@ -5,9 +5,13 @@ import sys
 import subprocess
 import re
 
-all_benchmarks = os.listdir('tests')
-all_benchmarks.remove('Makefile')
-all_benchmarks.remove('.svn')
+script_path = os.path.dirname(os.path.realpath(__file__))
+benchmark_path = os.path.join(script_path, "tests")
+all_benchmarks = []
+for b in os.listdir(benchmark_path):
+    path = os.path.join(benchmark_path, b)
+    if os.path.isdir(path):
+        all_benchmarks.append(b)
 all_benchmarks.sort()
 
 all_configs = ['pthread', 'dmp_o', 'dmp_b', 'dthread']
