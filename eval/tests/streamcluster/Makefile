@@ -5,7 +5,7 @@ TEST_FILES = streamcluster
 TEST_ARGS = 10 20 128 16384 16384 1000 none output.txt $(NCORES)
 
 CFLAGS = -DENABLE_THREADS
-LIBS = -lstdc++
+LIBS = -lstdc++ -lm
 
 DMP_O_GRAN = 6
 DMP_O_QUANTUM = 100000

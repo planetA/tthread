@@ -5,7 +5,7 @@ TEST_FILES = CumNormalInv MaxFunction RanUnif icdf HJM_SimPath_Forward_Blocking 
 TEST_ARGS = -ns 128 -sm 50000 -nt $(NCORES)
 
 CFLAGS = -DENABLE_THREADS -fstrict-aliasing -fkeep-inline-functions
-LIBS = -lstdc++
+LIBS = -lstdc++ -lm
 
 DMP_O_GRAN = 6
 DMP_O_QUANTUM = 100000
