@@ -102,7 +102,7 @@ public:
 
     // Get a temporary file name (which had better not be NFS-mounted...).
     char _backingFname[L_tmpnam];
-    sprintf(_backingFname, "tthreadsMXXXXXX");
+    sprintf(_backingFname, "tthreadMXXXXXX");
     _backingFd = mkstemp(_backingFname);
 
     if (_backingFd == -1) {
@@ -122,7 +122,7 @@ public:
     char _versionsFname[L_tmpnam];
 
     // Get another temporary file name (which had better not be NFS-mounted...).
-    sprintf(_versionsFname, "tthreadsVXXXXXX");
+    sprintf(_versionsFname, "tthreadVXXXXXX");
     _versionsFd = mkstemp(_versionsFname);
 
     if (_versionsFd == -1) {

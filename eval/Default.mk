@@ -1,4 +1,4 @@
-TTHREADS_HOME=../../..
+TTHREAD_HOME=../../..
 
 NCORES ?= 8
 
@@ -48,7 +48,7 @@ eval-pthread: $(TEST_NAME)-pthread
 ############ tthread builders ############
 
 TTHREAD_CFLAGS = $(CFLAGS) -DNDEBUG
-TTHREAD_LIBS += $(LIBS) -rdynamic $(TTHREADS_HOME)/src/libtthread.so -ldl
+TTHREAD_LIBS += $(LIBS) -rdynamic $(TTHREAD_HOME)/src/libtthread.so -ldl
 
 TTHREAD_OBJS = $(addprefix obj/, $(addsuffix -tthread.o, $(TEST_FILES)))
 
@@ -65,7 +65,7 @@ obj/%-tthread.o: %.cpp
 	$(CXX) $(TTHREAD_CFLAGS) -c $< -o $@ -I$(HOME)/include
 
 ### FIXME, put the 
-$(TEST_NAME)-tthread: $(TTHREAD_OBJS) $(TTHREADS_HOME)/src/libtthread.so
+$(TEST_NAME)-tthread: $(TTHREAD_OBJS) $(TTHREAD_HOME)/src/libtthread.so
 	$(CC) $(TTHREAD_CFLAGS) -o $@ $(TTHREAD_OBJS) $(TTHREAD_LIBS)
 
 eval-tthread: $(TEST_NAME)-tthread
