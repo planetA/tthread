@@ -80,29 +80,45 @@ elif cores == 2:
 if runs < 4:
     print('Warning: with fewer than 4 runs per benchmark, all runs are averaged. Request at least 4 runs to discard the min and max runs from the average.')
 
+def run_benchmark(benchmark, config, runtime_env):
+    cwd = os.getcwd()
+    try:
+        os.chdir('tests/'+benchmark)
+        print('Running '+benchmark+'.'+config)
+
+        start_time = os.times()[4]
+
+
+        p = subprocess.Popen(['make', 'eval-'+config, 'NCORES='+str(cores)], env=runtime_env)
+        p.wait()
+
+        time = os.times()[4] - start_time
+        data[benchmark][config].append(time)
+    finally:
+        os.chdir(cwd)
+
+def runtime_environment():
+    env = os.environ.copy()
+    library_path = env.get("LD_LIBRARY_PATH", "")
+    tthread_path = os.path.join(script_path, "..", "src")
+    if library_path == "":
+        library_path = tthread_path
+    else:
+        library_path += ":" + tthread_path
+    env["LD_LIBRARY_PATH"] = library_path
+    return env
+
 data = {}
-try:
-    for benchmark in benchmarks:
-        data[benchmark] = {}
-        for config in configs:
-            data[benchmark][config] = []
+runtime_env = runtime_environment()
 
-            for n in range(0, runs):
-                print('Running '+benchmark+'.'+config)
-                os.chdir('tests/'+benchmark)
+for benchmark in benchmarks:
+    data[benchmark] = {}
+    for config in configs:
+        data[benchmark][config] = []
 
-                start_time = os.times()[4]
+        for n in range(0, runs):
+            run_benchmark(benchmark, config, runtime_env)
 
-                p = subprocess.Popen(['make', 'eval-'+config, 'NCORES='+str(cores)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                p.wait()
-
-                time = os.times()[4] - start_time
-                data[benchmark][config].append(time)
-
-                os.chdir('../..')
-
-except:
-    print('Aborted!')
 
 print('benchmark')
 for config in configs:
