@@ -1,7 +1,3 @@
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 
 #include <stdio.h>
 #include <errno.h>

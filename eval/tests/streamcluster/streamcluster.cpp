@@ -7,10 +7,6 @@
  *
  */
 
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 #include <stdio.h>
 #include <iostream>
 #include <fstream>

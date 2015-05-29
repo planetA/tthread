@@ -6,7 +6,7 @@ TEST_ARGS = 8 $(DATASET_HOME)/blackscholes/in_1M.txt prices.txt
 
 CFLAGS = -DENABLE_THREADS -DPARALLEL -DNCO=2 -DN=960
 PTHREAD_LIBS = -lm -lstdc++
-DTHREAD_LIBS = -lm -lstdc++
+TTHREAD_LIBS = -lm -lstdc++
 
 SRC_SUFFIX=.cpp
 

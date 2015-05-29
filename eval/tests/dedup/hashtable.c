@@ -1,7 +1,3 @@
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 
 /* Copyright (C) 2004, 2007 Christopher Clark, Princeton University */
 /* Parallelization by Christian Bienia */

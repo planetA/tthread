@@ -4,10 +4,6 @@
  * Modified by Christian Bienia, Minlan Yu.
  */
 
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 #include "binheap.h"
 #include <stdlib.h>
 #include <stdio.h>

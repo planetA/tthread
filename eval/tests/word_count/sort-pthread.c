@@ -24,10 +24,6 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 #include <stdio.h>
 #include <strings.h>
 #include <string.h>

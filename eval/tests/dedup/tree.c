@@ -1,7 +1,3 @@
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 
 /* Based on Data Structures and Algorithm Analysis in C (Second Edition)
  * by Mark Allen Weiss.

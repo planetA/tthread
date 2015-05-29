@@ -18,10 +18,6 @@ along with this program; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 #include <stdio.h>
 #include <math.h>
 #include <sys/types.h>

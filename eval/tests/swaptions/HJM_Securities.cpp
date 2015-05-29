@@ -3,10 +3,6 @@
 //Authors: Mark Broadie, Jatin Dewanwala
 //Collaborator: Mikhail Smelyanskiy, Jike Chong, Intel
 
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

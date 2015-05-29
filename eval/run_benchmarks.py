@@ -14,7 +14,7 @@ for b in os.listdir(benchmark_path):
         all_benchmarks.append(b)
 all_benchmarks.sort()
 
-all_configs = ['pthread', 'dmp_o', 'dmp_b', 'dthread']
+all_configs = ['pthread', 'tthread']
 runs = 3
 
 cores = 'current'

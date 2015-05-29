@@ -1,8 +1,3 @@
-#if defined(ENABLE_DMP)
-#include "dmp.h"
-#endif
-
-
 #include "util.h"
 #include "dedupdef.h"
 #include "encoder.h"
