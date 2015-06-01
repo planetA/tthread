@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8.7)
 enable_testing()
 project(tthread)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
