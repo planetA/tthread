@@ -44,7 +44,17 @@ void finalize() __attribute__((destructor));
 
 runtime_data_t *global_data;
 
+// By locating all static memory of this library in one place,
+// we can later easily exclude it from memory protection
 static bool initialized = false;
+static char xrunbuf[sizeof(xrun)];
+static char xmemorybuf[sizeof(xmemory)];
+static xrun *run;
+static xmemory *memory;
+
+namespace tthread {
+tthread::log *_log;
+}
 
 void initialize() {
   DEBUG("intializing libtthread");
@@ -68,7 +78,9 @@ void initialize() {
 #endif // ifdef BUILTIN_RETURN_ADDRESS
 
   DEBUG("after mapping global data structure");
-  xrun::initialize();
+  tthread::_log = tthread::log::newInstance();
+  memory = new(xmemorybuf)xmemory;
+  run = new(xrunbuf)xrun(*memory, *tthread::_log);
   initialized = true;
 }
 
@@ -111,7 +123,10 @@ void finalize() {
   PRINT_COUNTER(shorttrans);
 
 #ifdef DEBUG
-  xpagelog::getInstance().print();
+
+  if (tthread::_log != NULL) {
+    tthread::_log->print();
+  }
 #endif // ifdef DEBUG
 }
 
@@ -128,7 +143,7 @@ void *malloc(size_t sz) {
                -1,
                0);
   } else {
-    ptr = xrun::malloc(sz);
+    ptr = run->malloc(sz);
   }
 
   if (ptr == NULL) {
@@ -142,7 +157,7 @@ void *calloc(size_t nmemb, size_t sz) {
   void *ptr;
 
   if (initialized) {
-    ptr = xrun::calloc(nmemb, sz);
+    ptr = run->calloc(nmemb, sz);
   } else {
     DEBUG("Pre-initialization calloc call forwarded to mmap");
     ptr = mmap(NULL,
@@ -166,7 +181,7 @@ void *calloc(size_t nmemb, size_t sz) {
 
 void free(void *ptr) {
   if (initialized) {
-    xrun::free(ptr);
+    run->free(ptr);
   } else {
     DEBUG("Pre-initialization free call ignored");
   }
@@ -179,7 +194,7 @@ void *memalign(size_t boundary, size_t size) {
 
 size_t malloc_usable_size(void *ptr) {
   if (initialized) {
-    return xrun::getSize(ptr);
+    return run->getSize(ptr);
   } else {
     DEBUG("Pre-initialization malloc_usable_size call ignored");
   }
@@ -188,7 +203,7 @@ size_t malloc_usable_size(void *ptr) {
 
 void *realloc(void *ptr, size_t sz) {
   if (initialized) {
-    return xrun::realloc(ptr, sz);
+    return run->realloc(ptr, sz);
   } else {
     DEBUG("Pre-initialization realloc call ignored");
   }
@@ -197,7 +212,7 @@ void *realloc(void *ptr, size_t sz) {
 
 int getpid(void) {
   if (initialized) {
-    return xrun::id();
+    return run->id();
   }
   return 0;
 }
@@ -208,14 +223,14 @@ int sched_yield(void) {
 
 void pthread_exit(void *value_ptr) {
   if (initialized) {
-    xrun::threadDeregister();
+    run->threadDeregister();
   }
   _exit(0);
 }
 
 int pthread_cancel(pthread_t thread) {
   if (initialized) {
-    xrun::cancel(CALLER, (void *)thread);
+    run->cancel(CALLER, (void *)thread);
   }
   return 0;
 }
@@ -234,7 +249,7 @@ int pthread_attr_destroy(pthread_attr_t *) {
 
 pthread_t pthread_self(void) {
   if (initialized) {
-    return (pthread_t)xrun::id();
+    return (pthread_t)run->id();
   }
   return 0;
 }
@@ -245,19 +260,19 @@ int pthread_kill(pthread_t thread, int sig) {
 }
 
 int sigwait(const sigset_t *set, int *sig) {
-  return xrun::sig_wait(CALLER, set, sig);
+  return run->sig_wait(CALLER, set, sig);
 }
 
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *) {
   if (initialized) {
-    return xrun::mutex_init(mutex);
+    return run->mutex_init(mutex);
   }
   return 0;
 }
 
 int pthread_mutex_lock(pthread_mutex_t *mutex) {
   if (initialized) {
-    xrun::mutex_lock(CALLER, mutex);
+    run->mutex_lock(CALLER, mutex);
   }
   return 0;
 }
@@ -269,14 +284,14 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex) {
 
 int pthread_mutex_unlock(pthread_mutex_t *mutex) {
   if (initialized) {
-    xrun::mutex_unlock(CALLER, mutex);
+    run->mutex_unlock(CALLER, mutex);
   }
   return 0;
 }
 
 int pthread_mutex_destory(pthread_mutex_t *mutex) {
   if (initialized) {
-    return xrun::mutex_destroy(mutex);
+    return run->mutex_destroy(mutex);
   }
   return 0;
 }
@@ -309,49 +324,49 @@ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
 int pthread_create(pthread_t *tid, const pthread_attr_t *attr, void *(*fn)(
                      void *), void *arg) {
   if (initialized) {
-    *tid = (pthread_t)xrun::spawn(CALLER, fn, arg);
+    *tid = (pthread_t)run->spawn(CALLER, fn, arg);
   }
   return 0;
 }
 
 int pthread_join(pthread_t tid, void **val) {
   if (initialized) {
-    xrun::join(CALLER, (void *)tid, val);
+    run->join(CALLER, (void *)tid, val);
   }
   return 0;
 }
 
 int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr) {
   if (initialized) {
-    xrun::cond_init((void *)cond);
+    run->cond_init((void *)cond);
   }
   return 0;
 }
 
 int pthread_cond_broadcast(pthread_cond_t *cond) {
   if (initialized) {
-    xrun::cond_broadcast(CALLER, (void *)cond);
+    run->cond_broadcast(CALLER, (void *)cond);
   }
   return 0;
 }
 
 int pthread_cond_signal(pthread_cond_t *cond) {
   if (initialized) {
-    xrun::cond_signal(CALLER, (void *)cond);
+    run->cond_signal(CALLER, (void *)cond);
   }
   return 0;
 }
 
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
   if (initialized) {
-    xrun::cond_wait(CALLER, (void *)cond, (void *)mutex);
+    run->cond_wait(CALLER, (void *)cond, (void *)mutex);
   }
   return 0;
 }
 
 int pthread_cond_destroy(pthread_cond_t *cond) {
   if (initialized) {
-    xrun::cond_destroy(cond);
+    run->cond_destroy(cond);
   }
   return 0;
 }
@@ -361,21 +376,21 @@ int pthread_barrier_init(pthread_barrier_t           *barrier,
                          const pthread_barrierattr_t *attr,
                          unsigned int                count) {
   if (initialized) {
-    return xrun::barrier_init(barrier, count);
+    return run->barrier_init(barrier, count);
   }
   return 0;
 }
 
 int pthread_barrier_destroy(pthread_barrier_t *barrier) {
   if (initialized) {
-    return xrun::barrier_destroy(barrier);
+    return run->barrier_destroy(barrier);
   }
   return 0;
 }
 
 int pthread_barrier_wait(pthread_barrier_t *barrier) {
   if (initialized) {
-    return xrun::barrier_wait(barrier);
+    return run->barrier_wait(barrier);
   }
   return 0;
 }

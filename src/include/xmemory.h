@@ -56,31 +56,31 @@
 #include "objectheader.h"
 #include "xpageentry.h"
 
-#include "xpagelog.h"
+#include "tthread/log.h"
 
 // Encapsulates all memory spaces (globals & heap).
 
 class xmemory {
 private:
 
+  // instance for signal handling
+  static xmemory *_instance;
+
   /// The globals region.
-  static xglobals _globals;
+  xglobals _globals;
 
   /// Protected heap.
-  static warpheap<xdefines::NUM_HEAPS, xdefines::PROTECTEDHEAP_CHUNK,
-                  xoneheap<xheap<xdefines::PROTECTEDHEAP_SIZE> > >_pheap;
+  warpheap<xdefines::NUM_HEAPS, xdefines::PROTECTEDHEAP_CHUNK,
+           xoneheap<xheap<xdefines::PROTECTEDHEAP_SIZE> > >_pheap;
 
   /// A signal stack, for catching signals.
-  static stack_t _sigstk;
+  stack_t _sigstk;
 
-  static int _heapid;
-
-  // Private on purpose
-  xmemory(void) {}
+  int _heapid;
 
 public:
 
-  static void initialize(void) {
+  void initialize(tthread::log& log) {
     DEBUG("initializing xmemory");
 
     // Intercept SEGV signals (used for trapping initial reads and
@@ -89,26 +89,24 @@ public:
 
     // Call _pheap so that xheap.h can be initialized at first and then can work
     // normally.
-    _pheap.initialize();
-    _globals.initialize();
+    _pheap.initialize(log);
+    _globals.initialize(log);
     xpageentry::getInstance().initialize();
 
     // Initialize the internal heap.
     InternalHeap::getInstance().initialize();
-
-    xpagelog::getInstance().initialize();
 
     // initialize memory protection so page access can be tracked from the
     // beginning
     setCopyOnWrite(false);
   }
 
-  static void finalize(void) {
+  void finalize() {
     _globals.finalize();
     _pheap.finalize();
   }
 
-  static void setThreadIndex(int id) {
+  void setThreadIndex(int id) {
     _globals.setThreadIndex(id);
     _pheap.setThreadIndex(id);
 
@@ -116,13 +114,13 @@ public:
     _heapid = id % xdefines::NUM_HEAPS;
   }
 
-  static inline void *malloc(size_t sz) {
+  inline void *malloc(size_t sz) {
     void *ptr = _pheap.malloc(_heapid, sz);
 
     return ptr;
   }
 
-  static inline void *realloc(void *ptr, size_t sz) {
+  inline void *realloc(void *ptr, size_t sz) {
     size_t s = getSize(ptr);
     void *newptr = malloc(sz);
 
@@ -134,28 +132,28 @@ public:
     return newptr;
   }
 
-  static inline void free(void *ptr) {
+  inline void free(void *ptr) {
     return _pheap.free(_heapid, ptr);
   }
 
   /// @return the allocated size of a dynamically-allocated object.
-  static inline size_t getSize(void *ptr) {
+  inline size_t getSize(void *ptr) {
     // Just pass the pointer along to the heap.
     return _pheap.getSize(ptr);
   }
 
-  static void setCopyOnWrite(bool copyOnWrite) {
+  void setCopyOnWrite(bool copyOnWrite) {
     _globals.setCopyOnWrite(NULL, copyOnWrite);
     _pheap.setCopyOnWrite(_pheap.getend(), copyOnWrite);
   }
 
-  static inline void begin() {
+  inline void begin() {
     // Reset global and heap protection.
     _globals.begin();
     _pheap.begin();
   }
 
-  static void mem_write(void *dest, void *val) {
+  void mem_write(void *dest, void *val) {
     if (_pheap.inRange(dest)) {
       _pheap.mem_write(dest, val);
     } else if (_globals.inRange(dest)) {
@@ -163,9 +161,9 @@ public:
     }
   }
 
-  static inline void handleAccess(void       *addr,
-                                  bool       is_write,
-                                  const void *issuerAddress) {
+  inline void handleAccess(void       *addr,
+                           bool       is_write,
+                           const void *issuerAddress) {
     if (_pheap.inRange(addr)) {
       _pheap.handleAccess(addr, is_write, issuerAddress);
     } else if (_globals.inRange(addr)) {
@@ -177,27 +175,27 @@ public:
     }
   }
 
-  static inline void commit() {
+  inline void commit() {
     _pheap.checkandcommit();
     _globals.checkandcommit();
   }
 
-  static inline void forceCommit(int pid) {
+  inline void forceCommit(int pid) {
     _pheap.forceCommit(pid, _pheap.getend());
   }
 
   // Since globals will not owned by one thread, there is no need
   // to cleanup and commit.
-  static inline void cleanupOwnedBlocks(void) {
+  inline void cleanupOwnedBlocks(void) {
     _pheap.cleanupOwnedBlocks();
   }
 
-  static inline void commitOwnedPage(int page_no, bool set_shared) {
+  inline void commitOwnedPage(int page_no, bool set_shared) {
     _pheap.commitOwnedPage(page_no, set_shared);
   }
 
   // Commit every page owned by me.
-  static inline void finalcommit(bool release) {
+  inline void finalcommit(bool release) {
     _pheap.finalcommit(release);
   }
 
@@ -215,7 +213,7 @@ public:
     if (siginfo->si_code == SEGV_ACCERR) {
       // XXX this check is x86_64 specific
       bool is_write = ((ucontext_t *)context)->uc_mcontext.gregs[REG_ERR] & 0x2;
-      xmemory::handleAccess(addr, is_write, pc);
+      _instance->handleAccess(addr, is_write, pc);
     } else if (siginfo->si_code == SEGV_MAPERR) {
       backtrace_symbols_fd(&pc, 1, fileno(stdin));
       fprintf(stderr, "%d : map error with addr %p!\n", getpid(), addr);
@@ -232,11 +230,13 @@ public:
     int page_no;
 
     page_no = signal.sival_int;
-    xmemory::commitOwnedPage(page_no, true);
+    _instance->commitOwnedPage(page_no, true);
   }
 
   /// @brief Install a handler for SEGV signals.
-  static void installSignalHandler(void) {
+  void installSignalHandler() {
+    xmemory::_instance = this;
+
 #if defined(linux)
 
     // Set up an alternate signal stack.

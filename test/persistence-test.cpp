@@ -3,6 +3,7 @@
 
 #include "minunit.h"
 #include "objectheader.h"
+#include "tthread/tthread.h"
 
 enum {
   PAGE_SIZE = 4096,
@@ -34,15 +35,15 @@ MU_TEST(test_write_from_child) {
   mu_check(heap[0] == 'b');
   mu_check(global == 'b');
 
-  fprintf(stderr, "l: %d\n", __LINE__);
-
   // FIXME Bug, when freeing this buffer
   // free(heap);
 }
 
 pthread_mutex_t mutex[2];
 void *read_after_lock(void *data) {
-  *((char *)data) = 'b';
+  const char *marker = "bbbbbbbbbbbbbbb";
+
+  memcpy(data, marker, 16);
   pthread_mutex_unlock(&mutex[0]); // unlock parent
 
   pthread_mutex_lock(&mutex[1]);   // wait for parent to check
@@ -50,25 +51,33 @@ void *read_after_lock(void *data) {
 }
 
 MU_TEST(test_read_after_lock) {
-  char *heap = (char *)malloc(sizeof(char));
+  char *heap = (char *)malloc(sizeof(char) * 300);
 
-  heap[0] = 'a';
+  const char *marker = "aaaaaaaaaaaaaaa";
+
+  memcpy(heap, marker, 16);
+
+  // heap[0] = 'a';
   pthread_t thread;
+
   pthread_mutex_init(&mutex[0], NULL);
   pthread_mutex_init(&mutex[1], NULL);
 
   pthread_mutex_lock(&mutex[0]);
   pthread_mutex_lock(&mutex[1]);
 
+  tthread::log log = tthread::getLog();
+  log.reset();
   pthread_create(&thread, NULL, read_after_lock, heap);
+  printf("pid %d\n", getpid());
 
-  pthread_mutex_lock(&mutex[0]); // wait for child to unlock
-
-  mu_check(*heap == 'b');
+  pthread_mutex_lock(&mutex[0]);   // wait for child to unlock
 
   pthread_mutex_unlock(&mutex[1]); // unlock child
+  mu_check(*heap == 'b');
   pthread_join(thread, NULL);
-  free(heap);
+
+  // free(heap);
 }
 
 

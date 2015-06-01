@@ -54,8 +54,7 @@
 #include "xbitmap.h"
 #include "xdefines.h"
 
-#include "xpagelog.h"
-#include "xpagelogentry.h"
+#include "tthread/log.h"
 
 #include "debug.h"
 
@@ -262,7 +261,9 @@ public:
 #endif // ifdef GET_CHARACTERISTICS
   }
 
-  void initialize() {
+  void initialize(tthread::log& log) {
+    _log = &log;
+
     // A string of one bits.
     allones = _mm_setzero_si128();
     allones = _mm_cmpeq_epi32(allones, allones);
@@ -434,15 +435,13 @@ public:
       (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize *
                         pageNo);
 
-    xpagelogentry e = xpagelogentry(addr,
-                                    pageStart,
-                                    is_write ? xpagelogentry::WRITE :
-                                    xpagelogentry::READ,
-                                    issuerAddress);
-    xpagelog::getInstance().add(e);
+    tthread::logentry e = tthread::logentry(addr,
+                                            pageStart,
+                                            is_write ? tthread::logentry::WRITE :
+                                            tthread::logentry::READ,
+                                            issuerAddress);
 
-    // DEBUG("pagefault at %p until %p in process %d", addr,
-    //      ((char *)addr) + xdefines::PageSize, xthread::getId());
+    _log->add(e);
 
     if (is_write) {
       handleWrite(pageNo, pageStart);
@@ -936,6 +935,8 @@ private:
     // Then add current page to dirty list.
     _dirtiedPagesList.insert(std::pair<int, void *>(pageNo, curr));
   }
+
+  tthread::log *_log;
 
   /// True if current xpersist.h is a heap.
   bool _isHeap;

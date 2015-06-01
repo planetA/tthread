@@ -168,8 +168,9 @@ public:
   volatile size_t _currthreads;
   volatile bool _is_arrival_phase;
   volatile size_t _alivethreads;
+  xmemory& _memory;
 
-  determ() :
+  determ(xmemory& memory) :
     _condnum(0),
     _barriernum(0),
     _maxthreads(0),
@@ -180,7 +181,8 @@ public:
     _activelist(NULL),
     _tokenpos(NULL),
     _parentnotified(false),
-    _childregistered(false)
+    _childregistered(false),
+    _memory(memory)
   {}
 
 public:
@@ -208,19 +210,15 @@ public:
     WRAP(pthread_cond_init)(&_cond_join, &_condattr);
   }
 
-  static determ& getInstance(void) {
-    static determ *determObject = NULL;
+  static determ& newInstance(xmemory& memory) {
+    void *buf = mmap(NULL,
+                     sizeof(determ),
+                     PROT_READ | PROT_WRITE,
+                     MAP_SHARED | MAP_ANONYMOUS,
+                     -1,
+                     0);
 
-    if (!determObject) {
-      void *buf = mmap(NULL,
-                       sizeof(determ),
-                       PROT_READ | PROT_WRITE,
-                       MAP_SHARED | MAP_ANONYMOUS,
-                       -1,
-                       0);
-      determObject = new(buf)determ();
-    }
-    return *determObject;
+    return *new(buf)determ(memory);
   }
 
   void finalize(void) {
@@ -1124,12 +1122,12 @@ public:
       // First, The token has been passed to others
       // Second, I am not in the token ring (can't be passed the token).
       // Then it won't cause deadlock anymore.
-      xmemory::begin();
+      _memory.begin();
     }
     WRAP(pthread_barrier_wait)(&barentry->real_barr);
 
     if (lastThread) {
-      xmemory::begin();
+      _memory.begin();
     }
   }
 
@@ -1203,7 +1201,7 @@ private:
     // fprintf(stderr, "origentry %p dest %p *dest %p newentry %p\n", origentry,
     // dest, *dest, newentry);
     // Update the shared copy in the same time.
-    xmemory::mem_write(dest, newentry);
+    _memory.mem_write(dest, newentry);
   }
 
   void clearSyncEntry(void *origentry) {
@@ -1212,7 +1210,7 @@ private:
     *dest = NULL;
 
     // Update the shared copy in the same time.
-    xmemory::mem_write(*dest, NULL);
+    _memory.mem_write(*dest, NULL);
   }
 
   inline void lock(void) {

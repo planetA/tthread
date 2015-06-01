@@ -48,51 +48,56 @@ public:
   };
 
   /// Current nesting level (i.e., how deep we are in recursive threads).
-  static unsigned int _nestingLevel;
+  unsigned int _nestingLevel;
 
   /// What is this thread's PID?
-  static int _tid;
+  int _tid;
 
   /// represent sub-computation between synchronisation points
-  static int _thunkId;
-  const static void *_thunkStart;
+  int _thunkId;
+  const void *_thunkStart;
+
+  xrun& _run;
 
 public:
 
-  // xthread(void) : _nestingLevel(0), _protected(false) {}
+  xthread(xrun& run) :
+    _nestingLevel(0),
+    _run(run)
+  {}
 
-  static void *spawn(const void     *caller,
-                     threadFunction *fn,
-                     void           *arg,
-                     int            threadindex);
+  void *spawn(const void     *caller,
+              threadFunction *fn,
+              void           *arg,
+              int            threadindex);
 
-  static void join(void *v,
-                   void **result);
+  void join(void *v,
+            void **result);
 
-  static int cancel(void *v);
-  static int thread_kill(void *v,
-                         int  sig);
+  int cancel(void *v);
+  int thread_kill(void *v,
+                  int  sig);
 
   // The following functions are trying to get id or thread index of specified
   // thread.
-  static int getThreadIndex(void *v);
-  static int getThreadPid(void *v);
+  int getThreadIndex(void *v);
+  int getThreadPid(void *v);
 
   // getId is trying to get id for current thread, the function
   // is called by current thread.
-  static inline int getId(void) {
+  inline int getId(void) {
     return _tid;
   }
 
-  static inline int getThunkId(void) {
+  inline int getThunkId(void) {
     return _thunkId;
   }
 
-  static const inline void *getThunkStart(void) {
+  const inline void *getThunkStart(void) {
     return _thunkStart;
   }
 
-  static inline void setId(int id) {
+  inline void setId(int id) {
     if (id != _tid) {
       // reset thunkId for every new thread
       _thunkId = 0;
@@ -100,26 +105,26 @@ public:
     _tid = id;
   }
 
-  static inline void startThunk(const void *caller) {
+  inline void startThunk(const void *caller) {
     _thunkId++;
     _thunkStart = caller;
   }
 
 private:
 
-  static void *forkSpawn(const void     *caller,
-                         threadFunction *fn,
-                         ThreadStatus   *t,
-                         void           *arg,
-                         int            threadindex);
+  void *forkSpawn(const void     *caller,
+                  threadFunction *fn,
+                  ThreadStatus   *t,
+                  void           *arg,
+                  int            threadindex);
 
-  static void run_thread(const void     *caller,
-                         threadFunction *fn,
-                         ThreadStatus   *t,
-                         void           *arg);
+  void run_thread(const void     *caller,
+                  threadFunction *fn,
+                  ThreadStatus   *t,
+                  void           *arg);
 
   /// @return a chunk of memory shared across processes.
-  static void *allocateSharedObject(size_t sz) {
+  void *allocateSharedObject(size_t sz) {
     return mmap(NULL,
                 sz,
                 PROT_READ | PROT_WRITE,
@@ -128,7 +133,7 @@ private:
                 0);
   }
 
-  static void freeSharedObject(void *ptr, size_t sz) {
+  void freeSharedObject(void *ptr, size_t sz) {
     munmap(ptr, sz);
   }
 };

@@ -30,11 +30,6 @@
 #include <pthread.h>
 #include <syscall.h>
 
-unsigned int xthread::_nestingLevel = 0;
-int xthread::_tid;
-int xthread::_thunkId;
-const void *xthread::_thunkStart;
-
 void *xthread::spawn(const void     *caller,
                      threadFunction *fn,
                      void           *arg,
@@ -121,19 +116,19 @@ void *xthread::forkSpawn(const void     *caller,
   if (child) {
     // I need to wait until the child has waited on creation barrier
     // sucessfully.
-    xrun::waitChildRegistered();
+    _run.waitChildRegistered();
 
     return (void *)t;
   } else {
     pid_t mypid = syscall(SYS_getpid);
     setId(mypid);
 
-    int threadindex = xrun::childRegister(mypid, parent_index);
+    int threadindex = _run.childRegister(mypid, parent_index);
 
     t->threadIndex = threadindex;
     t->tid = mypid;
 
-    xrun::waitParentNotify();
+    _run.waitParentNotify();
 
     _nestingLevel++;
     run_thread(caller, fn, t, arg);
@@ -149,9 +144,9 @@ void xthread::run_thread(const void     *caller,
                          threadFunction *fn,
                          ThreadStatus   *t,
                          void           *arg) {
-  xrun::atomicBegin(caller);
+  _run.atomicBegin(caller);
   void *result = fn(arg);
-  xrun::threadDeregister();
+  _run.threadDeregister();
 
   t->retval = result;
 }

@@ -38,8 +38,8 @@ public:
 
   xoneheap() {}
 
-  void initialize(void) {
-    getHeap()->initialize();
+  void initialize(tthread::log& log) {
+    getHeap()->initialize(log);
   }
 
   void finalize(void) {

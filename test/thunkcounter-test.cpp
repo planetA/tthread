@@ -1,5 +1,5 @@
 #include "minunit.h"
-#include "xpagelog.h"
+#include "tthread/tthread.h"
 #include <execinfo.h>
 
 enum {
@@ -52,7 +52,7 @@ MU_TEST(test_lock_unlock) {
   pthread_mutex_init(&mutex, NULL);
 
   pthread_t thread[2];
-  xpagelog log = xpagelog::getInstance();
+  tthread::log& log = tthread::getLog();
   log.reset();
   lock_unlock_context_t ctx = { .mutex = &mutex, .data = &heapbuf[PAGE_SIZE] };
   pthread_create(&thread[0], NULL, lock_unlock_mutex, &ctx);
@@ -65,11 +65,11 @@ MU_TEST(test_lock_unlock) {
 
   // expect 2 logged write access to ctx.data
   for (int i = 0; i < log.len(); i++) {
-    xpagelogentry e = log.get(i);
+    tthread::logentry e = log.get(i);
 
     if (e.getFirstAccessedAddress() == ctx.data) {
       accesses++;
-      mu_check(e.getAccess() == xpagelogentry::WRITE);
+      mu_check(e.getAccess() == tthread::logentry::WRITE);
 
       // address for mutex lock should come after function start
       mu_check(e.getFirstAccessedAddress() > ((const void *)lock_unlock_mutex));

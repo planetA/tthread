@@ -42,8 +42,8 @@ public:
     Source::free(_heap);
   }
 
-  void initialize(void) {
-    Source::initialize();
+  void initialize(tthread::log& log) {
+    Source::initialize(log);
 
     int metasize = sizeof(Heap<Source, ChunkSize>);
 

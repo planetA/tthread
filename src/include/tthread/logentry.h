@@ -1,9 +1,10 @@
-#ifndef __XPAGELOGENTRY_H__
-#define __XPAGELOGENTRY_H__
+#ifndef __TTHREAD_LOG_ENTRY_H__
+#define __TTHREAD_LOG_ENTRY_H__
 
 #include "xthread.h"
 
-class xpagelogentry {
+namespace tthread {
+class logentry {
 public:
 
   enum accessType {
@@ -37,18 +38,21 @@ private:
 
 public:
 
-  xpagelogentry(const void *address,
-                void       *pageStart,
-                accessType access,
-                const void *issuerAddress)
+  logentry(const void *address,
+           void       *pageStart,
+           accessType access,
+           const void *issuerAddress)
     : firstAccessedAddress(address),
     pageStart(pageStart),
     access(access),
-    threadId(xthread::getId()),
-    thunkId(xthread::getThunkId()),
-    thunkStart(xthread::getThunkStart()),
     firstIssuerAddress(issuerAddress)
   {}
+
+  inline void setThread(xthread thread) {
+    threadId = thread.getId();
+    thunkId = thread.getThunkId();
+    thunkStart = thread.getThunkStart();
+  }
 
   inline void *getPageStart() {
     return pageStart;
@@ -78,5 +82,6 @@ public:
     return firstIssuerAddress;
   }
 };
+}
 
-#endif /* __XPAGELOGENTRY_H__ */
+#endif /* __TTHREAD_LOG_H__ */

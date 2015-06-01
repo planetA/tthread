@@ -143,8 +143,8 @@ public:
     return p;
   }
 
-  void initialize() {
-    parent::initialize();
+  void initialize(tthread::log& log) {
+    parent::initialize(log);
   }
 
   /// @brief Call this before every transaction begins.

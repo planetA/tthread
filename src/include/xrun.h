@@ -32,6 +32,8 @@
 #ifndef _XRUN_H_
 #define _XRUN_H_
 
+#include <pthread.h>
+
 // Common defines
 #include "xdefines.h"
 
@@ -41,102 +43,88 @@
 // memory
 #include "xmemory.h"
 
-// Heap Layers
-#include "heaplayers/util/sassert.h"
-
-#include "xatomic.h"
-
-// determinstic controls
 #include "determ.h"
 
-#include "xbitmap.h"
-
-#include "prof.h"
-
-#include "debug.h"
+#include "tthread/tthread.h"
 
 class xrun {
 private:
 
-  static volatile bool _initialized;
-  static volatile bool _isCopyOnWrite;
-  static size_t _master_thread_id;
-  static size_t _thread_index;
-  static bool _fence_enabled;
-  static size_t _children_threads_count;
-  static size_t _lock_count;
-  static bool _token_holding;
-#ifdef TIME_CHECKING
-  static struct timeinfo tstart;
-#endif // ifdef TIME_CHECKING
+  volatile bool _isCopyOnWrite;
+  size_t _master_thread_id;
+  size_t _thread_index;
+  bool _fence_enabled;
+  size_t _children_threads_count;
+  size_t _lock_count;
+  bool _token_holding;
+  xmemory& _memory;
+  xthread _thread;
+  determ& _determ;
 
 public:
 
   /// @brief Initialize the system.
-  static void initialize(void) {
+  xrun(xmemory     & memory,
+       tthread::log& log) :
+    _isCopyOnWrite(false),
+    _children_threads_count(0),
+    _lock_count(0),
+    _token_holding(false),
+    _fence_enabled(false),
+    _thread_index(0),
+    _memory(memory),
+    _determ(determ::newInstance(memory)),
+    _thread(*this)
+  {
     DEBUG("initializing xrun");
 
-    _initialized = false;
-    _isCopyOnWrite = false;
-    _children_threads_count = 0;
-    _lock_count = 0;
-    _token_holding = false;
-
     pid_t pid = syscall(SYS_getpid);
+    _master_thread_id = pid;
 
-    if (!_initialized) {
-      _initialized = true;
+    // xmemory.initialize should happen before others
+    _memory.initialize(log);
 
-      // xmemory::initialize should happen before others
-      xmemory::initialize();
+    _thread.setId(pid);
+    log.setThread(_thread);
+    _memory.setThreadIndex(0);
 
-      xthread::setId(pid);
-      _master_thread_id = pid;
-      xmemory::setThreadIndex(0);
+    _determ.initialize();
+    xbitmap::getInstance().initialize();
 
-      determ::getInstance().initialize();
-      xbitmap::getInstance().initialize();
-
-      _thread_index = 0;
-
-      // Add myself to the token queue.
-      determ::getInstance().registerMaster(_thread_index, pid);
-      _fence_enabled = false;
-    } else {
-      fprintf(stderr, "xrun reinitialized");
-      ::abort();
-    }
+    // Add myself to the token queue.
+    _determ.registerMaster(_thread_index, pid);
   }
 
   // Control whether we will copy on writed memory or not.
   // When there is only one thread in the system, memory is not
   // copy on write to avoid the overhead of merging pages back.
-  static void setCopyOnWrite(bool copyOnWrite) {
+  void setCopyOnWrite(bool copyOnWrite) {
     if (copyOnWrite == _isCopyOnWrite) {
       return;
     }
     _isCopyOnWrite = copyOnWrite;
 
-    xmemory::setCopyOnWrite(copyOnWrite);
+    _memory.setCopyOnWrite(copyOnWrite);
   }
 
-  static void finalize(void) {
-    xmemory::finalize();
+  void finalize(void) {
+    _memory.finalize();
   }
 
   // @ Return the main thread's id.
-  static inline bool isMaster(void) {
+  inline bool isMaster(void) {
     return getpid() == _master_thread_id;
   }
 
   // @return the "thread" id.
-  static inline int id(void) {
-    return xthread::getId();
+  inline int id(void) {
+    return _thread.getId();
   }
 
   // New created thread should call this.
   // Now only the current thread is active.
-  static inline int childRegister(int pid, int parentindex) {
+  inline int childRegister(int pid,
+                           int parentindex) {
     int threads;
 
     // Get the global thread index for this thread, which will be used
@@ -149,40 +137,40 @@ public:
     // Wait on token to do synchronizations if we set this.
     _fence_enabled = true;
 
-    determ::getInstance().registerThread(_thread_index, pid, parentindex);
+    _determ.registerThread(_thread_index, pid, parentindex);
 
     // Set correponding heap index.
-    xmemory::setThreadIndex(_thread_index);
+    _memory.setThreadIndex(_thread_index);
 
     // New thread will not own any blocks in the beginning
     // We should cleanup all blocks information inherited from the parent.
-    xmemory::cleanupOwnedBlocks();
+    _memory.cleanupOwnedBlocks();
 
     return _thread_index;
   }
 
   // New created threads are waiting until notify by main thread.
-  static void waitParentNotify(void) {
-    determ::getInstance().waitParentNotify();
+  void waitParentNotify(void) {
+    _determ.waitParentNotify();
   }
 
-  static inline void waitChildRegistered(void) {
-    determ::getInstance().waitChildRegistered();
+  inline void waitChildRegistered(void) {
+    _determ.waitChildRegistered();
   }
 
-  static inline void threadDeregister(void) {
+  inline void threadDeregister(void) {
     waitToken();
 
-    xmemory::finalcommit(false);
+    _memory.finalcommit(false);
 
     DEBUG("%d: thread %lu deregister, get token\n", getpid(), _thread_index);
     atomicEnd();
 
     // Remove current thread and decrease the fence
-    determ::getInstance().deregisterThread(_thread_index);
+    _determ.deregisterThread(_thread_index);
   }
 
-  static inline void closeFence(void) {
+  inline void closeFence(void) {
     _fence_enabled = false;
     _children_threads_count = 0;
 
@@ -191,20 +179,22 @@ public:
     global_data->thread_index = 1;
   }
 
-  static inline void forceThreadCommit(void *v) {
+  inline void forceThreadCommit(void *v) {
     int pid;
 
-    pid = xthread::getThreadPid(v);
-    xmemory::forceCommit(pid);
+    pid = _thread.getThreadPid(v);
+    _memory.forceCommit(pid);
   }
 
   /// @return the unique thread index.
-  static inline int threadindex(void) {
+  inline int threadindex(void) {
     return _thread_index;
   }
 
   /// @brief Spawn a thread.
-  static inline void *spawn(const void *caller, threadFunction *fn, void *arg) {
+  inline void *spawn(const void     *caller,
+                     threadFunction *fn,
+                     void           *arg) {
     // If system is not protected, we should open protection.
     if (!_isCopyOnWrite) {
       setCopyOnWrite(true);
@@ -213,7 +203,7 @@ public:
 
     atomicEnd();
 
-    xmemory::finalcommit(true);
+    _memory.finalcommit(true);
 
     // If fence is already enabled, then we should wait for token to proceed.
     if (_fence_enabled) {
@@ -235,7 +225,7 @@ public:
 
     _children_threads_count++;
 
-    void *ptr = xthread::spawn(caller, fn, arg, _thread_index);
+    void *ptr = _thread.spawn(caller, fn, arg, _thread_index);
 
     // Start a new transaction
     atomicBegin(caller);
@@ -244,7 +234,9 @@ public:
   }
 
   /// @brief Wait for a thread.
-  static inline void join(const void *caller, void *v, void **result) {
+  inline void join(const void *caller,
+                   void       *v,
+                   void       **result) {
     int  child_threadindex = 0;
     bool wakeupChildren = false;
 
@@ -264,7 +256,7 @@ public:
     }
 
     atomicEnd();
-    xmemory::finalcommit(true);
+    _memory.finalcommit(true);
 
     if (!_fence_enabled) {
       startFence();
@@ -272,20 +264,20 @@ public:
     }
 
     // Get the joinee's thread index.
-    child_threadindex = xthread::getThreadIndex(v);
+    child_threadindex = _thread.getThreadIndex(v);
 
     // When child is not finished, current thread should wait on cond var until
     // child is exited.
     // It is possible that children has been exited, then it will make sure
     // this.
-    determ::getInstance().join(child_threadindex, _thread_index,
-                               wakeupChildren);
+    _determ.join(child_threadindex, _thread_index,
+                 wakeupChildren);
 
     // Release the token.
     putToken();
 
     // Cleanup some status about the joinee.
-    xthread::join(v, result);
+    _thread.join(v, result);
 
     // Now we should wait on fence in order to proceed.
     waitFence();
@@ -295,7 +287,7 @@ public:
 
     // Check whether we can copy on write at all.
     // If current thread is the only alive thread, then disable copy on write.
-    if (determ::getInstance().isSingleAliveThread()) {
+    if (_determ.isSingleAliveThread()) {
       setCopyOnWrite(false);
 
       // Do some cleanup for fence.
@@ -304,7 +296,8 @@ public:
   }
 
   /// @brief Do a pthread_cancel
-  static inline void cancel(const void *caller, void *v) {
+  inline void cancel(const void *caller,
+                     void       *v) {
     int threadindex;
     bool isFound = false;
 
@@ -317,15 +310,14 @@ public:
 
     // When the thread to be cancel is still there, we are forcing that thread
     // to commit every owned page if we are using lazy commit mechanism.
-    // It is important to call this function before xthread::cancel since
-    // threadindex or threadpid information will be destroyed xthread::cancel.
+    // It is important to call this function before _thread.cancel since
+    // threadindex or threadpid information will be destroyed _thread.cancel.
     if (isFound) {
       forceThreadCommit(v);
     }
     atomicBegin(caller);
-    threadindex = xthread::cancel(v);
-    isFound = determ::getInstance().cancel(threadindex);
-
+    threadindex = _thread.cancel(v);
+    isFound = _determ.cancel(threadindex);
 
     // Put token and wait on fence if I waitToken before.
     if (!_token_holding) {
@@ -334,7 +326,9 @@ public:
     }
   }
 
-  inline void kill(const void *caller, void *v, int sig) {
+  inline void kill(const void *caller,
+                   void       *v,
+                   int        sig) {
     int threadindex;
 
     if ((sig == SIGKILL)
@@ -348,7 +342,7 @@ public:
     }
 
     atomicEnd();
-    threadindex = xthread::thread_kill(v, sig);
+    threadindex = _thread.thread_kill(v, sig);
 
     atomicBegin(caller);
 
@@ -360,69 +354,69 @@ public:
   }
 
   /* Heap-related functions. */
-  static inline void *malloc(size_t sz) {
-    void *ptr = xmemory::malloc(sz);
+  inline void *malloc(size_t sz) {
+    void *ptr = _memory.malloc(sz);
 
     // fprintf(stderr, "%d : malloc sz %d with ptr %p\n", _thread_index, sz,
     // ptr);
     return ptr;
   }
 
-  static inline void *calloc(size_t nmemb, size_t sz) {
-    void *ptr = xmemory::malloc(nmemb * sz);
+  inline void *calloc(size_t nmemb,
+                      size_t sz) {
+    void *ptr = _memory.malloc(nmemb * sz);
 
     memset(ptr, 0, nmemb * sz);
     return ptr;
   }
 
   // In fact, we can delay to open its information about heap.
-  static inline void free(void *ptr) {
-    xmemory::free(ptr);
+  inline void free(void *ptr) {
+    _memory.free(ptr);
   }
 
-  static inline size_t getSize(void *ptr) {
-    return xmemory::getSize(ptr);
+  inline size_t getSize(void *ptr) {
+    return _memory.getSize(ptr);
   }
 
-  static inline void *realloc(void *ptr, size_t sz) {
+  inline void *realloc(void   *ptr,
+                       size_t sz) {
     void *newptr;
 
-    // fprintf(stderr, "realloc ptr %p sz %x\n", ptr, sz);
     if (ptr == NULL) {
-      newptr = xmemory::malloc(sz);
+      newptr = _memory.malloc(sz);
       return newptr;
     }
 
     if (sz == 0) {
-      xmemory::free(ptr);
+      _memory.free(ptr);
       return NULL;
     }
 
-    newptr = xmemory::realloc(ptr, sz);
+    newptr = _memory.realloc(ptr, sz);
 
-    // fprintf(stderr, "realloc ptr %p sz %x\n", newptr, sz);
     return newptr;
   }
 
   ///// conditional variable functions.
-  static void cond_init(void *cond) {
-    determ::getInstance().cond_init(cond);
+  void cond_init(void *cond) {
+    _determ.cond_init(cond);
   }
 
-  static void cond_destroy(void *cond) {
-    determ::getInstance().cond_destroy(cond);
+  void cond_destroy(void *cond) {
+    _determ.cond_destroy(cond);
   }
 
   // Barrier support
-  static int barrier_init(pthread_barrier_t *barrier, unsigned int count) {
-    // printf("BARRIERI_init with count %d\n", count);
-    determ::getInstance().barrier_init(barrier, count);
+  int barrier_init(pthread_barrier_t *barrier,
+                   unsigned int      count) {
+    _determ.barrier_init(barrier, count);
 
     return 0;
   }
 
-  static int barrier_destroy(pthread_barrier_t *barrier) {
-    determ::getInstance().barrier_destroy(barrier);
+  int barrier_destroy(pthread_barrier_t *barrier) {
+    _determ.barrier_destroy(barrier);
 
     return 0;
   }
@@ -430,52 +424,50 @@ public:
   ///// mutex functions
   /// FIXME: maybe it is better to save those actual mutex address in original
   // mutex.
-  static int mutex_init(pthread_mutex_t *mutex) {
-    determ::getInstance().lock_init((void *)mutex);
+  int mutex_init(pthread_mutex_t *mutex) {
+    _determ.lock_init((void *)mutex);
 
     return 0;
   }
 
-  static void startFence(void) {
+  void startFence(void) {
     assert(_fence_enabled != true);
 
     // We start fence only if we are have more than two processes.
     assert(_children_threads_count != 0);
 
     // Start fence.
-    determ::getInstance().startFence(_children_threads_count);
+    _determ.startFence(_children_threads_count);
 
     _children_threads_count = 0;
 
     _fence_enabled = true;
   }
 
-  static void waitFence(void) {
-    determ::getInstance().waitFence(_thread_index, false);
+  void waitFence(void) {
+    _determ.waitFence(_thread_index, false);
   }
 
   // New optimization here.
-  // We will add one parallel commit phase before one can get token.
-  static void waitToken(void) {
-    determ::getInstance().waitFence(_thread_index, true);
+  // We will add one parallel commit phase before one can get token
+  void waitToken(void) {
+    _determ.waitFence(_thread_index, true);
 
-    determ::getInstance().getToken();
+    _determ.getToken();
   }
 
   // If those threads sending out condsignal or condbroadcast,
   // we will use condvar here.
-  static void putToken(void) {
+  void putToken(void) {
     // release the token and pass the token to next.
-    // fprintf(stderr, "%d: putToken\n", _thread_index);
-    determ::getInstance().putToken(_thread_index);
-
-    //  fprintf(stderr, "%d: putToken\n", getpid());
+    _determ.putToken(_thread_index);
   }
 
   // FIXME: if we are trying to remove atomicEnd() before mutex_lock(),
   // we should unlock() this lock if abort(), otherwise, it will
   // cause the dead-lock().
-  static void mutex_lock(const void *caller, pthread_mutex_t *mutex) {
+  void mutex_lock(const void      *caller,
+                  pthread_mutex_t *mutex) {
     if (!_fence_enabled) {
       if (_children_threads_count == 0) {
         return;
@@ -483,7 +475,7 @@ public:
         startFence();
 
         // Waking up all waiting children
-        determ::getInstance().notifyWaitingChildren();
+        _determ.notifyWaitingChildren();
       }
     }
 
@@ -493,10 +485,10 @@ public:
     // when lock_count equals to 0.
     _lock_count++;
 
-    if (determ::getInstance().lock_isowner(mutex)
-        || determ::getInstance().isSingleWorkingThread()) {
+    if (_determ.lock_isowner(mutex)
+        || _determ.isSingleWorkingThread()) {
       // Then there is no need to acquire the lock.
-      bool result = determ::getInstance().lock_acquire(mutex);
+      bool result = _determ.lock_acquire(mutex);
 
       if (result == false) {
         goto getLockAgain;
@@ -515,13 +507,10 @@ public:
         atomicBegin(caller);
       }
 
-      //  fprintf(stderr, "%d: mutex_lock holding the token\n", getpid());
-
       // We are trying to get current lock.
       // Whenver someone didn't release the lock, getLock should be false.
-      bool getLock = determ::getInstance().lock_acquire(mutex);
+      bool getLock = _determ.lock_acquire(mutex);
 
-      //  fprintf(stderr, "%d: mutex_lock 4 with getlock %d\n", getpid(),
       // getLock);
       if (getLock == false) {
         // If we can't get lock, let other threads to move on first
@@ -538,7 +527,8 @@ public:
     }
   }
 
-  static void mutex_unlock(const void *caller, pthread_mutex_t *mutex) {
+  void mutex_unlock(const void      *caller,
+                    pthread_mutex_t *mutex) {
     if (!_fence_enabled) {
       return;
     }
@@ -548,7 +538,7 @@ public:
 
 
     // Unlock current lock.
-    determ::getInstance().lock_release(mutex);
+    _determ.lock_release(mutex);
 
     // Since multiple lock are considering as one big lock,
     // we only do transaction end operations when no one is holding the lock.
@@ -556,7 +546,7 @@ public:
     // But for another case, there is only one thread and not any more(by
     // sending out singal).
     // if(_lock_count == 0 && _token_holding &&
-    // !determ::getInstance().isSingleWorkingThread())
+    // !_determ.isSingleWorkingThread())
     if ((_lock_count == 0)
         && _token_holding)
     {
@@ -569,14 +559,14 @@ public:
     }
   }
 
-  static int mutex_destroy(pthread_mutex_t *mutex) {
-    determ::getInstance().lock_destroy(mutex);
+  int mutex_destroy(pthread_mutex_t *mutex) {
+    _determ.lock_destroy(mutex);
 
     return 0;
   }
 
   // Add the barrier support.
-  static int barrier_wait(pthread_barrier_t *barrier) {
+  int barrier_wait(pthread_barrier_t *barrier) {
     if (!_fence_enabled) {
       if (_children_threads_count == 0) {
         return 0;
@@ -584,26 +574,27 @@ public:
         startFence();
 
         // Waking up all waiting children
-        determ::getInstance().notifyWaitingChildren();
+        _determ.notifyWaitingChildren();
       }
     }
 
-    // fprintf(stderr, "%d : barier wait\n", getpid());
     waitToken();
     atomicEnd();
-    determ::getInstance().barrier_wait(barrier, _thread_index);
+    _determ.barrier_wait(barrier, _thread_index);
 
     return 0;
   }
 
   // Support for sigwait() functions in order to avoid deadlock.
-  static int sig_wait(void *caller, const sigset_t *set, int *sig) {
+  int sig_wait(void           *caller,
+               const sigset_t *set,
+               int            *sig) {
     int ret;
 
     waitToken();
     atomicEnd();
 
-    ret = determ::getInstance().sig_wait(set, sig, _thread_index);
+    ret = _determ.sig_wait(set, sig, _thread_index);
 
     if (ret == 0) {
       atomicBegin(caller);
@@ -612,21 +603,24 @@ public:
     return ret;
   }
 
-  static void cond_wait(const void *caller, void *cond, void *lock) {
+  void cond_wait(const void *caller,
+                 void       *cond,
+                 void       *lock) {
     // corresponding lock should be acquired before.
     assert(_token_holding == true);
 
-    // assert(determ::getInstance().lock_is_acquired() == true);
+    // assert(_determ.lock_is_acquired() == true);
     atomicEnd();
 
     // We have to release token in cond_wait, otherwise
     // it can cause deadlock!!! Some other threads
     // waiting for the token be no progress at all.
-    determ::getInstance().cond_wait(_thread_index, cond, lock);
+    _determ.cond_wait(_thread_index, cond, lock);
     atomicBegin(caller);
   }
 
-  static void cond_broadcast(const void *caller, void *cond) {
+  void cond_broadcast(const void *caller,
+                      void       *cond) {
     if (!_fence_enabled) {
       return;
     }
@@ -637,7 +631,7 @@ public:
     }
 
     atomicEnd();
-    determ::getInstance().cond_broadcast(cond);
+    _determ.cond_broadcast(cond);
     atomicBegin(caller);
 
     if (!_token_holding) {
@@ -646,7 +640,8 @@ public:
     }
   }
 
-  static void cond_signal(const void *caller, void *cond) {
+  void cond_signal(const void *caller,
+                   void       *cond) {
     if (!_fence_enabled) {
       return;
     }
@@ -657,8 +652,7 @@ public:
 
     atomicEnd();
 
-    // fprintf(stderr, "%d: cond_signal\n", getpid());
-    determ::getInstance().cond_signal(cond);
+    _determ.cond_signal(cond);
     atomicBegin(caller);
 
     if (!_token_holding) {
@@ -668,22 +662,21 @@ public:
   }
 
   /// @brief Start a transaction.
-  static void atomicBegin(const void *caller) {
+  void atomicBegin(const void *caller) {
     fflush(stdout);
 
     if (!_isCopyOnWrite) {
       return;
     }
 
-    xthread::startThunk(caller);
+    _thread.startThunk(caller);
 
     // Now start.
-    xmemory::begin();
+    _memory.begin();
   }
 
   /// @brief End a transaction, aborting it if necessary.
-  static void atomicEnd() {
-    // Flush the stdout.
+  void atomicEnd() {
     fflush(stdout);
 
     if (!_isCopyOnWrite) {
@@ -691,7 +684,7 @@ public:
     }
 
     // Commit all private modifications to shared mapping
-    xmemory::commit();
+    _memory.commit();
   }
 };
 
