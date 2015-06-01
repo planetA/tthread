@@ -14,6 +14,12 @@ $ make
 
 This will build the Tthread library (`libtthread.so`).
 
+To build tthread with debugging options use:
+
+```
+cmake -DCMAKE_BUILD_TYPE=DEBUG .
+```
+
 ### Using Tthread ###
 
 Tthread currently only supports Linux/x86\_64 platforms.
