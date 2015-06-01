@@ -113,7 +113,11 @@ void *xthread::forkSpawn(const void     *caller,
   // beginning.
   int child = syscall(SYS_clone, CLONE_FS | CLONE_FILES | SIGCHLD, (void *)0);
 
-  if (child) {
+
+  if (child == -1) {
+    // fork failed, handle failure in parent
+    return NULL;
+  } else if (child) {
     // I need to wait until the child has waited on creation barrier
     // sucessfully.
     _run.waitChildRegistered();

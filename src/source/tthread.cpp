@@ -323,9 +323,16 @@ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
 
 int pthread_create(pthread_t *tid, const pthread_attr_t *attr, void *(*fn)(
                      void *), void *arg) {
-  if (initialized) {
-    *tid = (pthread_t)run->spawn(CALLER, fn, arg);
+  if (!initialized) {
+    return EAGAIN;
   }
+
+  void *res = run->spawn(CALLER, fn, arg);
+
+  if (res == NULL) {
+    return EAGAIN;
+  }
+  *tid = (pthread_t)res;
   return 0;
 }
 

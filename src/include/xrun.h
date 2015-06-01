@@ -227,7 +227,7 @@ public:
 
     void *ptr = _thread.spawn(caller, fn, arg, _thread_index);
 
-    // Start a new transaction
+    // Start a new transaction, even if _thread.spawn failed
     atomicBegin(caller);
 
     return ptr;
