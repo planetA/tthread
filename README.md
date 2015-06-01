@@ -46,3 +46,9 @@ Tthread currently only supports Linux/x86\_64 platforms.
 % g++ target.o -L<TTHREAD_DIR> -ltthread -dl -o target
 % export LD_LIBRARY_PATH=<TTHREAD_DIR>:$LD_LIBRARY_PATH
 ```
+
+### Run the Tests ###
+
+```
+make test
+```
