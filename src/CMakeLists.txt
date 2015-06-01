@@ -6,6 +6,7 @@ target_link_libraries(tthread ${LIBDL_LIBRARIES})
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
   add_definitions(-DDEBUG)
+  add_definitions(-DCHECK_SCHEDULE)
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 if(HAS_BUILTIN_RETURN_ADDRESS)
