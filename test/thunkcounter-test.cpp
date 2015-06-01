@@ -54,7 +54,7 @@ MU_TEST(test_lock_unlock) {
   pthread_t thread[2];
   tthread::log& log = tthread::getLog();
   log.reset();
-  lock_unlock_context_t ctx = { .mutex = &mutex, .data = &heapbuf[PAGE_SIZE] };
+  lock_unlock_context_t ctx = { &mutex, &heapbuf[PAGE_SIZE] };
   pthread_create(&thread[0], NULL, lock_unlock_mutex, &ctx);
   pthread_create(&thread[1], NULL, lock_unlock_mutex, &ctx);
 
