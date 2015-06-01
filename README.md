@@ -1,6 +1,8 @@
 Tthread: Tracing Multithreading library
 ----------------------------------------
 
+[![Build Status](https://travis-ci.org/Mic92/tthread.png)](https://travis-ci.org/Mic92/tthread)
+
 tthread is based on [dthreads](https://github.com/emeryberger/dthreads)
 
 ### Building Tthread ###

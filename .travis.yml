@@ -1,0 +1,12 @@
+sudo: false
+language: cpp
+compiler:
+  - clang
+  - gcc
+os:
+  - linux
+before_script:
+  - mkdir build
+  - cd build
+  - cmake ..
+script: make test
