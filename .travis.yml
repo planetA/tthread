@@ -5,8 +5,5 @@ compiler:
   - gcc
 os:
   - linux
-before_script:
-  - mkdir build
-  - cd build
-  - cmake ..
+before_script: cmake .
 script: make test
