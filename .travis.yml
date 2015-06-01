@@ -5,5 +5,7 @@ compiler:
   - gcc
 os:
   - linux
-before_script: cmake .
+before_script:
+  - cmake .
+  - make
 script: make test
