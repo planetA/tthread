@@ -70,44 +70,10 @@ public:
     return i;
   }
 
-  static inline void increment(volatile unsigned long *obj) {
-    asm volatile ("lock; incl %0"
-                  : "+m" (*obj)
+
                   : : "memory");
-  }
 
-  static inline void add(int i, volatile unsigned long *obj) {
-    asm volatile ("lock; addl %0, %1"
-                  : "+r" (i), "+m" (*obj)
-                  : : "memory");
-  }
 
-  static inline void decrement(volatile unsigned long *obj) {
-    asm volatile ("lock; decl %0;"
-                  : : "m" (*obj)
-                  : "memory");
-  }
-
-  // Atomic decrement 1 and return the original value.
-  static inline int decrement_and_return(volatile unsigned long *obj) {
-    int i = -1;
-
-    asm volatile ("lock; xaddl %0, %1"
-                  : "+r" (i), "+m" (*obj)
-                  : : "memory");
-    return i;
-  }
-
-  static inline void atomic_set(volatile unsigned long *oldval,
-                                unsigned long          newval) {
-    asm volatile ("lock; xchgl %0, %1"
-                  : "=r" (newval)
-                  : "m" (*oldval), "0" (newval)
-                  : "memory");
-  }
-
-  static inline int atomic_read(const volatile unsigned long *obj) {
-    return *obj;
   }
 
   static inline void memoryBarrier(void) {
