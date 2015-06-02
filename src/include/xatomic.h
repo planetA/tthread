@@ -81,6 +81,12 @@ public:
 #endif // if defined(__i386__)
   }
 
+  static inline void increment(volatile unsigned long *obj) {
+    asm volatile ("lock; incl %0"
+                  : "+m" (*obj)
+                  : : "memory");
+  }
+
   static inline void memoryBarrier(void) {
     // Memory barrier: x86 only for now.
     __asm__ __volatile__ ("mfence" : : : "memory");
