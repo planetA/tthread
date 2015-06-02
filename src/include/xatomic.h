@@ -60,20 +60,25 @@ public:
     return newval;
   }
 
-  // Atomic increment 1 and return the original value.
-  static inline int increment_and_return(volatile unsigned long *obj) {
-    int i = 1;
-
+  // Atomic increment by amount and return the original value.
+  static inline unsigned long increment_and_return(volatile unsigned long *obj,
+                                                   unsigned long          amount =
+                                                     1) {
+#if defined(__i386__)
     asm volatile ("lock; xaddl %0, %1"
-                  : "+r" (i), "+m" (*obj)
+                  : "+r" (amount), "+m" (*obj)
                   : : "memory");
-    return i;
-  }
+    return amount;
 
-
+#elif defined(__x86_64__)
+    asm volatile ("lock; xaddq %0, %1;"
+                  : "+r" (amount), "+m" (*obj)
                   : : "memory");
+    return amount;
 
-
+#else // if defined(__i386__)
+# error "Not supported on this architecture"
+#endif // if defined(__i386__)
   }
 
   static inline void memoryBarrier(void) {
