@@ -255,7 +255,7 @@ public:
       if (_is_arrival_phase
           && (_maxthreads != 0)) {
         _is_arrival_phase = false;
-        __asm__ __volatile__ ("mfence");
+        xatomic::memoryBarrier();
       }
       WRAP(pthread_cond_broadcast)(&cond);
     }
@@ -313,7 +313,7 @@ public:
         _is_arrival_phase = true;
       }
 
-      __asm__ __volatile__ ("mfence");
+      xatomic::memoryBarrier();
       freeThreadEntry(entry);
     }
 
@@ -417,7 +417,7 @@ public:
   void getToken(void) {
     while (_tokenpos->tid != getpid()) {
       sched_yield();
-      __asm__ __volatile__ ("mfence");
+      xatomic::memoryBarrier();
     }
     DEBUG("%d: Got token after waitFence", _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: Got token after waitFence", _tokenpos->threadindex);
@@ -454,11 +454,9 @@ public:
       PRINT_SCHEDULE("thread %d put token and pass token to thread %d\n",
                      threadindex,
                      next->threadindex);
-    }
-
-    if (next != NULL) {
       _tokenpos = next;
     }
+
     unlock();
   }
 
@@ -607,7 +605,7 @@ public:
       // Wait for the token.
       while (_tokenpos->threadindex != myindex) {
         sched_yield();
-        __asm__ __volatile__ ("mfence");
+        xatomic::memoryBarrier();
       }
 
       START_TIMER(serial);
@@ -864,7 +862,7 @@ public:
     // We are using busy wait method to avoid un-determinism caused by OS.
     // Linux cann't guarantee the FIFO order.
     while (entry->status != STATUS_READY) {
-      __asm__ __volatile__ ("mfence");
+      xatomic::memoryBarrier();
 
       // Release current lock.
       lock_release(thelock);
@@ -884,7 +882,7 @@ public:
     // Check the token.
     while (_tokenpos->threadindex != threadindex) {
       sched_yield();
-      __asm__ __volatile__ ("mfence");
+      xatomic::memoryBarrier();
     }
 
     //  fprintf(stderr, "%d: cond_wait after getting token\n", getpid());
