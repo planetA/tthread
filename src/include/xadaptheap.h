@@ -24,6 +24,8 @@
 #ifndef _XADAPTHEAP_H_
 #define _XADAPTHEAP_H_
 
+#include "xlogger.h"
+
 /**
  * @class xadaptheap
  * @brief Manages a heap whose metadata is allocated from a given source.
@@ -42,8 +44,8 @@ public:
     Source::free(_heap);
   }
 
-  void initialize(tthread::log& log) {
-    Source::initialize(log);
+  void initialize(xlogger& logger) {
+    Source::initialize(logger);
 
     int metasize = sizeof(Heap<Source, ChunkSize>);
 

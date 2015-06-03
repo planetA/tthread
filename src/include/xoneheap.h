@@ -32,14 +32,16 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
+#include "xlogger.h"
+
 template<class SourceHeap>
 class xoneheap {
 public:
 
   xoneheap() {}
 
-  void initialize(tthread::log& log) {
-    getHeap()->initialize(log);
+  void initialize(xlogger& logger) {
+    getHeap()->initialize(logger);
   }
 
   void finalize(void) {

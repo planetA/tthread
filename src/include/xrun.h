@@ -45,7 +45,7 @@
 
 #include "determ.h"
 
-#include "tthread/tthread.h"
+#include "xlogger.h"
 
 class xrun {
 private:
@@ -64,8 +64,8 @@ private:
 public:
 
   /// @brief Initialize the system.
-  xrun(xmemory     & memory,
-       tthread::log& log) :
+  xrun(xmemory& memory,
+       xlogger& logger) :
     _isCopyOnWrite(false),
     _children_threads_count(0),
     _lock_count(0),
@@ -82,10 +82,10 @@ public:
     _master_thread_id = pid;
 
     // xmemory.initialize should happen before others
-    _memory.initialize(log);
+    _memory.initialize(logger);
 
     _thread.setId(pid);
-    log.setThread(_thread);
+    logger.setThread(_thread);
     _memory.setThreadIndex(0);
 
     _determ.initialize();

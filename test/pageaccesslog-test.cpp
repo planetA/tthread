@@ -1,9 +1,11 @@
 #include <iostream>
 #include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "minunit.h"
-#include "tthread/tthread.h"
+#include "string.h"
+#include "tthread/log.h"
 
 enum {
   PAGE_SIZE = 4096,
@@ -13,67 +15,79 @@ MU_TEST(test_read_after_read) {
   // span over 3 pages, so we can trigger an access
   // explicitly leak memory, so we get fresh pages every time
   char *heapbuf = (char *)malloc(PAGE_SIZE * 3);
-  tthread::log& log = tthread::getLog();
+  tthread::log log;
 
-  log.reset();
   char c = heapbuf[PAGE_SIZE];
-  mu_check(log.len() == 1);
-  mu_check(log.get(0).getAccess() == tthread::logentry::READ);
-  mu_check(log.get(0).getThreadId() == getpid());
-  mu_check(log.get(0).getPageStart() > 0);
+  tthread::log log2(log.end());
+
+  log2.print();
+
+  mu_check(log2.length() == 1);
+  mu_check(log2.get(0).getAccess() == tthread::logentry::READ);
+  mu_check(log2.get(0).getThreadId() == getpid());
+  mu_check(log2.get(0).getPageStart() > 0);
 
   // access the same page again
   char c2 = heapbuf[PAGE_SIZE + 1];
-  mu_check(log.len() == 1);
+  tthread::log log3(log2.end());
+  mu_check(log3.length() == 0);
 
   // access the next page again
   char c3 = heapbuf[PAGE_SIZE * 2];
-  mu_check(log.len() == 2);
+  tthread::log log4(log3.end());
+  mu_check(log4.length() == 1);
 }
 
 MU_TEST(test_write_after_write) {
   char *heapbuf = (char *)malloc(PAGE_SIZE * 3);
-  tthread::log& log = tthread::getLog();
 
-  log.reset();
+  tthread::log log;
+
   heapbuf[PAGE_SIZE] = 1;
-  mu_check(log.len() == 1);
-  mu_check(log.get(0).getAccess() == tthread::logentry::WRITE);
+  tthread::log log2(log.end());
+  mu_check(log2.length() == 1);
+  mu_check(log2.get(0).getAccess() == tthread::logentry::WRITE);
 
   heapbuf[PAGE_SIZE + 2] = 1;
-  mu_check(log.len() == 1);
+  tthread::log log3(log2.end());
+  mu_check(log3.length() == 0);
 
   heapbuf[PAGE_SIZE * 2] = 1;
-  mu_check(log.len() == 2);
+  tthread::log log4(log3.end());
+  mu_check(log4.length() == 1);
 }
 
 MU_TEST(test_read_after_write) {
   char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
-  tthread::log& log = tthread::getLog();
 
-  log.reset();
+  tthread::log log;
+
   heapbuf[PAGE_SIZE] = 1;
-  mu_check(log.len() == 1);
-  mu_check(log.get(0).getAccess() == tthread::logentry::WRITE);
+  tthread::log log2(log.end());
+  mu_check(log2.length() == 1);
+  mu_check(log2.get(0).getAccess() == tthread::logentry::WRITE);
 
   // read after write will not appear in the log,
   // because x86 mmu does not support this kind of protection
   mu_check(heapbuf[PAGE_SIZE] == 1);
-  mu_check(log.len() == 1);
+  tthread::log log3(log2.end());
+  mu_check(log3.length() == 0);
 }
 
 MU_TEST(test_write_after_read) {
   char *heapbuf = (char *)malloc(PAGE_SIZE * 2);
-  tthread::log& log = tthread::getLog();
 
-  log.reset();
+  tthread::log log;
+
   mu_check(heapbuf[PAGE_SIZE] == 0);
-  mu_check(log.len() == 1);
-  mu_check(log.get(0).getAccess() == tthread::logentry::READ);
+  tthread::log log2(log.end());
+  mu_check(log2.length() == 1);
+  mu_check(log2.get(0).getAccess() == tthread::logentry::READ);
 
   heapbuf[PAGE_SIZE] = 1;
-  mu_check(log.len() == 2);
-  mu_check(log.get(1).getAccess() == tthread::logentry::WRITE);
+  tthread::log log3(log2.end());
+  mu_check(log3.length() == 1);
+  mu_check(log3.get(1).getAccess() == tthread::logentry::WRITE);
 }
 
 MU_TEST_SUITE(test_suite) {

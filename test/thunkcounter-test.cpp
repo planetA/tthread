@@ -1,6 +1,9 @@
 #include "minunit.h"
-#include "tthread/tthread.h"
 #include <execinfo.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+#include "tthread/log.h"
 
 enum {
   PAGE_SIZE = 4096,
@@ -52,8 +55,6 @@ MU_TEST(test_lock_unlock) {
   pthread_mutex_init(&mutex, NULL);
 
   pthread_t thread[2];
-  tthread::log& log = tthread::getLog();
-  log.reset();
   lock_unlock_context_t ctx = { &mutex, &heapbuf[PAGE_SIZE] };
   pthread_create(&thread[0], NULL, lock_unlock_mutex, &ctx);
   pthread_create(&thread[1], NULL, lock_unlock_mutex, &ctx);
@@ -64,7 +65,9 @@ MU_TEST(test_lock_unlock) {
   int accesses = 0;
 
   // expect 2 logged write access to ctx.data
-  for (int i = 0; i < log.len(); i++) {
+  tthread::log log;
+
+  for (int i = 0; i < log.length(); i++) {
     tthread::logentry e = log.get(i);
 
     if (e.getFirstAccessedAddress() == ctx.data) {

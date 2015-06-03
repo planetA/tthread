@@ -1,5 +1,9 @@
-include_directories(tthread include include/heaplayers include/heaplayers/util)
-FILE(GLOB srcFiles "source/*.cpp")
+include_directories(tthread
+  include
+  include/heaplayers
+  include/heaplayers/util)
+
+FILE(GLOB_RECURSE srcFiles "source/*.cpp")
 add_library(tthread SHARED ${srcFiles})
 target_link_libraries(tthread ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(tthread ${LIBDL_LIBRARIES})

@@ -39,8 +39,14 @@
 
 #include "prof.h"
 
+struct xlogger_shared_data {
+  volatile size_t fileSize;
+  volatile unsigned long next;
+};
+
 typedef struct runtime_data {
   volatile unsigned long thread_index;
+  struct xlogger_shared_data xlogger;
   struct runtime_stats stats;
 } runtime_data_t;
 

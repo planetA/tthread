@@ -1,11 +1,29 @@
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
+set(c_tests
+  bug-atom
+  bug-deadlock
+  bug-deadlock1
+  bug-lockuse
+  bug-order
+  bug-race
+  parallel-sum
+  lockowner
+)
+
+set(cpp_tests
+  bug-init-32bit
+  pageaccesslog-test
+  thunkcounter-test
+  persistence-test
+  xatomic-test
+  xlogger-test
+)
 
 include(ProcessorCount)
 ProcessorCount(CORES)
 add_definitions(-DCORES=${CORES})
 include_directories(tthread ../src/include ../src/include/heaplayers ../src/include/heaplayers/util)
 
-foreach(testprog bug-atom bug-deadlock bug-deadlock1 bug-lockuse bug-order bug-race parallel-sum lockowner)
+foreach(testprog ${c_tests})
   add_executable(${testprog} ${testprog}.c)
   target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT})
   add_executable(${testprog}-det ${testprog}.c)
@@ -26,7 +44,9 @@ message(FATAL_ERROR "librt not found")
 endif(NOT LIBRT_LIBRARIES)
 endif(NOT HAVE_CLOCK_GETTIME)
 
-foreach(testprog bug-init-32bit pageaccesslog-test thunkcounter-test persistence-test)
+set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
+
+foreach(testprog ${cpp_tests})
 add_executable(${testprog} ${testprog}.cpp)
 target_link_libraries(${testprog} LINK_PUBLIC tthread)
 if(LIBRT_LIBRARIES)

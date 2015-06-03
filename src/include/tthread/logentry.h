@@ -1,7 +1,12 @@
 #ifndef __TTHREAD_LOG_ENTRY_H__
 #define __TTHREAD_LOG_ENTRY_H__
 
-#include "xthread.h"
+/*
+ * @file   tthread/logentry.h
+ * @brief  a memory event
+ */
+
+class xthread;
 
 namespace tthread {
 class logentry {
@@ -48,40 +53,36 @@ public:
     firstIssuerAddress(issuerAddress)
   {}
 
-  inline void setThread(xthread thread) {
-    threadId = thread.getId();
-    thunkId = thread.getThunkId();
-    thunkStart = thread.getThunkStart();
-  }
+  void setThread(xthread thread);
 
-  inline void *getPageStart() {
+  inline void *getPageStart() const {
     return pageStart;
   }
 
-  inline int getThreadId() {
+  inline int getThreadId() const {
     return threadId;
   }
 
-  inline int getThunkId() {
+  inline int getThunkId() const {
     return thunkId;
   }
 
-  inline const void *getThunkStart() {
+  inline const void *getThunkStart() const {
     return thunkStart;
   }
 
-  inline int getAccess() {
+  inline int getAccess() const {
     return access;
   }
 
-  inline const void *getFirstAccessedAddress() {
+  inline const void *getFirstAccessedAddress() const {
     return firstAccessedAddress;
   }
 
-  inline const void *getFirstIssuerAddress() {
+  inline const void *getFirstIssuerAddress() const {
     return firstIssuerAddress;
   }
 };
 }
 
-#endif /* __TTHREAD_LOG_H__ */
+#endif /* __TTHREAD_LOG_ENTRY_H__ */

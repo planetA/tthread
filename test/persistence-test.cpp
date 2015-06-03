@@ -1,9 +1,9 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "minunit.h"
 #include "objectheader.h"
-#include "tthread/tthread.h"
 
 enum {
   PAGE_SIZE = 4096,
@@ -66,8 +66,6 @@ MU_TEST(test_read_after_lock) {
   pthread_mutex_lock(&mutex[0]);
   pthread_mutex_lock(&mutex[1]);
 
-  tthread::log log = tthread::getLog();
-  log.reset();
   pthread_create(&thread, NULL, read_after_lock, heap);
   printf("pid %d\n", getpid());
 

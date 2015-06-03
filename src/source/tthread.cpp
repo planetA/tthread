@@ -21,13 +21,6 @@
 
  */
 
-/*
- * @file   xrun.h
- * @brief  The main engine for consistency management, etc.
- * @author Emery Berger <http://www.cs.umass.edu/~emery>
- * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
- */
-
 #include <assert.h>
 #include <execinfo.h>
 #include <stdint.h>
@@ -42,6 +35,7 @@ void initialize() __attribute__((constructor));
 void finalize() __attribute__((destructor));
 #endif // if defined(__GNUG__)
 
+// points to cross process shared data
 runtime_data_t *global_data;
 
 // By locating all static memory of this library in one place,
@@ -49,11 +43,12 @@ runtime_data_t *global_data;
 static bool initialized = false;
 static char xrunbuf[sizeof(xrun)];
 static char xmemorybuf[sizeof(xmemory)];
+static char xloggerbuf[sizeof(xlogger)];
 static xrun *run;
 static xmemory *memory;
 
 namespace tthread {
-tthread::log *_log;
+xlogger *logger;
 }
 
 void initialize() {
@@ -78,9 +73,9 @@ void initialize() {
 #endif // ifdef BUILTIN_RETURN_ADDRESS
 
   DEBUG("after mapping global data structure");
-  tthread::_log = tthread::log::newInstance();
+  tthread::logger = new(xloggerbuf)xlogger(global_data->xlogger);
   memory = new(xmemorybuf)xmemory;
-  run = new(xrunbuf)xrun(*memory, *tthread::_log);
+  run = new(xrunbuf)xrun(*memory, *tthread::logger);
   initialized = true;
 }
 
@@ -124,9 +119,8 @@ void finalize() {
 
 #ifdef DEBUG
 
-  if (tthread::_log != NULL) {
-    tthread::_log->print();
-  }
+  tthread::log log;
+  log.print();
 #endif // ifdef DEBUG
 }
 

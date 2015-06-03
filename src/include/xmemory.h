@@ -80,7 +80,7 @@ private:
 
 public:
 
-  void initialize(tthread::log& log) {
+  void initialize(xlogger& logger) {
     DEBUG("initializing xmemory");
 
     // Intercept SEGV signals (used for trapping initial reads and
@@ -89,8 +89,8 @@ public:
 
     // Call _pheap so that xheap.h can be initialized at first and then can work
     // normally.
-    _pheap.initialize(log);
-    _globals.initialize(log);
+    _pheap.initialize(logger);
+    _globals.initialize(logger);
     xpageentry::getInstance().initialize();
 
     // Initialize the internal heap.

@@ -54,7 +54,7 @@
 #include "xbitmap.h"
 #include "xdefines.h"
 
-#include "tthread/log.h"
+#include "xlogger.h"
 
 #include "debug.h"
 
@@ -261,8 +261,8 @@ public:
 #endif // ifdef GET_CHARACTERISTICS
   }
 
-  void initialize(tthread::log& log) {
-    _log = &log;
+  void initialize(xlogger& logger) {
+    _logger = &logger;
 
     // A string of one bits.
     allones = _mm_setzero_si128();
@@ -441,7 +441,7 @@ public:
                                             tthread::logentry::READ,
                                             issuerAddress);
 
-    _log->add(e);
+    _logger->add(e);
 
     if (is_write) {
       handleWrite(pageNo, pageStart);
@@ -936,7 +936,7 @@ private:
     _dirtiedPagesList.insert(std::pair<int, void *>(pageNo, curr));
   }
 
-  tthread::log *_log;
+  xlogger *_logger;
 
   /// True if current xpersist.h is a heap.
   bool _isHeap;
