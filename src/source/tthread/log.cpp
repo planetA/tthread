@@ -14,7 +14,8 @@ extern xlogger *logger;
 
 log::log() :
   _logSize(tthread::logger->getLogSize()),
-  _logOffset(0)
+  _logOffset(0),
+  _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
 }
@@ -22,14 +23,16 @@ log::log() :
 // all events since offset
 log::log(off_t offset) :
   _logSize(tthread::logger->getLogSize()),
-  _logOffset(offset)
+  _logOffset(offset),
+  _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
 }
 
 log::log(int logFd, off_t size, off_t offset) :
   _logSize(size),
-  _logOffset(offset)
+  _logOffset(offset),
+  _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
 }
@@ -52,9 +55,9 @@ const logentry log::get(unsigned long i) const {
 void log::print() const {
   fprintf(stderr, "______Page Access Result_______\n");
 
-  int llen = length();
+  unsigned int llen = length();
 
-  for (int i = 0; i < llen; i++) {
+  for (unsigned long i = 0; i < llen; i++) {
     logentry e = _log[i];
 
     fprintf(stderr,
@@ -76,7 +79,12 @@ void log::print() const {
 }
 
 void log::openLog(int logFd) {
-  assert(logFile != NULL);
+  assert(logFile >= 0);
+
+  if (_logSize == 0) {
+    // zero entries logged yet, skip opening the log -> _log == NULL
+    return;
+  }
 
   size_t alignedOffset = PAGE_ALIGN_DOWN(_logOffset);
   size_t diff = _logOffset - alignedOffset;
