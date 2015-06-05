@@ -81,11 +81,11 @@ public:
     pid_t pid = syscall(SYS_getpid);
     _master_thread_id = pid;
 
+    _thread.setId(pid);
+    logger.setThread(&_thread);
+
     // xmemory.initialize should happen before others
     _memory.initialize(logger);
-
-    _thread.setId(pid);
-    logger.setThread(_thread);
     _memory.setThreadIndex(0);
 
     _determ.initialize();

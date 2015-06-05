@@ -53,7 +53,8 @@ public:
   xlogger(xlogger_shared_data& data) :
     _next(&data.next),
     _mmapOffset(-REQUEST_SIZE),
-    _fileSize(&data.fileSize)
+    _fileSize(&data.fileSize),
+    _thread(NULL)
   {
     char _name[L_tmpnam];
 
@@ -96,8 +97,9 @@ public:
     return _logFd;
   }
 
-  void setThread(xthread& thread) {
-    _thread = &thread;
+  void setThread(xthread *thread) {
+    DEBUG("set thread: %p", thread);
+    _thread = thread;
   }
 
   void add(tthread::logentry e);
