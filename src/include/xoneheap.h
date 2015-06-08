@@ -76,6 +76,10 @@ public:
     getHeap()->setCopyOnWrite(end, true);
   }
 
+  void closeProtection() {
+    getHeap()->closeProtection();
+  }
+
   bool nop(void) {
     return getHeap()->nop();
   }

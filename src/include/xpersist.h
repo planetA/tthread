@@ -303,6 +303,9 @@ public:
 
 #endif // ifdef GET_CHARACTERISTICS
 
+  // enable memory protection
+  // @end if memory is heap, this address points to end of allocated memory
+  // @copyOnWrite if true writes will not be shared across processes
   void setCopyOnWrite(void *end, bool copyOnWrite) {
     int writeSemantic = copyOnWrite ? MAP_PRIVATE : MAP_SHARED;
 
@@ -337,6 +340,13 @@ public:
     _ownedblocks = 0;
     _trans = 0;
     _isCopyOnWrite = copyOnWrite;
+  }
+
+  // disable memory protection, writes to memory will affect all processes and
+  // pagefault handler will be disabled
+  void closeProtection() {
+    setProtection(base(), size(), PROT_READ | PROT_WRITE, MAP_SHARED);
+    _isCopyOnWrite = false;
   }
 
   void setThreadIndex(int index) {

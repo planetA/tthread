@@ -147,6 +147,11 @@ public:
     _pheap.setCopyOnWrite(_pheap.getend(), copyOnWrite);
   }
 
+  void closeProtection(void) {
+    _globals.closeProtection();
+    _pheap.closeProtection();
+  }
+
   inline void begin() {
     // Reset global and heap protection.
     _globals.begin();

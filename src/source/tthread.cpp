@@ -104,6 +104,8 @@ void initialize() {
 
 void finalize() {
   DEBUG("finalizing libtthread");
+
+  memory->closeProtection();
   initialized = false;
 
   // xrun::finalize();
