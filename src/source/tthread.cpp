@@ -32,6 +32,7 @@
 
 #if defined(__GNUG__)
 void initialize() __attribute__((constructor));
+
 void finalize() __attribute__((destructor));
 #endif // if defined(__GNUG__)
 
@@ -44,6 +45,9 @@ static bool initialized = false;
 static char xrunbuf[sizeof(xrun)];
 static char xmemorybuf[sizeof(xmemory)];
 static char xloggerbuf[sizeof(xlogger)];
+#ifdef DEBUG
+static char logbuf[sizeof(tthread::log)];
+#endif // ifdef DEBUG
 static xrun *run;
 static xmemory *memory;
 
@@ -108,7 +112,6 @@ void finalize() {
   memory->closeProtection();
   initialized = false;
 
-  // xrun::finalize();
   fprintf(stderr, "\nStatistics information:\n");
   PRINT_TIMER(serial);
   PRINT_COUNTER(commit);
@@ -119,11 +122,10 @@ void finalize() {
   PRINT_COUNTER(lazypage);
   PRINT_COUNTER(shorttrans);
 
-#ifdef DEBUG
-
-  tthread::log log;
-  log.print();
-#endif // ifdef DEBUG
+  #ifdef DEBUG
+  tthread::log *log = new(logbuf)tthread::log;
+  log->print();
+  #endif // ifdef DEBUG
 }
 
 extern "C" {
