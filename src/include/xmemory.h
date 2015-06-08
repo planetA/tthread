@@ -224,6 +224,7 @@ public:
       fprintf(stderr, "%d : map error with addr %p!\n", getpid(), addr);
       ::abort();
     } else {
+      backtrace_symbols_fd(&pc, 1, fileno(stdin));
       fprintf(stderr, "%d : other access error with addr %p.\n", getpid(),
               addr);
       ::abort();
