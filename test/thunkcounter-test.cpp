@@ -47,6 +47,7 @@ void *lock_unlock_mutex(void *data) {
 
 MU_TEST(test_lock_unlock) {
   char *heapbuf = (char *)malloc(sizeof(char));
+  tthread::log log;
 
   mu_check(heapbuf != NULL);
 
@@ -65,17 +66,16 @@ MU_TEST(test_lock_unlock) {
   int accesses = 0;
 
   // expect 2 logged write access to ctx.data
-  tthread::log log;
+  tthread::log log2(log.end());
 
-  for (int i = 0; i < log.length(); i++) {
-    tthread::logentry e = log.get(i);
+  log2.print();
+
+  for (int i = 0; i < log2.length(); i++) {
+    tthread::logentry e = log2.get(i);
 
     if (e.getFirstAccessedAddress() == ctx.data) {
       accesses++;
       mu_check(e.getAccess() == tthread::logentry::WRITE);
-
-      // address for mutex lock should come after function start
-      mu_check(e.getFirstAccessedAddress() > ((const void *)lock_unlock_mutex));
 
       // 1. thunk: pthread_create()
       // 2. thunk: pthread_mutex_lock()
