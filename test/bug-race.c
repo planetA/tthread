@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <stdio.h>
-#include <time.h>
 
 /* Assume total is 4, then thread 1 executes total++ and thread 2 executes
    total++ concurrently. After the execution, the value of total may be either

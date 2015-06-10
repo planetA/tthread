@@ -28,9 +28,13 @@
 #ifndef _XMEMORY_H_
 #define _XMEMORY_H_
 
+#include <assert.h>
 #include <execinfo.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
 
 #if !defined(_WIN32)
 # include <fcntl.h>
@@ -41,22 +45,27 @@
 # include <unistd.h>
 #endif // if !defined(_WIN32)
 
+#include <cstddef>
 #include <set>
 
-#include "xglobals.h"
-
+#include "debug.h"
 // Heap Layers
 #include "heaplayers/stlallocator.h"
+#include "internalheap.h"
+#include "objectheader.h"
+#include "tthread/log.h"
 #include "warpheap.h"
 
+#include "xdefines.h"
+#include "xglobals.h"
 #include "xheap.h"
 #include "xoneheap.h"
 
-#include "internalheap.h"
-#include "objectheader.h"
 #include "xpageentry.h"
 
-#include "tthread/log.h"
+class xlogger;
+template <class SourceHeap> class xoneheap;
+template <unsigned long Size> class xheap;
 
 // Encapsulates all memory spaces (globals & heap).
 

@@ -1,5 +1,7 @@
-#include "debug.h"
-#include "string.h"
+#include <stddef.h>
+
+#include "tthread/logentry.h"
+#include "xatomic.h"
 #include "xlogger.h"
 
 void xlogger::add(tthread::logentry e) {

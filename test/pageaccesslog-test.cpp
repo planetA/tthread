@@ -1,11 +1,9 @@
-#include <iostream>
-#include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "minunit.h"
-#include "string.h"
 #include "tthread/log.h"
+#include "tthread/logentry.h"
 
 enum {
   PAGE_SIZE = 4096,

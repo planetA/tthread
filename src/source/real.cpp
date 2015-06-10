@@ -1,6 +1,7 @@
+#include <assert.h>
 #include <dlfcn.h>
+#include <signal.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 /*

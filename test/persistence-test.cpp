@@ -1,9 +1,10 @@
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "minunit.h"
-#include "objectheader.h"
 
 enum {
   PAGE_SIZE = 4096,

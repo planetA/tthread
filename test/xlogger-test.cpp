@@ -1,7 +1,11 @@
+#include <stdio.h>
+#include <unistd.h>
+
 #include "minunit.h"
 #include "tthread/log.h"
+#include "tthread/logentry.h"
+#include "xdefines.h"
 #include "xlogger.h"
-#include <unique.h>
 
 MU_TEST(test_grow_log) {
   struct xlogger_shared_data data = { 0, 0 };

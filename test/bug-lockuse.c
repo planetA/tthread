@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 /* Global lock */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;

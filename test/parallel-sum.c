@@ -1,13 +1,11 @@
 #define _XOPEN_SOURCE 700
 #include <fcntl.h>
-#include <linux/limits.h>
-#include <pthread.h>
+#include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #define PAGE_SIZE (4096)

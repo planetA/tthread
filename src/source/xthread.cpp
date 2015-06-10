@@ -23,12 +23,18 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
+#include <assert.h>
+#include <sched.h>
+#include <signal.h>
+#include <stddef.h>
+#include <syscall.h>
+#include <unistd.h>
+#include <new>
+
 #include "debug.h"
-#include "xatomic.h"
+#include "sassert.h"
 #include "xrun.h"
 #include "xthread.h"
-#include <pthread.h>
-#include <syscall.h>
 
 void *xthread::spawn(const void     *caller,
                      threadFunction *fn,

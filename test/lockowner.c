@@ -1,10 +1,6 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "time.h"
 
 pthread_mutex_t mutex[CORES];
 

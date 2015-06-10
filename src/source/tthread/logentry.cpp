@@ -1,4 +1,4 @@
-#include "tthread/log.h"
+#include "tthread/logentry.h"
 #include "xthread.h"
 
 namespace tthread {

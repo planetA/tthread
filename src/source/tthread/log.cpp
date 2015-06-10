@@ -1,13 +1,16 @@
 #include "tthread/log.h"
+
+#include <assert.h>
+#include <errno.h>
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <cstddef>
+
 #include "xglobals.h"
 #include "xlogger.h"
-
-#include <algorithm>
-#include <execinfo.h>
-#include <stdexcept>
-
-#include <stdio.h>
-#include <sys/mman.h>
 
 namespace tthread {
 extern xlogger *logger;
