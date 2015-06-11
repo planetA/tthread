@@ -73,7 +73,7 @@ public:
   }
 
   void setCopyOnWrite(void *end, bool copyOnWrite) {
-    getHeap()->setCopyOnWrite(end, true);
+    getHeap()->setCopyOnWrite(end, copyOnWrite);
   }
 
   void closeProtection() {

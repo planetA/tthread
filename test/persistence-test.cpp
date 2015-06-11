@@ -20,7 +20,7 @@ void *write_from_child(void *data) {
 }
 
 MU_TEST(test_write_from_child) {
-  char *heap = (char *)malloc(4096);
+  char *heap = (char *)malloc(PAGE_SIZE);
 
   heap[0] = 'a';
   global = 'a';
@@ -36,8 +36,7 @@ MU_TEST(test_write_from_child) {
   mu_check(heap[0] == 'b');
   mu_check(global == 'b');
 
-  // FIXME Bug, when freeing this buffer
-  // free(heap);
+  free(heap);
 }
 
 pthread_mutex_t mutex[2];
@@ -76,7 +75,7 @@ MU_TEST(test_read_after_lock) {
   mu_check(*heap == 'b');
   pthread_join(thread, NULL);
 
-  // free(heap);
+  free(heap);
 }
 
 
