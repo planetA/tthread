@@ -86,7 +86,8 @@ public:
   /// @arg startaddr  the optional starting address of the local memory.
   xpersist(void *startaddr = 0, size_t startsize = 0)
     : _startaddr(startaddr),
-    _startsize(startsize)
+    _startsize(startsize),
+    _isHeap(startaddr == NULL)
   {
     // Check predefined globals size is large enough or not.
     if (_startsize > 0) {
@@ -101,7 +102,7 @@ public:
 
     // Get a temporary file name (which had better not be NFS-mounted...).
     char _backingFname[L_tmpnam];
-    sprintf(_backingFname, "tthreadMXXXXXX");
+    sprintf(_backingFname, _isHeap ? "tthreadHXXXXXX" : "tthreadGXXXXXX");
     _backingFd = mkstemp(_backingFname);
 
     if (_backingFd == -1) {
@@ -156,11 +157,8 @@ public:
     // If we specified a start address (globals), copy the contents into the
     // persistent area now because the transient memory map is going
     // to squash it.
-    if (_startaddr) {
+    if (!_isHeap) {
       memcpy(_persistentMemory, _startaddr, _startsize);
-      _isHeap = false;
-    } else {
-      _isHeap = true;
     }
 
     // The transient map is private and optionally fixed at the desired start
