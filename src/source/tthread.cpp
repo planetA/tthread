@@ -21,7 +21,9 @@
 
  */
 
+#include <cstddef>
 #include <errno.h>
+#include <new>
 #include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
@@ -30,8 +32,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <cstddef>
-#include <new>
 
 #include "debug.h"
 #include "prof.h"
@@ -144,7 +144,9 @@ extern "C" {
 void *malloc(size_t sz) {
   void *ptr;
 
-  if (!initialized) {
+  if (initialized) {
+    ptr = run->malloc(sz);
+  } else {
     DEBUG("Pre-initialization malloc call forwarded to mmap");
     ptr = mmap(NULL,
                sz,
@@ -152,8 +154,6 @@ void *malloc(size_t sz) {
                MAP_SHARED | MAP_ANONYMOUS,
                -1,
                0);
-  } else {
-    ptr = run->malloc(sz);
   }
 
   if (ptr == NULL) {

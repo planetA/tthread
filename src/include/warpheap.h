@@ -73,8 +73,9 @@ public:
       ptr = (void *)(((((size_t)ptr) + 4095) & ~4095) - sizeof(objectHeader));
     }
 #endif // if 0
-    objectHeader *o = new (ptr)objectHeader(sz);
-    void *newptr = getPointer(o);
+
+    objectHeader *object = new (ptr)objectHeader(sz);
+    void *newptr = object + 1;
 
     assert(getSize(newptr) >= sz);
     return newptr;
@@ -101,10 +102,6 @@ private:
     objectHeader *o = (objectHeader *)ptr;
 
     return o - 1;
-  }
-
-  static void *getPointer(objectHeader *o) {
-    return (void *)(o + 1);
   }
 };
 

@@ -32,6 +32,7 @@
 #ifndef _XRUN_H_
 #define _XRUN_H_
 
+#include <link.h>
 #include <pthread.h>
 
 // Common defines
