@@ -16,6 +16,7 @@ set(cpp_tests
   persistence-test
   xatomic-test
   xlogger-test
+  malloc-free-test
 )
 
 include(ProcessorCount)
@@ -56,4 +57,6 @@ add_test(${testprog} ${testprog})
 endforeach(testprog)
 
 set(CMAKE_C_FLAGS "-std=c99")
+
+set (CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,now,-z,relro")
 add_definitions(-D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE)
