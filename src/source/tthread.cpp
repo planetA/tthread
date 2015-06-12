@@ -37,10 +37,15 @@
 #include "prof.h"
 #include "real.h"
 #include "tthread/log.h"
+#include "visibility.h"
 #include "xdefines.h"
 #include "xlogger.h"
 #include "xmemory.h"
 #include "xrun.h"
+
+#ifndef BUILTIN_RETURN_ADDRESS
+# include <execinfo.h>
+#endif // ifndef BUILTIN_RETURN_ADDRESS
 
 #if defined(__GNUG__)
 void initialize() __attribute__((constructor));
@@ -141,7 +146,7 @@ void finalize() {
 }
 
 extern "C" {
-void *malloc(size_t sz) {
+_PUBLIC_ void *malloc(size_t sz) {
   void *ptr;
 
   if (initialized) {
@@ -163,7 +168,7 @@ void *malloc(size_t sz) {
   return ptr;
 }
 
-void *calloc(size_t nmemb, size_t sz) {
+_PUBLIC_ void *calloc(size_t nmemb, size_t sz) {
   void *ptr;
 
   if (initialized) {
@@ -189,7 +194,7 @@ void *calloc(size_t nmemb, size_t sz) {
   return ptr;
 }
 
-void free(void *ptr) {
+_PUBLIC_ void free(void *ptr) {
   if (initialized) {
     run->free(ptr);
   } else {
@@ -197,12 +202,12 @@ void free(void *ptr) {
   }
 }
 
-void *memalign(size_t boundary, size_t size) {
+_PUBLIC_ void *memalign(size_t boundary, size_t size) {
   DEBUG("memalign is not supported");
   return NULL;
 }
 
-size_t malloc_usable_size(void *ptr) {
+_PUBLIC_ size_t malloc_usable_size(void *ptr) {
   if (initialized) {
     return run->getSize(ptr);
   } else {
@@ -211,7 +216,7 @@ size_t malloc_usable_size(void *ptr) {
   return 0;
 }
 
-void *realloc(void *ptr, size_t sz) {
+_PUBLIC_ void *realloc(void *ptr, size_t sz) {
   if (initialized) {
     return run->realloc(ptr, sz);
   } else {
@@ -220,119 +225,123 @@ void *realloc(void *ptr, size_t sz) {
   return NULL;
 }
 
-int getpid(void) {
+_PUBLIC_ int getpid(void) {
   if (initialized) {
     return run->id();
   }
   return 0;
 }
 
-int sched_yield(void) {
+_PUBLIC_ int sched_yield(void) {
   return 0;
 }
 
-void pthread_exit(void *value_ptr) {
+_PUBLIC_ void pthread_exit(void *value_ptr) {
   if (initialized) {
     run->threadDeregister();
   }
   _exit(0);
 }
 
-int pthread_cancel(pthread_t thread) {
+_PUBLIC_ int pthread_cancel(pthread_t thread) {
   if (initialized) {
     run->cancel(CALLER, (void *)thread);
   }
   return 0;
 }
 
-int pthread_setconcurrency(int) {
+_PUBLIC_ int pthread_setconcurrency(int) {
   return 0;
 }
 
-int pthread_attr_init(pthread_attr_t *) {
+_PUBLIC_ int pthread_attr_init(pthread_attr_t *) {
   return 0;
 }
 
-int pthread_attr_destroy(pthread_attr_t *) {
+_PUBLIC_ int pthread_attr_destroy(pthread_attr_t *) {
   return 0;
 }
 
-pthread_t pthread_self(void) {
+_PUBLIC_ pthread_t pthread_self(void) {
   if (initialized) {
     return (pthread_t)run->id();
   }
   return 0;
 }
 
-int pthread_kill(pthread_t thread, int sig) {
+_PUBLIC_ int pthread_kill(pthread_t thread, int sig) {
   DEBUG("pthread_kill is not supported");
   return 0;
 }
 
-int sigwait(const sigset_t *set, int *sig) {
+_PUBLIC_ int sigwait(const sigset_t *set, int *sig) {
   return run->sig_wait(CALLER, set, sig);
 }
 
-int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *) {
+_PUBLIC_ int pthread_mutex_init(pthread_mutex_t *mutex,
+                                const pthread_mutexattr_t *) {
   if (initialized) {
     return run->mutex_init(mutex);
   }
   return 0;
 }
 
-int pthread_mutex_lock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_lock(pthread_mutex_t *mutex) {
   if (initialized) {
     run->mutex_lock(CALLER, mutex);
   }
   return 0;
 }
 
-int pthread_mutex_trylock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_trylock(pthread_mutex_t *mutex) {
   DEBUG("pthread_mutex_trylock is not supported");
   return 0;
 }
 
-int pthread_mutex_unlock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
   if (initialized) {
     run->mutex_unlock(CALLER, mutex);
   }
   return 0;
 }
 
-int pthread_mutex_destory(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_destory(pthread_mutex_t *mutex) {
   if (initialized) {
     return run->mutex_destroy(mutex);
   }
   return 0;
 }
 
-int pthread_attr_getstacksize(const pthread_attr_t *, size_t *s) {
+_PUBLIC_ int pthread_attr_getstacksize(const pthread_attr_t *, size_t *s) {
   *s = 1048576UL; // really? FIX ME
   return 0;
 }
 
-int pthread_mutexattr_destroy(pthread_mutexattr_t *) {
+_PUBLIC_ int pthread_mutexattr_destroy(pthread_mutexattr_t *) {
   return 0;
 }
 
-int pthread_mutexattr_init(pthread_mutexattr_t *) {
+_PUBLIC_ int pthread_mutexattr_init(pthread_mutexattr_t *) {
   return 0;
 }
 
-int pthread_mutexattr_settype(pthread_mutexattr_t *, int) {
+_PUBLIC_ int pthread_mutexattr_settype(pthread_mutexattr_t *, int) {
   return 0;
 }
 
-int pthread_mutexattr_gettype(const pthread_mutexattr_t *, int *) {
+_PUBLIC_ int pthread_mutexattr_gettype(const pthread_mutexattr_t *, int *) {
   return 0;
 }
 
-int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
+_PUBLIC_ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
   return 0;
 }
 
-int pthread_create(pthread_t *tid, const pthread_attr_t *attr, void *(*fn)(
-                     void *), void *arg) {
+_PUBLIC_ int pthread_create(pthread_t            *tid,
+                            const pthread_attr_t *attr,
+                            void *(*fn)(
+                              void *),
+                            void                 *arg) {
   if (!initialized) {
     return EAGAIN;
   }
@@ -346,42 +355,43 @@ int pthread_create(pthread_t *tid, const pthread_attr_t *attr, void *(*fn)(
   return 0;
 }
 
-int pthread_join(pthread_t tid, void **val) {
+_PUBLIC_ int pthread_join(pthread_t tid, void **val) {
   if (initialized) {
     run->join(CALLER, (void *)tid, val);
   }
   return 0;
 }
 
-int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr) {
+_PUBLIC_ int pthread_cond_init(pthread_cond_t           *cond,
+                               const pthread_condattr_t *attr) {
   if (initialized) {
     run->cond_init((void *)cond);
   }
   return 0;
 }
 
-int pthread_cond_broadcast(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_broadcast(pthread_cond_t *cond) {
   if (initialized) {
     run->cond_broadcast(CALLER, (void *)cond);
   }
   return 0;
 }
 
-int pthread_cond_signal(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_signal(pthread_cond_t *cond) {
   if (initialized) {
     run->cond_signal(CALLER, (void *)cond);
   }
   return 0;
 }
 
-int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
   if (initialized) {
     run->cond_wait(CALLER, (void *)cond, (void *)mutex);
   }
   return 0;
 }
 
-int pthread_cond_destroy(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_destroy(pthread_cond_t *cond) {
   if (initialized) {
     run->cond_destroy(cond);
   }
@@ -389,30 +399,30 @@ int pthread_cond_destroy(pthread_cond_t *cond) {
 }
 
 // Add support for barrier functions
-int pthread_barrier_init(pthread_barrier_t           *barrier,
-                         const pthread_barrierattr_t *attr,
-                         unsigned int                count) {
+_PUBLIC_ int pthread_barrier_init(pthread_barrier_t           *barrier,
+                                  const pthread_barrierattr_t *attr,
+                                  unsigned int                count) {
   if (initialized) {
     return run->barrier_init(barrier, count);
   }
   return 0;
 }
 
-int pthread_barrier_destroy(pthread_barrier_t *barrier) {
+_PUBLIC_ int pthread_barrier_destroy(pthread_barrier_t *barrier) {
   if (initialized) {
     return run->barrier_destroy(barrier);
   }
   return 0;
 }
 
-int pthread_barrier_wait(pthread_barrier_t *barrier) {
+_PUBLIC_ int pthread_barrier_wait(pthread_barrier_t *barrier) {
   if (initialized) {
     return run->barrier_wait(barrier);
   }
   return 0;
 }
 
-ssize_t write(int fd, const void *buf, size_t count) {
+_PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
   uint8_t *start = (uint8_t *)buf;
   volatile int temp;
 
@@ -425,7 +435,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
   return WRAP(write)(fd, buf, count);
 }
 
-ssize_t read(int fd, void *buf, size_t count) {
+_PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
   uint8_t *start = (uint8_t *)buf;
 
   for (size_t i = 0; i < count; i += xdefines::PageSize) {

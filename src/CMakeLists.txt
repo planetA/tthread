@@ -23,5 +23,11 @@ endif(HAS_BUILTIN_RETURN_ADDRESS)
 # Get some characteristics about running.
 #add_definitions(-DGET_CHARACTERISTICS)
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fvisibility=hidden)
+  set (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fvisibility=hidden)
+  message(STATUS "Found g++, enabling -fvisibility=hidden")
+endif()
+
 set_target_properties(tthread PROPERTIES COMPILE_FLAGS "-fPIC")
 set_target_properties(tthread PROPERTIES COMPILE_DEFINITIONS "SSE_SUPPORT;NDEBUG;LOCK_OWNERSHIP;DETERM_MEMORY_ALLOC;LOCK_OWNERSHIP")

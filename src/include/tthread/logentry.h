@@ -6,10 +6,12 @@
  * @brief  a memory event
  */
 
+#include "visibility.h"
+
 class xthread;
 
 namespace tthread {
-class logentry {
+class _PUBLIC_ logentry {
 public:
 
   enum accessType {

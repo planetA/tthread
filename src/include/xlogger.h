@@ -98,7 +98,6 @@ public:
   }
 
   void setThread(xthread *thread) {
-    DEBUG("set thread: %p", thread);
     _thread = thread;
   }
 

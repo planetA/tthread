@@ -28,6 +28,7 @@ __builtin_return_address(0);
 add_subdirectory(src)
 add_subdirectory(test)
 
+# build project with warnings enabled
 if(MSVC)
   # Force to always compile with W4
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")

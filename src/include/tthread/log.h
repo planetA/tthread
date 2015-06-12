@@ -10,10 +10,11 @@
 #include <sys/types.h>
 
 #include "tthread/logentry.h"
+#include "visibility.h"
 
 
 namespace tthread {
-class log {
+class _PUBLIC_ log {
 private:
 
   void openLog(int logFd);

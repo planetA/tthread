@@ -27,6 +27,7 @@
 #include <sched.h>
 #include <signal.h>
 #include <stddef.h>
+#include <stddef.h>
 #include <syscall.h>
 #include <unistd.h>
 #include <new>
