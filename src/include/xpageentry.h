@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 
+#include "real.h"
 #include "xdefines.h"
 #include "xpageinfo.h"
 
@@ -73,8 +74,8 @@ public:
 
     // We don't need to allocate all pages, only the difference between newnum
     // and oldnum.
-    start = mmap(NULL, PAGE_ENTRY_NUM * sizeof(xpageinfo), PROT_READ
-                 | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    start = WRAP(mmap)(NULL, PAGE_ENTRY_NUM * sizeof(xpageinfo), PROT_READ
+                       | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if (start == NULL) {
       fprintf(stderr, "%d fail to allocate page entries : %s\n",

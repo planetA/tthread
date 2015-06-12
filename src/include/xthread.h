@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 
+#include "real.h"
 #include "xdefines.h"
 
 // Heap Layers
@@ -125,12 +126,12 @@ private:
 
   /// @return a chunk of memory shared across processes.
   void *allocateSharedObject(size_t sz) {
-    return mmap(NULL,
-                sz,
-                PROT_READ | PROT_WRITE,
-                MAP_SHARED | MAP_ANONYMOUS,
-                -1,
-                0);
+    return WRAP(mmap)(NULL,
+                      sz,
+                      PROT_READ | PROT_WRITE,
+                      MAP_SHARED | MAP_ANONYMOUS,
+                      -1,
+                      0);
   }
 
   void freeSharedObject(void *ptr, size_t sz) {

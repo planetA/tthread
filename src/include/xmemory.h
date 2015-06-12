@@ -49,23 +49,22 @@
 #include <set>
 
 #include "debug.h"
+
 // Heap Layers
 #include "heaplayers/stlallocator.h"
 #include "internalheap.h"
 #include "objectheader.h"
 #include "tthread/log.h"
 #include "warpheap.h"
-
 #include "xdefines.h"
 #include "xglobals.h"
 #include "xheap.h"
 #include "xoneheap.h"
-
 #include "xpageentry.h"
 
 class xlogger;
-template <class SourceHeap> class xoneheap;
-template <unsigned long Size> class xheap;
+template<class SourceHeap>class xoneheap;
+template<unsigned long Size>class xheap;
 
 // Encapsulates all memory spaces (globals & heap).
 
@@ -255,8 +254,8 @@ public:
 #if defined(linux)
 
     // Set up an alternate signal stack.
-    _sigstk.ss_sp = mmap(NULL, SIGSTKSZ, PROT_READ | PROT_WRITE,
-                         MAP_PRIVATE | MAP_ANON, -1, 0);
+    _sigstk.ss_sp = WRAP(mmap)(NULL, SIGSTKSZ, PROT_READ | PROT_WRITE,
+                               MAP_PRIVATE | MAP_ANON, -1, 0);
     _sigstk.ss_size = SIGSTKSZ;
     _sigstk.ss_flags = 0;
     sigaltstack(&_sigstk, (stack_t *)0);

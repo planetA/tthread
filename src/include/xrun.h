@@ -356,11 +356,7 @@ public:
 
   /* Heap-related functions. */
   inline void *malloc(size_t sz) {
-    void *ptr = _memory.malloc(sz);
-
-    // fprintf(stderr, "%d : malloc sz %d with ptr %p\n", _thread_index, sz,
-    // ptr);
-    return ptr;
+    return _memory.malloc(sz);
   }
 
   inline void *calloc(size_t nmemb,

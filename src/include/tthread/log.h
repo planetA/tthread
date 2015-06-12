@@ -6,7 +6,6 @@
  * @brief  Read logged memory events
  */
 
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "tthread/logentry.h"

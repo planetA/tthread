@@ -43,12 +43,12 @@ public:
       void *start;
 
       // Create a MAP_SHARED memory
-      start = mmap(NULL,
-                   xdefines::INTERNALHEAP_SIZE + xdefines::PageSize,
-                   PROT_READ | PROT_WRITE,
-                   MAP_SHARED | MAP_ANONYMOUS,
-                   -1,
-                   0);
+      start = WRAP(mmap)(NULL,
+                         xdefines::INTERNALHEAP_SIZE + xdefines::PageSize,
+                         PROT_READ | PROT_WRITE,
+                         MAP_SHARED | MAP_ANONYMOUS,
+                         -1,
+                         0);
 
       if (start == NULL) {
         fprintf(stderr, "Failed to create a internal share heap.\n");
@@ -93,8 +93,8 @@ public:
 
     // Allocate a lock to use internally
     _lock =
-      new (mmap(NULL, sizeof(pthread_mutex_t), PROT_READ | PROT_WRITE,
-                MAP_SHARED | MAP_ANONYMOUS, -1, 0))pthread_mutex_t;
+      new (WRAP(mmap)(NULL, sizeof(pthread_mutex_t), PROT_READ | PROT_WRITE,
+                      MAP_SHARED | MAP_ANONYMOUS, -1, 0))pthread_mutex_t;
 
     if (_lock == NULL) {
       printf("Fail to initialize an internal lock for monitor map\n");
@@ -118,12 +118,12 @@ public:
     static InternalHeap *internalHeapObject;
 
     if (!internalHeapAllocated) {
-      void *buf = mmap(NULL,
-                       sizeof(InternalHeap),
-                       PROT_READ | PROT_WRITE,
-                       MAP_SHARED | MAP_ANONYMOUS,
-                       -1,
-                       0);
+      void *buf = WRAP(mmap)(NULL,
+                             sizeof(InternalHeap),
+                             PROT_READ | PROT_WRITE,
+                             MAP_SHARED | MAP_ANONYMOUS,
+                             -1,
+                             0);
       internalHeapObject = new(buf)InternalHeap();
       internalHeapAllocated = true;
     }

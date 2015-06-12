@@ -211,12 +211,12 @@ public:
   }
 
   static determ& newInstance(xmemory& memory) {
-    void *buf = mmap(NULL,
-                     sizeof(determ),
-                     PROT_READ | PROT_WRITE,
-                     MAP_SHARED | MAP_ANONYMOUS,
-                     -1,
-                     0);
+    void *buf = WRAP(mmap)(NULL,
+                           sizeof(determ),
+                           PROT_READ | PROT_WRITE,
+                           MAP_SHARED | MAP_ANONYMOUS,
+                           -1,
+                           0);
 
     return *new(buf)determ(memory);
   }

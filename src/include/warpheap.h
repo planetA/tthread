@@ -164,12 +164,12 @@ public:
     char *base;
 
     // Allocate a share page to hold all heap metadata.
-    base = (char *)mmap(NULL,
-                        sizeof(pthread_mutex_t) * NumHeaps,
-                        PROT_READ | PROT_WRITE,
-                        MAP_SHARED | MAP_ANONYMOUS,
-                        -1,
-                        0);
+    base = (char *)WRAP(mmap)(NULL,
+                              sizeof(pthread_mutex_t) * NumHeaps,
+                              PROT_READ | PROT_WRITE,
+                              MAP_SHARED | MAP_ANONYMOUS,
+                              -1,
+                              0);
 
     if (base == NULL) {
       fprintf(stderr, "PPheap initialize failed.\n");

@@ -77,12 +77,12 @@ void initialize() {
 
   init_real_functions();
 
-  global_data = (runtime_data_t *)mmap(NULL,
-                                       xdefines::PageSize,
-                                       PROT_READ | PROT_WRITE,
-                                       MAP_SHARED | MAP_ANONYMOUS,
-                                       -1,
-                                       0);
+  global_data = (runtime_data_t *)WRAP(mmap)(NULL,
+                                             xdefines::PageSize,
+                                             PROT_READ | PROT_WRITE,
+                                             MAP_SHARED | MAP_ANONYMOUS,
+                                             -1,
+                                             0);
   global_data->thread_index = 1;
 
 #ifndef BUILTIN_RETURN_ADDRESS

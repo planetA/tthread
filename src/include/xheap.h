@@ -63,8 +63,8 @@ public:
     char *base;
 
     // Allocate a share page to hold all heap metadata.
-    base = (char *)mmap(NULL, xdefines::PageSize, PROT_READ | PROT_WRITE,
-                        MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    base = (char *)WRAP(mmap)(NULL, xdefines::PageSize, PROT_READ | PROT_WRITE,
+                              MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     // Put all "heap metadata" in this page.
     _position = (volatile char **)base;
