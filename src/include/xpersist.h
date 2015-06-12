@@ -884,22 +884,13 @@ private:
       // Current page must be owned by other pages.
       notifyOwnerToCommit(pageNo);
 
-      // Now we set the page to readable.
-      mprotectRead(pageStart, pageNo);
-
-      // Add this page to read set??
-      // Since this page is already set to SHARED, there is no need for any
-      // further
-      // operations now.
-      return;
-
-    case PAGE_ACCESS_NONE:
-
-      // write to a page the first time
       mprotectReadWrite(pageStart, pageNo);
+
+      // Now page is writable, add this page to dirty set.
       break;
 
-    case PAGE_ACCESS_READ:
+    case PAGE_ACCESS_READ: // write to a page the first time
+    case PAGE_ACCESS_NONE:
 
       // There are two cases here.
       // (1) I have read other's owned page, now I am writing on it.
