@@ -75,14 +75,8 @@ public:
   xglobals(void) : xpersist<char, xdefines::MAX_GLOBALS_SIZE>(
       (void *)GLOBALS_START,
       (size_t)GLOBALS_SIZE) {
-    // Force assertion even if NDEBUG is on.
-#ifdef NDEBUG
-# undef NDEBUG
-
     // Make sure that we have enough room for the globals!
     assert(GLOBALS_SIZE <= xdefines::MAX_GLOBALS_SIZE);
-# define NDEBUG 1
-#endif // ifdef NDEBUG
     DEBUG("GLOBALS_START is %lx, global_start %d\n",
           GLOBALS_START,
           __data_start);
