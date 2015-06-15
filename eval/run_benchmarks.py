@@ -106,6 +106,7 @@ def runtime_environment():
     else:
         library_path += ":" + tthread_path
     env["LD_LIBRARY_PATH"] = library_path
+    env["LD_BIND_NOW"] = "1"
     return env
 
 data = {}
