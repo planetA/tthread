@@ -68,6 +68,17 @@ static char logbuf[sizeof(tthread::log)];
 static xrun *run;
 static xmemory *memory;
 
+// store size of malloc() calls during library initialisation
+// this is neither thread-safe nor fast
+typedef struct {
+  void *ptr;
+  size_t size;
+} mmap_allocation_t;
+enum {
+  MAX_MMAP_ALLOCATIONS = 1024
+};
+static mmap_allocation_t preinit_mmap_allocations[MAX_MMAP_ALLOCATIONS] = {};
+
 namespace tthread {
 xlogger *logger;
 }
@@ -153,12 +164,27 @@ _PUBLIC_ void *malloc(size_t sz) {
     ptr = run->malloc(sz);
   } else {
     DEBUG("Pre-initialization malloc call forwarded to mmap");
-    ptr = mmap(NULL,
-               sz,
-               PROT_READ | PROT_WRITE,
-               MAP_SHARED | MAP_ANONYMOUS,
-               -1,
-               0);
+
+    for (int i = 0; i < MAX_MMAP_ALLOCATIONS; i++) {
+      mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
+
+      if (alloc->ptr == NULL) {
+        ptr = mmap(NULL,
+                   sz,
+                   PROT_READ | PROT_WRITE,
+                   MAP_SHARED | MAP_ANONYMOUS,
+                   -1,
+                   0);
+        *alloc = (mmap_allocation_t) {ptr, sz };
+
+        if (ptr == MAP_FAILED) {
+          return NULL;
+        }
+        return ptr;
+      }
+    }
+    fprintf(stderr, "Too much pre-initialisation mmaps");
+    abort();
   }
 
   if (ptr == NULL) {
@@ -175,12 +201,9 @@ _PUBLIC_ void *calloc(size_t nmemb, size_t sz) {
     ptr = run->calloc(nmemb, sz);
   } else {
     DEBUG("Pre-initialization calloc call forwarded to mmap");
-    ptr = mmap(NULL,
-               sz * nmemb,
-               PROT_READ | PROT_WRITE,
-               MAP_SHARED | MAP_ANONYMOUS,
-               -1,
-               0);
+
+    // actually mmap see malloc impl above
+    ptr = malloc(nmemb * sz);
     memset(ptr, 0, sz * nmemb);
   }
 
@@ -198,7 +221,18 @@ _PUBLIC_ void free(void *ptr) {
   if (initialized) {
     run->free(ptr);
   } else {
-    DEBUG("Pre-initialization free call ignored");
+    DEBUG("Pre-initialization free forwarded to munmap");
+
+    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+      mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
+
+      if (alloc->ptr == ptr) {
+        assert(munmap(ptr, alloc->size) == 0);
+        alloc->ptr = NULL;
+        alloc->size = 0;
+        return;
+      }
+    }
   }
 }
 
@@ -211,7 +245,15 @@ _PUBLIC_ size_t malloc_usable_size(void *ptr) {
   if (initialized) {
     return run->getSize(ptr);
   } else {
-    DEBUG("Pre-initialization malloc_usable_size call ignored");
+    DEBUG("Pre-initialization malloc_usable_size");
+
+    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+      mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
+
+      if (alloc->ptr == ptr) {
+        return alloc->size;
+      }
+    }
   }
   return 0;
 }
@@ -220,7 +262,22 @@ _PUBLIC_ void *realloc(void *ptr, size_t sz) {
   if (initialized) {
     return run->realloc(ptr, sz);
   } else {
-    DEBUG("Pre-initialization realloc call ignored");
+    DEBUG("Pre-initialization realloc forwared to mremap.");
+
+    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+      mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
+
+      if (alloc->ptr == ptr) {
+        void *newPtr = mremap(ptr, alloc->size, sz, 0);
+
+        if (newPtr == MAP_FAILED) {
+          return NULL;
+        }
+        alloc->ptr = newPtr;
+        alloc->size = sz;
+        return newPtr;
+      }
+    }
   }
   return NULL;
 }
