@@ -6,7 +6,7 @@ NCORES ?= 8
 #CXX = g++ -m32 -march=core2 -mtune=core2
 CC = gcc -march=core2 -mtune=core2
 CXX = g++ -march=core2 -mtune=core2
-CFLAGS += -O5
+CFLAGS += -O5 -g
 
 CONFIGS = pthread tthread
 PROGS = $(addprefix $(TEST_NAME)-, $(CONFIGS))
@@ -69,5 +69,6 @@ $(TEST_NAME)-tthread: $(TTHREAD_OBJS) $(TTHREAD_HOME)/src/libtthread.so
 	$(CC) $(TTHREAD_CFLAGS) -o $@ $(TTHREAD_OBJS) $(TTHREAD_LIBS)
 
 eval-tthread: $(TEST_NAME)-tthread
-	time ./$(TEST_NAME)-tthread $(TEST_ARGS)
+	time gdb --args ./$(TEST_NAME)-tthread $(TEST_ARGS)
+	#time ./$(TEST_NAME)-tthread $(TEST_ARGS)
 #	time ./$(TEST_NAME)-tthread $(TEST_ARGS) &> /dev/null
