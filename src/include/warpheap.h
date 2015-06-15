@@ -184,23 +184,26 @@ public:
   }
 
   void *malloc(int ind, size_t sz) {
-    lock(ind);
+    // FIXME pthread_mutex_lock calls malloc, which leads to infinite recursion
+    // check if this lock is needed
+    // lock(ind);
 
     // Try to get memory from the local heap first.
     void *ptr = _heap[ind].malloc(sz);
 
-    unlock(ind);
+    // unlock(ind);
     return ptr;
   }
 
   void free(int ind, void *ptr) {
-    lock(ind);
+    // lock(ind);
 
     // Put the freed object onto this thread's heap.  Note that this
     // policy is essentially pure private heaps, (see Berger et
     // al. ASPLOS 2000), and so suffers from numerous known problems.
     _heap[ind].free(ptr);
-    unlock(ind);
+
+    // unlock(ind);
   }
 
   void lock(int ind) {
