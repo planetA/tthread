@@ -171,9 +171,9 @@ public:
                               -1,
                               0);
 
-    if (base == NULL) {
+    if (base == MAP_FAILED) {
       fprintf(stderr, "PPheap initialize failed.\n");
-      exit(0);
+      exit(1);
     }
 
     for (int i = 0; i < NumHeaps; i++) {
