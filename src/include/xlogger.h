@@ -20,7 +20,7 @@
 class xlogger {
 private:
 
-  /* point to multi-process shared memory */
+  /*** point to multi-process shared memory ***/
 
   // next free place in log
   volatile unsigned long *_next;
@@ -33,6 +33,9 @@ private:
   // make expanding the log file concurrency-safe
   pthread_mutex_t _truncateMutex;
   pthread_mutexattr_t _truncateMutexattr;
+
+
+  /*** process local ***/
 
   xthread *_thread;
 
@@ -56,6 +59,9 @@ public:
     _fileSize(&data.fileSize),
     _thread(NULL)
   {
+    assert(_next);
+    assert(_fileSize);
+
     char _name[L_tmpnam];
 
     sprintf(_name, "tthreadLXXXXXX");
@@ -86,6 +92,15 @@ public:
     *_next = 0;
 
     growLog();
+    assert(_mmapOffset == 0);
+  }
+
+  static xlogger *allocate(xlogger_shared_data& data) {
+    void *buf = WRAP(mmap)(NULL, sizeof(xlogger), PROT_READ | PROT_WRITE,
+                           MAP_PRIVATE | MAP_ANON, -1, 0);
+
+    assert(buf != MAP_FAILED);
+    return new(buf)xlogger(data);
   }
 
   // number of bytes written to log
@@ -114,11 +129,13 @@ private:
 
       // test if someone else has truncated the log, while we try to access it
       if (currentSize == *_fileSize) {
-        int newSize = currentSize + REQUEST_SIZE;
+        size_t newSize = currentSize + REQUEST_SIZE;
 
         if (ftruncate(_logFd, newSize) != 0) {
           fprintf(stderr,
-                  "tthread::log: failed to increase log size: %s\n",
+                  "tthread::log: failed to increase log size: ftruncate(%d, %lu) %s\n",
+                  _logFd,
+                  newSize,
                   strerror(errno));
           ::abort();
         }
@@ -133,7 +150,9 @@ private:
       munmap(_log, REQUEST_SIZE);
     }
 
+    // initialized with -REQUEST_SIZE
     _mmapOffset += REQUEST_SIZE;
+
     _log = (tthread::logentry *)mmap(NULL,
                                      REQUEST_SIZE,
                                      PROT_WRITE,

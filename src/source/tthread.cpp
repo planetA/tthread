@@ -61,7 +61,6 @@ runtime_data_t *global_data;
 static bool initialized = false;
 static char xrunbuf[sizeof(xrun)];
 static char xmemorybuf[sizeof(xmemory)];
-static char xloggerbuf[sizeof(xlogger)];
 #ifdef DEBUG
 static char logbuf[sizeof(tthread::log)];
 #endif // ifdef DEBUG
@@ -105,7 +104,7 @@ void initialize() {
 #endif // ifdef BUILTIN_RETURN_ADDRESS
 
   DEBUG("after mapping global data structure");
-  tthread::logger = new(xloggerbuf)xlogger(global_data->xlogger);
+  tthread::logger = xlogger::allocate(global_data->xlogger);
   memory = new(xmemorybuf)xmemory;
   run = new(xrunbuf)xrun(*memory, *tthread::logger);
   initialized = true;

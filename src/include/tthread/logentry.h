@@ -21,14 +21,14 @@ public:
 
 private:
 
+  // how memory was access (read/write)
+  accessType access;
+
   // memory address at which the first page fault was triggered
   const void *firstAccessedAddress;
 
   // page within the memory location
   void *pageStart;
-
-  // how memory was access (read/write)
-  accessType access;
 
   // process id, which accessed the memory
   int threadId;
