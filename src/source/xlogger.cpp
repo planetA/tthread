@@ -12,8 +12,10 @@ void xlogger::add(tthread::logentry e) {
   }
 
   unsigned long next = xatomic::increment_and_return(_next, 1);
+  unsigned long required_size =
+    (next + 1) * sizeof(tthread::logentry) - _mmapOffset;
 
-  if (next * sizeof(tthread::logentry) - _mmapOffset > REQUEST_SIZE) {
+  if (required_size > REQUEST_SIZE) {
     growLog();
   }
 
