@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #define PAGE_SIZE (4096)
-#define NUM_BYTES (PAGE_SIZE * 3)
+#define NUM_BYTES ((int)(PAGE_SIZE * 1e3)) /*kb*/
 #define NUM_THREADS 4
 
 typedef struct {
@@ -17,7 +17,7 @@ typedef struct {
   int size;
 } job_t;
 
-volatile int sum = 0;
+volatile unsigned int sum = 0;
 pthread_mutex_t mutexsum;
 pthread_t threads[NUM_THREADS];
 job_t jobs[NUM_THREADS];
@@ -77,8 +77,11 @@ int setup_test_input()
 void *sumfile(void *arg)
 {
   job_t *job = (job_t *)arg;
-  int local_sum = 0;
+  unsigned int local_sum = 0;
   char *buf = job->buf;
+  void *testbuf = malloc(job->size);
+
+  memcpy(testbuf, buf, sizeof(job->size));
 
   for (int i = 0; i < job->size; i++) {
     local_sum += buf[i];
@@ -89,6 +92,7 @@ void *sumfile(void *arg)
   pthread_mutex_unlock(&mutexsum);
 
   pthread_exit((void *)0);
+  free(testbuf);
 }
 
 int main(int argc, const char *argv[])
@@ -114,9 +118,15 @@ int main(int argc, const char *argv[])
   const int per_thread = (NUM_BYTES / NUM_THREADS);
 
   for (int i = 0; i < NUM_THREADS; i++) {
+    char *segment = buf + (per_thread * i);
+    int size = per_thread;
+
+    if ((i + 1) >= NUM_THREADS) {
+      size += NUM_BYTES - (per_thread * NUM_THREADS);
+    }
     job_t job = {
-      .buf = buf + (per_thread * i),
-      .size = per_thread,
+      .buf = segment,
+      .size = size,
     };
     jobs[i] = job;
     pthread_create(&threads[i], &attr, sumfile, &jobs[i]);
