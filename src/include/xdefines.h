@@ -42,6 +42,7 @@
 struct xlogger_shared_data {
   volatile size_t fileSize;
   volatile unsigned long next;
+  pthread_mutex_t truncateMutex;
 };
 
 typedef struct runtime_data {

@@ -31,7 +31,7 @@ private:
   /* per-process private data*/
 
   // make expanding the log file concurrency-safe
-  pthread_mutex_t _truncateMutex;
+  pthread_mutex_t *_truncateMutex;
   pthread_mutexattr_t _truncateMutexattr;
 
 
@@ -57,6 +57,7 @@ public:
     _next(&data.next),
     _mmapOffset(-REQUEST_SIZE),
     _fileSize(&data.fileSize),
+    _truncateMutex(&data.truncateMutex),
     _thread(NULL)
   {
     assert(_next);
@@ -82,7 +83,7 @@ public:
 
     pthread_mutexattr_setpshared(&_truncateMutexattr, PTHREAD_PROCESS_SHARED);
 
-    if (WRAP(pthread_mutex_init)(&_truncateMutex, &_truncateMutexattr) != 0) {
+    if (WRAP(pthread_mutex_init)(_truncateMutex, &_truncateMutexattr) != 0) {
       fprintf(stderr, "tthread::log: failed initialize mutex: %s\n",
               strerror(errno));
       ::abort();
@@ -125,7 +126,7 @@ private:
 
     // someone else has resized the log -> then just mmap to new size
     if ((_mmapOffset + REQUEST_SIZE) >= currentSize) {
-      WRAP(pthread_mutex_lock)(&_truncateMutex);
+      WRAP(pthread_mutex_lock)(_truncateMutex);
 
       // test if someone else has truncated the log, while we try to access it
       if (currentSize == *_fileSize) {
@@ -142,7 +143,7 @@ private:
         *_fileSize = newSize;
       }
 
-      WRAP(pthread_mutex_unlock)(&_truncateMutex);
+      WRAP(pthread_mutex_unlock)(_truncateMutex);
     }
 
     // free old mapping, if set
