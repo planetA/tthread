@@ -152,7 +152,7 @@ private:
     }
 
     // initialized with -REQUEST_SIZE
-    _mmapOffset += REQUEST_SIZE;
+    _mmapOffset = *_fileSize - REQUEST_SIZE;
 
     _log = (tthread::logentry *)mmap(NULL,
                                      REQUEST_SIZE,
