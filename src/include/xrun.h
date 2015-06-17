@@ -318,7 +318,7 @@ public:
     }
     atomicBegin(caller);
     threadindex = _thread.cancel(v);
-    isFound = _determ.cancel(threadindex);
+    _determ.cancel(threadindex);
 
     // Put token and wait on fence if I waitToken before.
     if (!_token_holding) {
