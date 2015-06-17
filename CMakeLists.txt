@@ -16,6 +16,8 @@ if(NOT LIBDL_FOUND)
   message(SEND_ERROR "libdl required")
 endif(NOT LIBDL_FOUND)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/benchmark.cmake)
+
 INCLUDE (CheckCXXSourceCompiles)
 CHECK_CXX_SOURCE_COMPILES(
 "
@@ -27,6 +29,7 @@ __builtin_return_address(0);
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(eval)
 
 # build project with warnings enabled
 if(MSVC)
