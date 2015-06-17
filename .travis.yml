@@ -9,4 +9,4 @@ env: LD_BIND_NOW=1
 before_script:
   - cmake .
   - make
-script: ctest -V
+script: ctest -V --timeout 120
