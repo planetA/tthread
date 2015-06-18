@@ -1,7 +1,7 @@
 set(DATASET_HOME ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native -O5 -g")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native -O5 -g")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native -O3 -g")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native -O3 -g")
 
 set(PHOENIX_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0/lib/libphoenix.a)
 
