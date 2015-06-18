@@ -12,17 +12,14 @@ macro(add_benchmark benchmark)
   endif(add_benchmark_DEFINITIONS)
 
   add_executable(${benchmark}-pthread ${add_benchmark_FILES})
-  target_link_libraries(${benchmark}-pthread ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${benchmark}-pthread ${CMAKE_THREAD_LIBS_INIT}
+    ${add_benchmark_LIBS})
   add_custom_target(bench-${benchmark}-pthread
     COMMAND ${benchmark}-pthread ${add_benchmark_ARGS})
 
   add_executable(${benchmark}-tthread ${add_benchmark_FILES})
-  target_link_libraries(${benchmark}-tthread LINK_PUBLIC tthread)
+  target_link_libraries(${benchmark}-tthread LINK_PUBLIC tthread
+    ${add_benchmark_LIBS})
   add_custom_target(bench-${benchmark}-tthread
     COMMAND ${benchmark}-tthread ${add_benchmark_ARGS})
-
-  if(add_benchmark_LIBS)
-    target_link_libraries(${benchmark}-pthread ${add_benchmark_LIBS})
-    target_link_libraries(${benchmark}-tthread ${add_benchmark_LIBS})
-  endif(add_benchmark_LIBS)
 endmacro(add_benchmark)
