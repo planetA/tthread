@@ -862,19 +862,17 @@ private:
     case PAGE_UNUSED: // When we are trying to access other-owned page.
       // Current page must be owned by other pages.
       notifyOwnerToCommit(pageNo);
-
-      // Now we set the page to readable.
-      mprotectRead(pageStart, pageNo);
+      break;
 
     case PAGE_ACCESS_NONE:
-
-      // read a page the first time
-      mprotectRead(pageStart, pageNo);
       break;
 
     default:
       assert(0); // invalid state -> BUG!
     }
+
+    // read a page the first time
+    mprotectRead(pageStart, pageNo);
   }
 
   inline void handleWrite(int pageNo, unsigned long *pageStart) {
