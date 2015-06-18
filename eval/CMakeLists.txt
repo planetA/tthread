@@ -6,9 +6,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native -O5 -g")
 set(PHOENIX_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0/lib/libphoenix.a)
 
 ADD_CUSTOM_TARGET(
-  build_phoenix ALL
+  build_phoenix
   COMMAND make
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0
+  DEPENDS ${PHOENIX_LIBRARY}
   COMMENT "Libphoenix makefile target")
 
 add_library(phoenix STATIC IMPORTED)
