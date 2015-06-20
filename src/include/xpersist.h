@@ -413,7 +413,6 @@ public:
     int pid = getpid();
     size_t startPage = computePage((intptr_t)addr - (intptr_t)base());
     size_t pages = size / xdefines::PageSize;
-    char *pageStart = (char *)addr;
     int blocks = _ownedblocks;
 
     mprotect(addr, size, PROT_NONE);
