@@ -417,7 +417,7 @@ public:
 
     mprotect(addr, size, PROT_NONE);
 
-    for (int i = startPage; i < startPage + pages; i++) {
+    for (size_t i = startPage; i < startPage + pages; i++) {
       _pageOwner[i] = pid;
       _pageInfo[i] = PAGE_ACCESS_NONE;
     }
