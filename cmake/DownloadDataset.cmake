@@ -1,0 +1,15 @@
+macro(DownloadDataset url file destination)
+  set(downloaded_file "${destination}/${file}")
+  set(extracted_file "${destination}/.${file}.extracted")
+
+  if (NOT EXISTS "${downloaded_file}")
+    message(STATUS "download ${url} to ${downloaded_file}")
+    file(DOWNLOAD "${url}" "${downloaded_file}")
+  endif()
+
+  if (NOT EXISTS "${extracted_file}")
+    message(STATUS "tar xfz ${downloaded_file} -C ${destination}")
+    execute_process(COMMAND tar xfz ${downloaded_file} -C ${destination})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E touch ${extracted_file})
+  endif()
+endmacro(DownloadDataset)

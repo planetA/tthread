@@ -1,4 +1,4 @@
 add_benchmark(histogram
-  ARGS ${DATASET_HOME}/histogram/large.bmp
+  ARGS ${DATASET_HOME}/histogram_datafiles/large.bmp
   FILES histogram-pthread.c
   LIBS phoenix)
