@@ -1,3 +1,5 @@
+include(EnableWarnings)
+
 set(c_tests
   bug-atom
   bug-deadlock

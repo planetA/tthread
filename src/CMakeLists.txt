@@ -1,3 +1,5 @@
+include(EnableWarnings)
+
 include_directories(tthread
   include
   include/heaplayers
@@ -24,8 +26,8 @@ endif(HAS_BUILTIN_RETURN_ADDRESS)
 #add_definitions(-DGET_CHARACTERISTICS)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fvisibility=hidden)
-  set (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -fvisibility=hidden)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
   message(STATUS "Found g++, enabling -fvisibility=hidden")
 endif()
 
