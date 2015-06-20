@@ -43,3 +43,13 @@ foreach(entry ${benchmarks})
     add_subdirectory(${entry})
   endif(IS_DIRECTORY ${entry})
 endforeach(entry)
+
+set(phoenix_benchmarks histogram linear_regression reverse_index string_match word_count)
+
+foreach(bench ${phoenix_benchmarks})
+  list(APPEND phoenix_pthread_benchmarks bench-${bench}-pthread)
+  list(APPEND phoenix_tthread_benchmarks bench-${bench}-tthread)
+endforeach(bench)
+
+add_custom_target(phoenix-tthread DEPENDS ${phoenix_tthread_benchmarks})
+add_custom_target(phoenix-pthread DEPENDS ${phoenix_pthread_benchmarks})
