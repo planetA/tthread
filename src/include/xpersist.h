@@ -28,6 +28,7 @@
  * @author Charlie Curtsinger <http://www.cs.umass.edu/~charlie>
  */
 
+#include <climits>
 #include <list>
 #include <map>
 #include <set>
@@ -74,14 +75,15 @@ template<class Type, unsigned long NElts = 1>
 class xpersist {
 public:
 
-  enum { SHARED_PAGE = 0xFFFFFFFF };
+  enum { SHARED_PAGE = INT_MAX };
 
   enum page_access_info {
     PAGE_ACCESS_NONE = 0,
     PAGE_ACCESS_READ = 1,
     PAGE_ACCESS_READ_WRITE = 4,
-    PAGE_UNUSED = 8,
+    PAGE_UNUSED = 8
   };
+
 
   /// @arg startaddr  the optional starting address of the local memory.
   xpersist(void *startaddr = 0, size_t startsize = 0)
@@ -206,12 +208,12 @@ public:
                                0);
 
     _pageOwner =
-      (volatile unsigned long *)mmap(NULL,
-                                     TotalPageNums * sizeof(size_t),
-                                     PROT_READ | PROT_WRITE,
-                                     MAP_SHARED | MAP_ANONYMOUS,
-                                     -1,
-                                     0);
+      (volatile int *)mmap(NULL,
+                           TotalPageNums * sizeof(size_t),
+                           PROT_READ | PROT_WRITE,
+                           MAP_SHARED | MAP_ANONYMOUS,
+                           -1,
+                           0);
 
     // Local
     _pageInfo = (unsigned long *)mmap(NULL,
@@ -398,7 +400,7 @@ public:
   }
 
   inline bool isSharedPage(int pageNo) {
-    return _pageOwner[pageNo] == SHARED_PAGE;
+    return _pageOwner[pageNo] == (int)SHARED_PAGE;
   }
 
   // Those owned page will also set to MAP_PRIVATE and READ_ONLY
@@ -491,8 +493,8 @@ public:
     // Some vectorizing pragamata here; not sure if gcc implements them.
 # pragma vector always
 
-    for (int i = 0; i < xdefines::PageSize / sizeof(__m128i); i++) {
-      __m128i localChunk, twinChunk, destChunk;
+    for (unsigned long i = 0; i < xdefines::PageSize / sizeof(__m128i); i++) {
+      __m128i localChunk, twinChunk;
 
       localChunk = _mm_load_si128(&localbuf[i]);
       twinChunk = _mm_load_si128(&twinbuf[i]);
@@ -589,10 +591,9 @@ public:
   inline void forceCommitOwnedPages(int pid, void *end) {
     size_t startpage = 0;
     size_t endpage = ((intptr_t)end - (intptr_t)base()) / xdefines::PageSize;
-    int i;
 
     // Check all possible pages.
-    for (i = startpage; i < endpage; i++) {
+    for (size_t i = startpage; i < endpage; i++) {
       // When one page is owned by specified thread,
       if (_pageOwner[i] == pid) {
         notifyOwnerToCommit(i);
@@ -633,8 +634,8 @@ public:
   }
 
   inline void setSharedPage(int pageNo) {
-    if (_pageOwner[pageNo] != SHARED_PAGE) {
-      xatomic::exchange(&_pageOwner[pageNo], SHARED_PAGE);
+    if (_pageOwner[pageNo] != (int)SHARED_PAGE) {
+      xatomic::exchange((unsigned long *)&_pageOwner[pageNo], SHARED_PAGE);
       _pageInfo[pageNo] = PAGE_ACCESS_READ;
     }
   }
@@ -644,9 +645,6 @@ public:
   }
 
   inline void commitOwnedPage(int pageNo, bool setShared) {
-    // Check this page's attribute.
-    unsigned int owner;
-
     // Get corresponding entry.
     void *addr = (void *)((intptr_t)base() + pageNo * xdefines::PageSize);
     void *share =
@@ -795,14 +793,12 @@ public:
   /// @brief Update every page frame from the backing file if necessary.
   void updateAll() {
     struct xpageinfo *pageinfo;
-    int    pageNo = 0;
 
     // Dump in-updated page frame for safety!!!
     dirtyListType::iterator i;
 
     for (i = _dirtiedPagesList.begin(); i != _dirtiedPagesList.end(); ++i) {
       pageinfo = (struct xpageinfo *)i->second;
-      pageNo = pageinfo->pageNo;
 
       updatePage(pageinfo->pageStart, 1, pageinfo->release);
     }
@@ -934,14 +930,14 @@ private:
 
   xlogger *_logger;
 
-  /// True if current xpersist.h is a heap.
-  bool _isHeap;
-
   /// The starting address of the region.
   void *const _startaddr;
 
   /// The size of the region.
   const size_t _startsize;
+
+  /// True if current xpersist.h is a heap.
+  bool _isHeap;
 
   typedef std::pair<int, void *>objType;
 
@@ -986,7 +982,7 @@ private:
   // This array are used to save access type and the pointer for previous copy.
   unsigned long *_pageInfo;
 
-  volatile unsigned long *_pageOwner;
+  volatile int *_pageOwner;
 
   /// Local version numbers for each page.
   __m128i allones;

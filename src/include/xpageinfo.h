@@ -4,7 +4,7 @@
 struct xpageinfo {
   int pageNo;
 
-  int version;
+  unsigned int version;
 
   // Used to save start address for this page.
   void *pageStart;
