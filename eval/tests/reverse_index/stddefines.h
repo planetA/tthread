@@ -30,6 +30,7 @@
 #include <assert.h>
 
 /* Debug printf */
+#undef dprintf
 #define dprintf(...) //fprintf(stderr, __VA_ARGS__)
 
 /* Wrapper to check for errors */

@@ -16,7 +16,7 @@ public:
 
   enum accessType {
     WRITE,
-    READ,
+    READ
   };
 
 private:
@@ -49,9 +49,9 @@ public:
            void       *pageStart,
            accessType access,
            const void *issuerAddress)
-    : firstAccessedAddress(address),
+    : access(access),
+    firstAccessedAddress(address),
     pageStart(pageStart),
-    access(access),
     firstIssuerAddress(issuerAddress)
   {}
 

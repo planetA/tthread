@@ -80,8 +80,6 @@ inline void moveWholeList(Entry *prev, Entry **src) {
 
 // Insert one entry to specified list.
 inline void insertTail(Entry *entry, Entry **head) {
-  int i = 0;
-
   // If it is empty, simply set head pointer to current node.
   if (*head == NULL) {
     *head = entry;
@@ -104,8 +102,6 @@ inline void insertTail(Entry *entry, Entry **head) {
 // Insert one entry to specified list. Here, we assume that
 // the target list is not empty (at least one element inside).
 inline void insertHead(Entry *entry, Entry **head) {
-  int i = 0;
-
   // If it is empty, simply set head pointer to current node.
   Entry *header = *head;
   Entry *next = header->next;
@@ -162,13 +158,14 @@ inline void printEntries(Entry **head) {
   entry = *head;
   first = entry;
 
-  fprintf(stderr, "%d: PRINTENTY first %p\n", getpid(), first);
+  fprintf(stderr, "%d: PRINTENTY first %p\n", getpid(), (void *)first);
 
   do {
     if (!entry) {
       break;
     }
-    fprintf(stderr, "%d: PRINTENTRY %d, entry %p\n", getpid(), i++, entry);
+    fprintf(stderr, "%d: PRINTENTRY %d, entry %p\n",
+            getpid(), i++, (void *)entry);
     entry = entry->next;
   } while (entry != first
            && i < 10);
@@ -186,5 +183,5 @@ inline Entry *removeHeadEntry(Entry **head) {
   removeEntry(header, head);
   return header;
 }
-};
+}
 #endif /* __ALIVETHREADS_H__ */

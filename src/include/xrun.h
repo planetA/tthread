@@ -52,7 +52,7 @@ class xrun {
 private:
 
   volatile bool _isCopyOnWrite;
-  size_t _master_thread_id;
+  pid_t _master_thread_id;
   size_t _thread_index;
   bool _fence_enabled;
   size_t _children_threads_count;
@@ -68,14 +68,14 @@ public:
   xrun(xmemory& memory,
        xlogger& logger) :
     _isCopyOnWrite(false),
+    _thread_index(0),
+    _fence_enabled(false),
     _children_threads_count(0),
     _lock_count(0),
     _token_holding(false),
-    _fence_enabled(false),
-    _thread_index(0),
     _memory(memory),
-    _determ(determ::newInstance(memory)),
-    _thread(*this)
+    _thread(*this),
+    _determ(determ::newInstance(memory))
   {
     DEBUG("initializing xrun");
 
@@ -126,8 +126,6 @@ public:
   // Now only the current thread is active.
   inline int childRegister(int pid,
                            int parentindex) {
-    int threads;
-
     // Get the global thread index for this thread, which will be used
     // internally.
     _thread_index = xatomic::increment_and_return(&global_data->thread_index);
@@ -330,8 +328,6 @@ public:
   inline void kill(const void *caller,
                    void       *v,
                    int        sig) {
-    int threadindex;
-
     if ((sig == SIGKILL)
         || (sig == SIGTERM)) {
       cancel(caller, v);
@@ -343,7 +339,7 @@ public:
     }
 
     atomicEnd();
-    threadindex = _thread.thread_kill(v, sig);
+    _thread.thread_kill(v, sig);
 
     atomicBegin(caller);
 

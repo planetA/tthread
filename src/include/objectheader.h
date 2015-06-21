@@ -67,14 +67,14 @@ private:
   bool sanityCheck(void) {
     if (_magic != MAGIC) {
       fprintf(stderr, "HLY FK in %d. Current _magic %ld at %p\n",
-              getpid(), _magic, &_magic);
+              getpid(), _magic, (void *)&_magic);
       ::abort();
     }
     return true;
   }
 
-  size_t _magic;
   size_t _size;
+  size_t _magic;
 };
 
 #endif /* __OBJECTHEADER_H__ */

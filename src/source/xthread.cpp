@@ -24,13 +24,13 @@
  */
 
 #include <assert.h>
+#include <new>
 #include <sched.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stddef.h>
 #include <syscall.h>
 #include <unistd.h>
-#include <new>
 
 #include "debug.h"
 #include "sassert.h"
@@ -43,7 +43,9 @@ void *xthread::spawn(const void     *caller,
                      int            parent_index) {
   // Allocate an object to hold the thread's return value.
   void *buf = allocateSharedObject(4096);
-  HL::sassert<(4096 > sizeof(ThreadStatus))>checkSize;
+
+  static_assert(4096 > sizeof(ThreadStatus),
+                "Not enough space to hold ThreadStatus");
   ThreadStatus *t = new (buf)ThreadStatus;
 
   return forkSpawn(caller, fn, t, arg, parent_index);

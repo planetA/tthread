@@ -171,17 +171,17 @@ public:
   xmemory& _memory;
 
   determ(xmemory& memory) :
+    _childregistered(false),
+    _parentnotified(false),
+    _activelist(NULL),
+    _maxthreadentries(MAX_THREADS),
     _condnum(0),
     _barriernum(0),
+    _tokenpos(NULL),
     _maxthreads(0),
     _currthreads(0),
     _is_arrival_phase(false),
     _alivethreads(0),
-    _maxthreadentries(MAX_THREADS),
-    _activelist(NULL),
-    _tokenpos(NULL),
-    _parentnotified(false),
-    _childregistered(false),
     _memory(memory)
   {}
 
@@ -341,7 +341,6 @@ public:
   // use those condwait, but busy waiting instead.
   void waitFence(int threadindex, bool keepBitmap) {
     int rv;
-    bool lastThread = false;
 
     ThreadEntry *entry = &_entries[threadindex];
 
@@ -812,7 +811,6 @@ public:
 
   void cond_destroy(void *cond) {
     CondEntry *entry;
-    int offset;
 
     lock();
     _condnum--;
@@ -1131,7 +1129,6 @@ public:
 
   void barrier_destroy(void *bar) {
     BarrierEntry *entry;
-    int offset;
 
     entry = (BarrierEntry *)getSyncEntry(bar);
     freeSyncEntry(entry);

@@ -17,8 +17,8 @@ namespace tthread {
 extern xlogger *logger;
 
 log::log() :
-  _logSize(tthread::logger->getLogSize()),
   _logOffset(0),
+  _logSize(tthread::logger->getLogSize()),
   _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
@@ -26,16 +26,16 @@ log::log() :
 
 // all events since offset
 log::log(off_t offset) :
-  _logSize(tthread::logger->getLogSize()),
   _logOffset(offset),
+  _logSize(tthread::logger->getLogSize()),
   _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
 }
 
 log::log(int logFd, off_t size, off_t offset) :
-  _logSize(size),
   _logOffset(offset),
+  _logSize(size),
   _log(NULL)
 {
   openLog(tthread::logger->getLogFd());

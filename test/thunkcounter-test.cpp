@@ -6,7 +6,7 @@
 #include "tthread/logentry.h"
 
 enum {
-  PAGE_SIZE = 4096,
+  PAGE_SIZE = 4096
 };
 
 

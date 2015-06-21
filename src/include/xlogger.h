@@ -26,7 +26,7 @@ private:
   volatile unsigned long *_next;
 
   // allocated file size
-  volatile size_t *_fileSize;
+  volatile off_t *_fileSize;
 
   /* per-process private data*/
 
@@ -55,10 +55,10 @@ public:
   // struct xlogger_shared_data must be located in cross-process memory
   xlogger(xlogger_shared_data& data) :
     _next(&data.next),
-    _mmapOffset(-REQUEST_SIZE),
     _fileSize(&data.fileSize),
     _truncateMutex(&data.truncateMutex),
-    _thread(NULL)
+    _thread(NULL),
+    _mmapOffset(-REQUEST_SIZE)
   {
     assert(_next);
     assert(_fileSize);
@@ -122,7 +122,7 @@ public:
 private:
 
   void growLog() {
-    size_t currentSize = *_fileSize;
+    off_t currentSize = *_fileSize;
 
     // someone else has resized the log -> then just mmap to new size
     if ((_mmapOffset + REQUEST_SIZE) >= currentSize) {
@@ -130,7 +130,7 @@ private:
 
       // test if someone else has truncated the log, while we try to access it
       if (currentSize == *_fileSize) {
-        size_t newSize = currentSize + REQUEST_SIZE;
+        off_t newSize = currentSize + REQUEST_SIZE;
 
         if (ftruncate(_logFd, newSize) != 0) {
           fprintf(stderr,

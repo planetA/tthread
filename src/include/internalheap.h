@@ -106,7 +106,7 @@ public:
     // Since SourceInternalHeap only initializes when there is some malloc,
     // try to malloc something in order to make the "sharedheap" actually shared
     // by all threads.
-    void *testptr = malloc(8);
+    malloc(8);
   }
 
   ~InternalHeap(void) {}

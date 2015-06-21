@@ -107,7 +107,7 @@ namespace Kingsley {
 
   enum { NUMBINS = 29 };
 
-};
+}
 
 /**
  * @class KingsleyHeap
@@ -127,6 +127,6 @@ template <class PerClassHeap, class BigHeap>
 			PerClassHeap,
 			BigHeap> {};
 
-};
+}
 
 #endif

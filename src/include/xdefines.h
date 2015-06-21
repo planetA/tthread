@@ -40,7 +40,7 @@
 #include "prof.h"
 
 struct xlogger_shared_data {
-  volatile size_t fileSize;
+  volatile off_t fileSize;
   volatile unsigned long next;
   pthread_mutex_t truncateMutex;
 };

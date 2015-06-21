@@ -82,11 +82,11 @@ public:
 
     DEBUG(
       "xheap initializing: _position %p, _remaining %p, _magic %p, _start %p, _end %p\n",
-      _position,
-      _remaining,
-      _magic,
-      _start,
-      _end);
+      (void *)_position,
+      (void *)_remaining,
+      (void *)_magic,
+      (void *)_start,
+      (void *)_end);
   }
 
   inline void *getend() {
@@ -130,12 +130,6 @@ public:
     *_remaining -= sz;
     *_position += sz;
 
-    void *newptr = (void *)*_position;
-
-    // __asm__ __volatile__ ("mfence": : :"memory");
-
-    //		fprintf(stderr, "%d: xheapmalloc %p ~ %p. sz %x\n", getpid(),p,
-    // newptr, sz);
     _lock->unlock();
 
     parent::setOwnedPage(p, sz);

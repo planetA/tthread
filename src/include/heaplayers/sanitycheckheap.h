@@ -110,6 +110,6 @@ private:
   mapType allocatedObjects;
 };
 
-};
+}
 
 #endif

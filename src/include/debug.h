@@ -29,18 +29,25 @@
 #include <stdio.h>
 
 #ifdef DEBUG
-    # undef DEBUG
-    # define DEBUG(...) fprintf(stderr, "%20s:%-4d: ", __FILE__, __LINE__); \
-  fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n")
+# undef DEBUG
+# define DEBUG(...)                                     \
+  do {                                                  \
+    fprintf(stderr, "%20s:%-4d: ", __FILE__, __LINE__); \
+    fprintf(stderr, __VA_ARGS__);                       \
+    fprintf(stderr, "\n");                              \
+  } while (0)
 #else // ifdef DEBUG
-    # define DEBUG(_fmt, ...)
+# define DEBUG(_fmt, ...)
 #endif // ifdef DEBUG
 
 #ifdef CHECK_SCHEDULE
-  # define PRINT_SCHEDULE(...) fprintf(stderr, __VA_ARGS__); fprintf(stderr, \
-                                                                     "\n")
+# define PRINT_SCHEDULE(...)      \
+  do {                            \
+    fprintf(stderr, __VA_ARGS__); \
+    fprintf(stderr, "\n");        \
+  } while (0)
 #else // ifdef CHECK_SCHEDULE
-  # define PRINT_SCHEDULE(_fmt, ...)
+# define PRINT_SCHEDULE(_fmt, ...)
 #endif // ifdef CHECK_SCHEDULE
 
 #endif // ifndef _DEBUG_H_

@@ -491,8 +491,6 @@ public:
     __m128i *destbuf = (__m128i *)dest;
 
     // Some vectorizing pragamata here; not sure if gcc implements them.
-# pragma vector always
-
     for (unsigned long i = 0; i < xdefines::PageSize / sizeof(__m128i); i++) {
       __m128i localChunk, twinChunk;
 

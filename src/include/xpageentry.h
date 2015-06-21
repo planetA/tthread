@@ -67,15 +67,10 @@ public:
   }
 
   void initialize(void) {
-    void *start;
-    struct xpageinfo *cur;
-    int i = 0;
-    unsigned long pagestart;
-
     // We don't need to allocate all pages, only the difference between newnum
     // and oldnum.
-    start = WRAP(mmap)(NULL, PAGE_ENTRY_NUM * sizeof(xpageinfo), PROT_READ
-                       | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void *start = WRAP(mmap)(NULL, PAGE_ENTRY_NUM * sizeof(xpageinfo), PROT_READ
+                             | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if (start == NULL) {
       fprintf(stderr, "%d fail to allocate page entries : %s\n",
