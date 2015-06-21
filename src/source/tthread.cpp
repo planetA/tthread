@@ -156,7 +156,7 @@ void finalize() {
 }
 
 extern "C" {
-_PUBLIC_ void *malloc(size_t sz) {
+_PUBLIC_ void *malloc(size_t sz) __THROW {
   void *ptr;
 
   if (initialized) {
@@ -174,7 +174,8 @@ _PUBLIC_ void *malloc(size_t sz) {
                    MAP_SHARED | MAP_ANONYMOUS,
                    -1,
                    0);
-        *alloc = (mmap_allocation_t) {ptr, sz };
+        alloc->ptr = ptr;
+        alloc->size = sz;
 
         if (ptr == MAP_FAILED) {
           return NULL;
@@ -193,7 +194,7 @@ _PUBLIC_ void *malloc(size_t sz) {
   return ptr;
 }
 
-_PUBLIC_ void *calloc(size_t nmemb, size_t sz) {
+_PUBLIC_ void *calloc(size_t nmemb, size_t sz) throw() {
   void *ptr;
 
   if (initialized) {
@@ -216,7 +217,7 @@ _PUBLIC_ void *calloc(size_t nmemb, size_t sz) {
   return ptr;
 }
 
-_PUBLIC_ void free(void *ptr) {
+_PUBLIC_ void free(void *ptr) __THROW {
   if (initialized) {
     run->free(ptr);
   } else {
@@ -235,12 +236,12 @@ _PUBLIC_ void free(void *ptr) {
   }
 }
 
-_PUBLIC_ void *memalign(size_t boundary, size_t size) {
+_PUBLIC_ void *memalign(size_t boundary, size_t size) throw() {
   DEBUG("memalign is not supported");
   return NULL;
 }
 
-_PUBLIC_ size_t malloc_usable_size(void *ptr) {
+_PUBLIC_ size_t malloc_usable_size(void *ptr) __THROW {
   if (initialized) {
     return run->getSize(ptr);
   } else {
@@ -257,7 +258,7 @@ _PUBLIC_ size_t malloc_usable_size(void *ptr) {
   return 0;
 }
 
-_PUBLIC_ void *realloc(void *ptr, size_t sz) {
+_PUBLIC_ void *realloc(void *ptr, size_t sz) throw() {
   if (initialized) {
     return run->realloc(ptr, sz);
   } else {
@@ -281,14 +282,14 @@ _PUBLIC_ void *realloc(void *ptr, size_t sz) {
   return NULL;
 }
 
-_PUBLIC_ int getpid(void) {
+_PUBLIC_ int getpid(void) __THROW {
   if (initialized) {
     return run->id();
   }
   return 0;
 }
 
-_PUBLIC_ int sched_yield(void) {
+_PUBLIC_ int sched_yield(void) __THROW {
   return 0;
 }
 
@@ -306,26 +307,26 @@ _PUBLIC_ int pthread_cancel(pthread_t thread) {
   return 0;
 }
 
-_PUBLIC_ int pthread_setconcurrency(int) {
+_PUBLIC_ int pthread_setconcurrency(int) __THROW {
   return 0;
 }
 
-_PUBLIC_ int pthread_attr_init(pthread_attr_t *) {
+_PUBLIC_ int pthread_attr_init(pthread_attr_t *) __THROW {
   return 0;
 }
 
-_PUBLIC_ int pthread_attr_destroy(pthread_attr_t *) {
+_PUBLIC_ int pthread_attr_destroy(pthread_attr_t *) throw() {
   return 0;
 }
 
-_PUBLIC_ pthread_t pthread_self(void) {
+_PUBLIC_ pthread_t pthread_self(void) __THROW {
   if (initialized) {
     return (pthread_t)run->id();
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_kill(pthread_t thread, int sig) {
+_PUBLIC_ int pthread_kill(pthread_t thread, int sig) __THROW {
   DEBUG("pthread_kill is not supported");
   return 0;
 }
@@ -335,26 +336,26 @@ _PUBLIC_ int sigwait(const sigset_t *set, int *sig) {
 }
 
 _PUBLIC_ int pthread_mutex_init(pthread_mutex_t *mutex,
-                                const pthread_mutexattr_t *) {
+                                const pthread_mutexattr_t *) throw() {
   if (initialized) {
     return run->mutex_init(mutex);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_mutex_lock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_lock(pthread_mutex_t *mutex) throw() {
   if (initialized) {
     run->mutex_lock(CALLER, mutex);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_mutex_trylock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_trylock(pthread_mutex_t *mutex) throw() {
   DEBUG("pthread_mutex_trylock is not supported");
   return 0;
 }
 
-_PUBLIC_ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_mutex_unlock(pthread_mutex_t *mutex) throw() {
   if (initialized) {
     run->mutex_unlock(CALLER, mutex);
   }
@@ -368,28 +369,30 @@ _PUBLIC_ int pthread_mutex_destory(pthread_mutex_t *mutex) {
   return 0;
 }
 
-_PUBLIC_ int pthread_attr_getstacksize(const pthread_attr_t *, size_t *s) {
+_PUBLIC_ int pthread_attr_getstacksize(const pthread_attr_t *,
+                                       size_t *s) throw() {
   *s = 1048576UL; // really? FIX ME
   return 0;
 }
 
-_PUBLIC_ int pthread_mutexattr_destroy(pthread_mutexattr_t *) {
+_PUBLIC_ int pthread_mutexattr_destroy(pthread_mutexattr_t *) throw() {
   return 0;
 }
 
-_PUBLIC_ int pthread_mutexattr_init(pthread_mutexattr_t *) {
+_PUBLIC_ int pthread_mutexattr_init(pthread_mutexattr_t *) throw() {
   return 0;
 }
 
-_PUBLIC_ int pthread_mutexattr_settype(pthread_mutexattr_t *, int) {
+_PUBLIC_ int pthread_mutexattr_settype(pthread_mutexattr_t *, int) throw() {
   return 0;
 }
 
-_PUBLIC_ int pthread_mutexattr_gettype(const pthread_mutexattr_t *, int *) {
+_PUBLIC_ int pthread_mutexattr_gettype(const pthread_mutexattr_t *,
+                                       int *) throw() {
   return 0;
 }
 
-_PUBLIC_ int pthread_attr_setstacksize(pthread_attr_t *, size_t) {
+_PUBLIC_ int pthread_attr_setstacksize(pthread_attr_t *, size_t) throw() {
   return 0;
 }
 
@@ -397,7 +400,7 @@ _PUBLIC_ int pthread_create(pthread_t            *tid,
                             const pthread_attr_t *attr,
                             void *(*fn)(
                               void *),
-                            void                 *arg) {
+                            void                 *arg) throw() {
   if (!initialized) {
     return EAGAIN;
   }
@@ -419,35 +422,37 @@ _PUBLIC_ int pthread_join(pthread_t tid, void **val) {
 }
 
 _PUBLIC_ int pthread_cond_init(pthread_cond_t           *cond,
-                               const pthread_condattr_t *attr) {
+                               const pthread_condattr_t *attr) throw() {
   if (initialized) {
     run->cond_init((void *)cond);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_cond_broadcast(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_broadcast(pthread_cond_t *cond) throw() {
   if (initialized) {
     run->cond_broadcast(CALLER, (void *)cond);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_cond_signal(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_signal(pthread_cond_t *cond) throw() {
   if (initialized) {
     run->cond_signal(CALLER, (void *)cond);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
+_PUBLIC_ int pthread_cond_wait(pthread_cond_t  *cond,
+                               pthread_mutex_t *mutex)
+{
   if (initialized) {
     run->cond_wait(CALLER, (void *)cond, (void *)mutex);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_cond_destroy(pthread_cond_t *cond) {
+_PUBLIC_ int pthread_cond_destroy(pthread_cond_t *cond) throw() {
   if (initialized) {
     run->cond_destroy(cond);
   }
@@ -457,21 +462,21 @@ _PUBLIC_ int pthread_cond_destroy(pthread_cond_t *cond) {
 // Add support for barrier functions
 _PUBLIC_ int pthread_barrier_init(pthread_barrier_t           *barrier,
                                   const pthread_barrierattr_t *attr,
-                                  unsigned int                count) {
+                                  unsigned int                count) throw() {
   if (initialized) {
     return run->barrier_init(barrier, count);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_barrier_destroy(pthread_barrier_t *barrier) {
+_PUBLIC_ int pthread_barrier_destroy(pthread_barrier_t *barrier) throw() {
   if (initialized) {
     return run->barrier_destroy(barrier);
   }
   return 0;
 }
 
-_PUBLIC_ int pthread_barrier_wait(pthread_barrier_t *barrier) {
+_PUBLIC_ int pthread_barrier_wait(pthread_barrier_t *barrier) throw() {
   if (initialized) {
     return run->barrier_wait(barrier);
   }
