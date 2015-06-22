@@ -16,8 +16,6 @@ if(NOT LIBDL_FOUND)
   message(SEND_ERROR "libdl required")
 endif(NOT LIBDL_FOUND)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/benchmark.cmake)
-
 INCLUDE (CheckCXXSourceCompiles)
 CHECK_CXX_SOURCE_COMPILES(
 "
@@ -28,6 +26,13 @@ __builtin_return_address(0);
 " HAS_BUILTIN_RETURN_ADDRESS)
 
 add_subdirectory(src)
+
+option (BENCHMARK OFF)
+if (BENCHMARK)
+  if (NOT BENCHMARK STREQUAL "OFF")
+    add_subdirectory(eval)
+  endif()
+endif (BENCHMARK)
+
 add_subdirectory(test)
-add_subdirectory(eval)
 

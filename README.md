@@ -54,3 +54,9 @@ Tthread currently only supports Linux/x86\_64 platforms.
 ```
 make test
 ```
+
+### Building Benchmarks ###
+
+```
+cmake -DBENCHMARK=ON .
+```
