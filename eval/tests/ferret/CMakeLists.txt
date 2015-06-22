@@ -1,4 +1,4 @@
-#add_benchmark(ferret
+#AddBenchmark(ferret
 #  ARGS ${DATASET_HOME}/ferret/corel lsh ${DATASET_HOME}/ferret/queries 10 20 1 output.txt
 #
 #  FILES arena.c assign.c bench.c bitmap.c cass.c cass_dist.c
