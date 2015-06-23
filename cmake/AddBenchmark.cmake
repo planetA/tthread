@@ -6,7 +6,7 @@ macro(AddBenchmark benchmark)
     "ARGS;DEFINITIONS;LIBS;INCLUDES;FILES"
     ${ARGN})
 
-  include_directories(../../include include . ${INCLUDES})
+  include_directories(include . ${AddBenchmark_INCLUDES})
   add_definitions(${AddBenchmark_DEFINITIONS})
 
   add_executable(${benchmark}-pthread ${AddBenchmark_FILES})

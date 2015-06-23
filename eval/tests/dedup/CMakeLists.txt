@@ -6,6 +6,8 @@
 
 set(THREADS 2)
 
+SET(CMAKE_C_FLAGS "-std=gnu99")
+
 AddBenchmark(dedup
   ARGS -c -p -f -t ${THREADS} -i ${DATASET_HOME}/dedup/media.dat -o output.dat.ddp
   FILES binheap.c decoder.c dedup.c encoder.c hashtable.c queue.c rabin.c tree.c util.c
