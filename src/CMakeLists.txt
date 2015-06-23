@@ -26,10 +26,9 @@ endif(HAS_BUILTIN_RETURN_ADDRESS)
 # Get some characteristics about running.
 #add_definitions(-DGET_CHARACTERISTICS)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-  message(STATUS "Found g++, enabling -fvisibility=hidden")
+if(CMAKE_COMPILER_IS_GNUCC OR __COMPILER_GNU)
+  set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 endif()
 
 set_target_properties(tthread PROPERTIES COMPILE_FLAGS "-fPIC")
