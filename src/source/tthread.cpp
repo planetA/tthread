@@ -484,7 +484,7 @@ _PUBLIC_ int pthread_barrier_wait(pthread_barrier_t *barrier) throw() {
 }
 
 _PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
-#if 0
+  // Produce read pagefault to buffer in advance to avoid EFAULT errno
   uint8_t *start = (uint8_t *)buf;
 
   volatile int temp;
@@ -494,13 +494,12 @@ _PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
   }
 
   temp = start[count - 1];
-#endif // if 0
 
   return WRAP(write)(fd, buf, count);
 }
 
 _PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
-#if 0
+  // Produce write pagefault to buffer in advance to avoid EFAULT errno
   uint8_t *start = (uint8_t *)buf;
 
   for (size_t i = 0; i < count; i += xdefines::PageSize) {
@@ -508,7 +507,6 @@ _PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
   }
 
   start[count - 1] = 0;
-#endif // if 0
 
   return WRAP(read)(fd, buf, count);
 }
