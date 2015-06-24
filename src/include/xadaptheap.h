@@ -57,7 +57,7 @@ public:
       exit(-1);
     }
     _heap = new (buf)Heap<Source, ChunkSize>;
-    DEBUG("xadaptheap _heap %p size %x", _heap, metasize);
+    DEBUG("xadaptheap _heap %p size %x", (void *)_heap, metasize);
     _heap->initialize();
   }
 
