@@ -769,6 +769,11 @@ public:
         }
 
         isModified = true;
+      } else {
+          // in case we own the page,
+          // it should not be released
+          // by during atomicBegin()
+          pageinfo->release = false;
       }
 
       if (isModified) {
