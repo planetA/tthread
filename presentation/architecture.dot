@@ -1,0 +1,64 @@
+digraph architecture {
+  node [style=rounded,style=filled];
+  graph [ dpi = 300 ];
+
+  subgraph cluster_cpu {
+    label="CPU 1..N";
+    "Intel PT";
+    MMU;
+  };
+
+  subgraph cluster_kernel {
+    label="Kernel"
+    Memorymanagement;
+    "PMU for Intel PT";
+  }
+
+  "PMU for Intel PT" -> "Intel PT" [shape=box, label="Enable Intel PT"];
+  "Intel PT" -> "PMU for Intel PT" [shape=box, label="Provides packet stream of\nbranch samples of every branch"];
+  "MMU" -> Memorymanagement [label="Page Fault"];
+
+  Memorymanagement -> tthread [label="Segfault Signal"];
+
+  subgraph cluster_graph {
+    label="Concurrent Provenance Graph";
+    "Control flow";
+    "data flow/thread schedule";
+  }
+
+  subgraph cluster_framework {
+    label="<Project Name>";
+    libipt [shape=box, label="Intel decoder library"];
+    application_wrapper [shape=box, label="Application Wrapper"];
+    tthread [shape=box, label="libthread.so"];
+  };
+
+  libipt -> "Control flow";
+  tthread -> "data flow/thread schedule";
+
+  application_wrapper -> libipt [label="Decode "]
+  shared_mmap_file [label="Shared Memory-Maped File"];
+  tthread -> shared_mmap_file [label="mprotect"];
+
+
+  "PMU for Intel PT" -> application_wrapper [label="Provides Perf events"];
+
+  subgraph cluster_programm {
+    label="Application";
+    programm;
+    child;
+  }
+
+  programm [shape=box,label="Programm"];
+
+  child [shape=box,label="Child of Programm"];
+
+  programm -> child [label="pthread_create() -> clone()"];
+
+  tthread -> programm [label="replaces pthread/malloc family"];
+
+  shared_mmap_file -> child [label="Heap/Global Data"];
+  shared_mmap_file -> programm [label="Heap/Global Data"];
+
+  application_wrapper -> programm [label="Start application/setup execution trace",headport=s];
+}
