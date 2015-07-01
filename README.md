@@ -1,8 +1,6 @@
 Tthread: Tracing Multithreading library
 ----------------------------------------
 
-[![Build Status](https://travis-ci.org/Mic92/tthread.png)](https://travis-ci.org/Mic92/tthread)
-
 tthread is based on [dthreads](https://github.com/emeryberger/dthreads)
 
 ### Building Tthread ###
@@ -55,8 +53,6 @@ Tthread currently only supports Linux/x86\_64 platforms.
 make test
 ```
 
-### Building Benchmarks ###
+### Run Benchmarks ###
 
-```
-cmake -DBENCHMARK=ON .
-```
+see [eval/README.md](eval/README.md)
