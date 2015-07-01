@@ -1,6 +1,9 @@
 digraph architecture {
-  node [style=rounded,style=filled];
+  node [style=rounded,style=filled,fontname=Verdana,fontsize=12,colorscheme=pastel18,color=1];
+  edge [color=darkgreen,fontname="Verdana",fontsize=10];
   graph [ dpi = 300 ];
+  fontname=Verdana;
+  fontsize=12;
 
   subgraph cluster_cpu {
     label="CPU 1..N";
@@ -10,8 +13,8 @@ digraph architecture {
 
   subgraph cluster_kernel {
     label="Kernel"
-    Memorymanagement;
-    "PMU for Intel PT";
+    Memorymanagement [shape=box];
+    "PMU for Intel PT" [shape=box];
   }
 
   "PMU for Intel PT" -> "Intel PT" [shape=box, label="Enable Intel PT"];
@@ -24,10 +27,16 @@ digraph architecture {
     label="Concurrent Provenance Graph";
     "Control flow";
     "data flow/thread schedule";
+    colorscheme="pastel18";
+    color=3;
+    style=filled;
   }
 
   subgraph cluster_framework {
     label="<Project Name>";
+    style="filled";
+    colorscheme="pastel18";
+    color=2;
     libipt [shape=box, label="Intel decoder library"];
     application_wrapper [shape=box, label="Application Wrapper"];
     tthread [shape=box, label="libthread.so"];
@@ -49,6 +58,9 @@ digraph architecture {
   "PMU for Intel PT" -> application_wrapper [label="Provides Perf events"];
 
   subgraph cluster_programm {
+    colorscheme="pastel18";
+    color=2;
+    style=filled;
     label="Application";
     programm;
     child;
