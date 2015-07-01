@@ -36,9 +36,14 @@ digraph architecture {
   libipt -> "Control flow";
   tthread -> "data flow/thread schedule";
 
-  application_wrapper -> libipt [label="Decode "]
-  shared_mmap_file [label="Shared Memory-Maped File"];
-  tthread -> shared_mmap_file [label="mprotect"];
+  application_wrapper -> libipt [label="Decode "];
+
+  subgraph cluster_memory {
+      label="Copy-On-Write overlay"
+      shared_mmap_file [label="Shared memory maped files"];
+  }
+
+  tthread -> shared_mmap_file [label="mprotect", headport=cluster_memory];
 
 
   "PMU for Intel PT" -> application_wrapper [label="Provides Perf events"];
