@@ -14,6 +14,7 @@ set(c_tests
 set(cpp_tests
   bug-init-32bit
   pageaccesslog-test
+  usage-test
   thunkcounter-test
   persistence-test
   xatomic-test
