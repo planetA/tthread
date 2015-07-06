@@ -47,6 +47,8 @@ Tthread currently only supports Linux/x86\_64 platforms.
 % export LD_LIBRARY_PATH=<TTHREAD_DIR>:$LD_LIBRARY_PATH
 ```
 
+To read the access log at runtime, take a look at [Usage.md](Usage.md)
+
 ### Run the Tests ###
 
 ```
