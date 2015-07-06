@@ -20,9 +20,6 @@ if(HAS_BUILTIN_RETURN_ADDRESS)
   add_definitions(-DBUILTIN_RETURN_ADDRESS)
 endif(HAS_BUILTIN_RETURN_ADDRESS)
 
-# Check deterministic schedule
-#add_definitions(-DCHECK_SCHEDULE)
-
 # Get some characteristics about running.
 #add_definitions(-DGET_CHARACTERISTICS)
 
