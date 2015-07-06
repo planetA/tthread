@@ -9,7 +9,7 @@ within the programm linked against pthread.
 int global_var = 0;
 
 int main(int argc, char **argv) {
-  // read-only log all current logged events
+  // read-only log of all current logged events
   tthread::log log;
 
   global_var = 1;
