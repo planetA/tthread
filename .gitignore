@@ -16,5 +16,10 @@ Testing/
 *.la
 *.a
 
+# Byte-compiled python files
+__pycache__/
+*.py[cod]
+*$py.class
+
 .DS_Store
 .gdb_history
