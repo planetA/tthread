@@ -18,8 +18,7 @@ set(cpp_tests
   thunkcounter-test
   persistence-test
   xatomic-test
-  # FIXME - currently disabled, because it access xlogger directly
-  #  xlogger-test
+  xlogger-test
   malloc-free-test
 )
 

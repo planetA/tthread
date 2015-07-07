@@ -86,8 +86,7 @@ MU_TEST(test_lock_unlock) {
   mu_check(accesses == 2);
   mu_check(*ctx.data == 'b');
 
-  // Bug again
-  // free(heapbuf);
+  free(heapbuf);
 }
 
 MU_TEST_SUITE(test_suite) {

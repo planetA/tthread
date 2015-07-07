@@ -89,6 +89,14 @@ public:
       (void *)_end);
   }
 
+  inline void *getAbsoluteStart() {
+    return (void *)_start;
+  }
+
+  inline void *getAbsoluteEnd() {
+    return (void *)_end;
+  }
+
   inline void *getend() {
     return (void *)*_position;
   }

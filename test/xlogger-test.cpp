@@ -6,27 +6,25 @@
 #include "tthread/logentry.h"
 #include "xdefines.h"
 #include "xlogger.h"
+#include <stdlib.h>
+
+const int PAGE_SIZE = 4096;
+
+// FIXME: should be the same as in xlogger
+const int REQUEST_SIZE = PAGE_SIZE * 16;
 
 MU_TEST(test_grow_log) {
-  struct xlogger_shared_data data = { 0, 0 };
-  xlogger logger(data);
-  tthread::logentry dummy((void *)1,
-                          (void *)1,
-                          tthread::logentry::READ,
-                          (void *)1);
+  // force log to expand
+  unsigned int overflow = (REQUEST_SIZE / sizeof(tthread::logentry) + 1);
+  char *buf = (char *)malloc(overflow * PAGE_SIZE);
 
-  // force new page
-  int overflow = (xlogger::REQUEST_SIZE / sizeof(dummy) + 1);
+  tthread::log log;
 
-  for (int i = 0; i < overflow; i++) {
-    logger.add(dummy);
-  }
-  write(fileno(stdout), "foo\n", 4);
-  tthread::log log(logger.getLogFd(), logger.getLogSize(), 0);
+  memset(buf, 1, overflow * PAGE_SIZE);
+  tthread::log log2(log.end());
 
-  mu_check(log.get(0).getAccess() == tthread::logentry::READ);
-  mu_check(log.get(0).getFirstAccessedAddress() == (void *)1);
-  mu_check(log.length() == overflow);
+  mu_check(log2.length() == overflow);
+  free(buf);
 }
 
 MU_TEST_SUITE(test_suite) {

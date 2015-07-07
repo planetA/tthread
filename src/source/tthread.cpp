@@ -85,6 +85,7 @@ xlogger *logger;
 void initialize() {
   DEBUG("intializing libtthread");
 
+
   init_real_functions();
 
   global_data = (runtime_data_t *)WRAP(mmap)(NULL,
@@ -104,8 +105,10 @@ void initialize() {
 #endif // ifdef BUILTIN_RETURN_ADDRESS
 
   DEBUG("after mapping global data structure");
-  tthread::logger = xlogger::allocate(global_data->xlogger);
   memory = new(xmemorybuf)xmemory;
+  tthread::logger = xlogger::allocate(global_data->xlogger,
+                                      memory->getLayout());
+
   run = new(xrunbuf)xrun(*memory, *tthread::logger);
   initialized = true;
 }
@@ -139,6 +142,7 @@ void finalize() {
   memory->closeProtection();
   initialized = false;
 
+  #ifdef DEBUG_ENABLED
   fprintf(stderr, "\nStatistics information:\n");
   PRINT_TIMER(serial);
   PRINT_COUNTER(commit);
@@ -149,13 +153,18 @@ void finalize() {
   PRINT_COUNTER(lazypage);
   PRINT_COUNTER(shorttrans);
 
-  #ifdef DEBUG
   tthread::log *log = new(logbuf)tthread::log;
   log->print();
-  #endif // ifdef DEBUG
+  #endif // DEBUG_ENABLED
 }
 
 extern "C" {
+_PUBLIC_ void printLog() {
+  tthread::log log;
+
+  log.print();
+}
+
 _PUBLIC_ void *malloc(size_t sz) __THROW {
   void *ptr;
 

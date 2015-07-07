@@ -64,8 +64,16 @@ public:
     getHeap()->checkandcommit();
   }
 
-  void *getend(void) {
+  void *getend() {
     return getHeap()->getend();
+  }
+
+  void *getAbsoluteStart() {
+    return getHeap()->getAbsoluteStart();
+  }
+
+  void *getAbsoluteEnd() {
+    return getHeap()->getAbsoluteEnd();
   }
 
   void stats(void) {

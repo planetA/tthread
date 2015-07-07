@@ -150,6 +150,16 @@ public:
     return _pheap.getSize(ptr);
   }
 
+  inline tthread::memorylayout_t getLayout() {
+    tthread::memorylayout_t layout;
+
+    layout.heapStart = _pheap.getAbsoluteStart();
+    layout.heapEnd = _pheap.getAbsoluteEnd();
+    layout.globalStart = (void *)GLOBALS_START;
+    layout.globalEnd = (void *)GLOBALS_END;
+    return layout;
+  }
+
   void setCopyOnWrite(bool copyOnWrite) {
     _globals.setCopyOnWrite(NULL, copyOnWrite);
     _pheap.setCopyOnWrite(_pheap.getend(), copyOnWrite);

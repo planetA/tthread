@@ -38,10 +38,16 @@
 #include <syscall.h>
 
 #include "prof.h"
+#if defined(__APPLE__)
+
+// We are going to use the Mach-O substitutes for _end, etc.,
+// despite the strong admonition not to. Beware.
+# include <mach-o/getsect.h>
+#endif // if defined(__APPLE__)
+
 
 struct xlogger_shared_data {
   volatile off_t fileSize;
-  volatile unsigned long next;
   pthread_mutex_t truncateMutex;
 };
 
@@ -72,5 +78,35 @@ public:
   enum { NUM_HEAPS = 32 };                      // was 16
   enum { LOCK_OWNER_BUDGET = 10 };
 };
+
+extern "C" {
+#if !defined(__APPLE__)
+extern int __data_start;
+extern int _end;
+
+extern char _etext;
+extern char _edata;
+#endif // if !defined(__APPLE__)
+}
+
+// Macros to align to the nearest page down and up, respectively.
+#define PAGE_ALIGN_DOWN(x) (((size_t)(x)) & ~xdefines::PAGE_SIZE_MASK)
+#define PAGE_ALIGN_UP(x) ((((size_t)(x)) + xdefines::PAGE_SIZE_MASK) & \
+                          ~xdefines::PAGE_SIZE_MASK)
+
+// Macros that define the start and end addresses of program-wide globals.
+#if defined(__APPLE__)
+
+# define GLOBALS_START PAGE_ALIGN_DOWN(((size_t)get_etext() - 1))
+# define GLOBALS_END PAGE_ALIGN_UP(((size_t)get_end() - 1))
+
+#else // if defined(__APPLE__)
+
+# define GLOBALS_START PAGE_ALIGN_DOWN((size_t)&__data_start)
+# define GLOBALS_END PAGE_ALIGN_UP(((size_t)&_end - 1))
+
+#endif // if defined(__APPLE__)
+
+#define GLOBALS_SIZE (GLOBALS_END - GLOBALS_START)
 
 #endif // ifndef _XDEFINES_H_

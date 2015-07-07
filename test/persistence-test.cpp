@@ -4,10 +4,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <tthread/log.h>
+
 #include "minunit.h"
 
 enum {
-  PAGE_SIZE = 4096,
+  PAGE_SIZE = 4096
 };
 
 char global;

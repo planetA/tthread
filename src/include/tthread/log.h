@@ -9,6 +9,7 @@
 #include <sys/types.h>
 
 #include "tthread/logentry.h"
+#include "tthread/logheader.h"
 #include "visibility.h"
 
 
@@ -19,15 +20,20 @@ private:
   void openLog(int logFd);
 
   const off_t _logOffset;
-  const size_t _logSize;
+  size_t _logSize;
+  logheader *_header;
   logentry *_log;
   log(const log& l);
+  logheader *readHeader(int logFd);
 
 public:
 
   // include all events logged at the time of construction
   log();
   log(off_t offset);
+  log(int logFd);
+  log(int   logFd,
+      off_t offset);
   ~log();
 
   // open custom log from file handle

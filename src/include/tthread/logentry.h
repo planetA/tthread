@@ -15,14 +15,14 @@ class _PUBLIC_ logentry {
 public:
 
   enum accessType {
-    WRITE,
-    READ
+    WRITE = 0,
+    READ = 1
   };
 
 private:
 
   // how memory was access (read/write)
-  accessType access;
+  int access;
 
   // memory address at which the first page fault was triggered
   const void *firstAccessedAddress;
@@ -73,8 +73,8 @@ public:
     return thunkStart;
   }
 
-  inline int getAccess() const {
-    return access;
+  inline accessType getAccess() const {
+    return (accessType)access;
   }
 
   inline const void *getFirstAccessedAddress() const {

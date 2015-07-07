@@ -18,7 +18,6 @@ extern xlogger *logger;
 
 log::log() :
   _logOffset(0),
-  _logSize(tthread::logger->getLogSize()),
   _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
@@ -27,17 +26,24 @@ log::log() :
 // all events since offset
 log::log(off_t offset) :
   _logOffset(offset),
-  _logSize(tthread::logger->getLogSize()),
+  _log(NULL)
+{
+  assert(offset > 0);
+  openLog(tthread::logger->getLogFd());
+}
+
+log::log(int logFd) :
+  _logOffset(0),
   _log(NULL)
 {
   openLog(tthread::logger->getLogFd());
 }
 
-log::log(int logFd, off_t size, off_t offset) :
+log::log(int logFd, off_t offset) :
   _logOffset(offset),
-  _logSize(size),
   _log(NULL)
 {
+  assert(offset > 0);
   openLog(tthread::logger->getLogFd());
 }
 
@@ -82,8 +88,27 @@ void log::print() const {
   }
 }
 
+logheader *log::readHeader(int logFd) {
+  char *buf = (char *)mmap(NULL,
+                           xlogger::HEADER_SIZE,
+                           PROT_READ,
+                           MAP_SHARED,
+                           logFd,
+                           0);
+
+  if (buf == MAP_FAILED) {
+    fprintf(stderr, "failed to read header: %s", strerror(errno));
+    ::abort();
+  }
+
+  return (tthread::logheader *)buf;
+}
+
 void log::openLog(int logFd) {
   assert(logFile >= 0);
+  _header = log::readHeader(logFd);
+  assert(_header->checkFileMagick());
+  _logSize = *_header->getLogEntryCount() * xlogger::ENTRY_SIZE;
 
   if (_logSize == 0) {
     // zero entries logged yet, skip opening the log -> _log == NULL
@@ -98,7 +123,7 @@ void log::openLog(int logFd) {
                            PROT_READ,
                            MAP_SHARED,
                            logFd,
-                           alignedOffset);
+                           alignedOffset + xlogger::HEADER_SIZE);
 
   if (buf == MAP_FAILED) {
     fprintf(stderr, "tthread::log: mmap error: %s\n", strerror(errno));
