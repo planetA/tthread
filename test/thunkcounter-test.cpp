@@ -9,7 +9,7 @@ enum {
   PAGE_SIZE = 4096
 };
 
-
+#if 0
 void *unlock_mutex(void *data) {
   pthread_mutex_unlock((pthread_mutex_t *)data); // unlock parent
   return NULL;
@@ -30,6 +30,7 @@ MU_TEST(test_lock_after_pthread_create) {
   pthread_mutex_lock(&mutex); // should block until child unlocks
   pthread_join(thread, NULL);
 }
+#endif // if 0
 
 typedef struct {
   pthread_mutex_t *mutex;
@@ -70,7 +71,7 @@ MU_TEST(test_lock_unlock) {
 
   log2.print();
 
-  for (int i = 0; i < log2.length(); i++) {
+  for (unsigned int i = 0; i < log2.length(); i++) {
     tthread::logentry e = log2.get(i);
 
     if (e.getFirstAccessedAddress() == ctx.data) {
