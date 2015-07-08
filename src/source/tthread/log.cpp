@@ -1,5 +1,4 @@
 #include "tthread/log.h"
-
 #include <assert.h>
 #include <cstddef>
 #include <errno.h>
@@ -52,10 +51,10 @@ log::~log() {
 }
 
 size_t log::length() const {
-  return (_logSize - _logOffset) / sizeof(logentry);
+  return (_logSize - _logOffset) / sizeof(logevent);
 }
 
-const logentry log::get(unsigned long i) const {
+const logevent log::get(unsigned long i) const {
   if (i > length()) {
     throw std::out_of_range("not in range of log");
   }
@@ -68,23 +67,47 @@ void log::print() const {
   unsigned int llen = length();
 
   for (unsigned long i = 0; i < llen; i++) {
-    logentry e = _log[i];
+    logevent e = _log[i];
 
-    fprintf(stderr,
-            "threadIndex: %d, thunkId: %d, address: %p, pageStart: %p, access: %s, issued at: ",
-            e.getThreadId(),
-            e.getThunkId(),
-            e.getFirstAccessedAddress(),
-            e.getPageStart(),
-            e.getAccess() == logentry::READ ? "read" : "write");
+    const tthread::EventData data = e.getData();
 
-    // hacky solution to print backtrace without using malloc
-    void *issuerAddress = const_cast<void *>(e.getFirstIssuerAddress());
-    backtrace_symbols_fd(&issuerAddress, 1, fileno(stderr));
+    switch (e.getType()) {
+    case e.READ:
+    case e.WRITE:
+    {
+      const char *access = e.getType() == logevent::READ ? "read" : "write";
+      fprintf(stderr,
+              "[%s] threadId: %d, address: %p, pageStart: %p, issued at: ",
+              access,
+              e.getThreadId(),
+              data.memory.address,
+              ((void *)PAGE_ALIGN_DOWN(
+                 data.memory.address)));
 
-    void *thunkStart = const_cast<void *>(e.getThunkStart());
-    fprintf(stderr, "\tthunk_start: ");
-    backtrace_symbols_fd(&thunkStart, 1, fileno(stderr));
+      // hacky solution to print backtrace without using malloc
+      void *issuerAddress = (void *)e.getReturnAddress();
+      backtrace_symbols_fd(&issuerAddress, 1, fileno(stderr));
+      break;
+    }
+
+    case e.THUNK:
+    {
+      fprintf(stderr,
+              "[thunk] threadId: %d, id: %d, issued at: ",
+              e.getThreadId(),
+              data.thunk.id);
+
+      void *thunkStart = (void *)e.getReturnAddress();
+      backtrace_symbols_fd(&thunkStart, 1, fileno(stderr));
+      break;
+    }
+
+    case e.INVALID:
+      fprintf(stderr, "[invalid entry]\n");
+
+    default:
+      printf("foo\n");
+    }
   }
 }
 
@@ -108,7 +131,7 @@ void log::openLog(int logFd) {
   assert(logFile >= 0);
   _header = log::readHeader(logFd);
   assert(_header->checkFileMagick());
-  _logSize = *_header->getLogEntryCount() * xlogger::ENTRY_SIZE;
+  _logSize = *_header->getEventCount() * xlogger::EVENT_SIZE;
 
   if (_logSize == 0) {
     // zero entries logged yet, skip opening the log -> _log == NULL
@@ -129,6 +152,6 @@ void log::openLog(int logFd) {
     fprintf(stderr, "tthread::log: mmap error: %s\n", strerror(errno));
     ::abort();
   }
-  _log = (logentry *)(buf + diff);
+  _log = (logevent *)(buf + diff);
 }
 }

@@ -3,7 +3,7 @@
 
 #include "minunit.h"
 #include "tthread/log.h"
-#include "tthread/logentry.h"
+#include "tthread/logevent.h"
 #include "xdefines.h"
 #include "xlogger.h"
 #include <stdlib.h>
@@ -15,7 +15,7 @@ const int REQUEST_SIZE = PAGE_SIZE * 16;
 
 MU_TEST(test_grow_log) {
   // force log to expand
-  unsigned int overflow = (REQUEST_SIZE / sizeof(tthread::logentry) + 1);
+  unsigned int overflow = (REQUEST_SIZE / sizeof(tthread::logevent) + 1);
   char *buf = (char *)malloc(overflow * PAGE_SIZE);
 
   tthread::log log;

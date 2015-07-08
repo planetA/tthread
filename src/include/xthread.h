@@ -54,10 +54,6 @@ public:
   /// What is this thread's PID?
   int _tid;
 
-  /// represent sub-computation between synchronisation points
-  int _thunkId;
-  const void *_thunkStart;
-
   xrun& _run;
 
 public:
@@ -84,6 +80,9 @@ public:
   int getThreadIndex(void *v);
   int getThreadPid(void *v);
 
+  // represent sub-computation between synchronisation points
+  int _thunkId;
+
   // getId is trying to get id for current thread, the function
   // is called by current thread.
   inline int getId(void) {
@@ -94,10 +93,6 @@ public:
     return _thunkId;
   }
 
-  const inline void *getThunkStart(void) {
-    return _thunkStart;
-  }
-
   inline void setId(int id) {
     if (id != _tid) {
       // reset thunkId for every new thread
@@ -106,9 +101,8 @@ public:
     _tid = id;
   }
 
-  inline void startThunk(const void *caller) {
+  inline void startThunk() {
     _thunkId++;
-    _thunkStart = caller;
   }
 
 private:

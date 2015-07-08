@@ -8,7 +8,7 @@
 
 #include <sys/types.h>
 
-#include "tthread/logentry.h"
+#include "tthread/logevent.h"
 #include "tthread/logheader.h"
 #include "visibility.h"
 
@@ -22,7 +22,7 @@ private:
   const off_t _logOffset;
   size_t _logSize;
   logheader *_header;
-  logentry *_log;
+  logevent *_log;
   log(const log& l);
   logheader *readHeader(int logFd);
 
@@ -47,7 +47,7 @@ public:
     return _logSize;
   }
 
-  const logentry get(unsigned long i) const;
+  const logevent get(unsigned long i) const;
   void print() const;
 };
 }

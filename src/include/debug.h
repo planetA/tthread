@@ -36,6 +36,7 @@
     fprintf(stderr, __VA_ARGS__);                       \
     fprintf(stderr, "\n");                              \
   } while (0)
+# define DEBUG_ENABLED
 #else // ifdef DEBUG
 # define DEBUG(_fmt, ...)
 #endif // ifdef DEBUG

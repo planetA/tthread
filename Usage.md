@@ -4,12 +4,17 @@ within the programm linked against pthread.
 ```c
 #include <stdio.h>
 #include <tthread/log.h>
-#include <tthread/logentry.h>
+#include <tthread/logevent.h>
 
 int global_var = 0;
 
+enum { PageSize = 4096UL };
+enum { PAGE_SIZE_MASK = (PageSize - 1) };
+
+#define PAGE_ALIGN_DOWN(x) (((size_t)(x)) & ~PAGE_SIZE_MASK)
+
 int main(int argc, char **argv) {
-  // read-only log of all current logged events
+  // read-only log all current logged events
   tthread::log log;
 
   global_var = 1;
@@ -22,21 +27,42 @@ int main(int argc, char **argv) {
   unsigned int llen = log2.length();
 
   for (unsigned long i = 0; i < llen; i++) {
-    tthread::logentry e = log2.get(i);
+    tthread::logevent e = log2.get(i);
 
-    const char *access = e.getAccess() ==
-                         tthread::logentry::READ ? "read" : "write";
-    fprintf(stderr,
-            "threadIndex: %d, thunkId: %d, address: %p, pageStart: %p, "
-            "access: %s, issued at %p, thunk starts at %p\n",
-            e.getThreadId(),
-            e.getThunkId(),
-            e.getFirstAccessedAddress(),
-            e.getPageStart(),
-            access,
-            e.getFirstIssuerAddress(),
-            e.getThunkStart()
-            );
+    const tthread::EventData data = e.getData();
+
+    switch (e.getType()) {
+    case tthread::logevent::READ:
+    case tthread::logevent::WRITE:
+    {
+      const char *access = e.getType() ==
+                           tthread::logevent::READ ? "read" : "write";
+      fprintf(stderr,
+              "[%s] threadIndex: %d, address: %p, pageStart: %p, issued at: [%p]\n",
+              access,
+              data.memory.threadId,
+              data.memory.address,
+              ((void *)PAGE_ALIGN_DOWN(
+                 data.memory.address)),
+              e.getReturnAddress());
+      break;
+    }
+
+    case tthread::logevent::THUNK:
+    {
+      fprintf(stderr,
+              "[thunk] %d, issued at [%p]\n",
+              data.thunk.id,
+              e.getReturnAddress());
+      break;
+    }
+
+    case tthread::logevent::INVALID:
+      fprintf(stderr, "[invalid entry]\n");
+
+    default:
+      printf("foo\n");
+    }
   }
   return 0;
 }

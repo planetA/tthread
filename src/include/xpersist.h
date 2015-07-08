@@ -444,11 +444,13 @@ public:
       (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize *
                         pageNo);
 
-    tthread::logentry e = tthread::logentry(addr,
-                                            pageStart,
-                                            is_write ? tthread::logentry::WRITE :
-                                            tthread::logentry::READ,
-                                            issuerAddress);
+    tthread::logevent::Type t = is_write ? tthread::logevent::WRITE :
+                                tthread::logevent::READ;
+    tthread::EventData m;
+
+    m.memory.address = addr;
+
+    tthread::logevent e(t, issuerAddress, m);
 
     _logger->add(e);
 

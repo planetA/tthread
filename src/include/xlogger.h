@@ -12,16 +12,16 @@
 
 #include "debug.h"
 #include "real.h"
-#include "tthread/logentry.h"
+#include "tthread/logevent.h"
 #include "tthread/logheader.h"
 #include "xatomic.h"
 #include "xdefines.h"
 #include "xthread.h"
 
+#define LOG_FD_ENV "TTHREAD_LOG_FD"
+
 class xlogger {
 private:
-
-  const char *LOG_FD_ENV = "TTHREAD_LOG_FD";
 
   /*** point to multi-process shared memory ***/
 
@@ -45,7 +45,7 @@ private:
   int _logFd;
 
   // begin of mmap
-  tthread::logentry *_log;
+  tthread::logevent *_log;
 
   off_t _mmapOffset;
 
@@ -54,7 +54,7 @@ public:
   enum {
     REQUEST_SIZE = 4096 * 16,
     HEADER_SIZE = PAGE_ALIGN_UP(sizeof(tthread::logheader)),
-    ENTRY_SIZE = sizeof(tthread::logentry)
+    EVENT_SIZE = sizeof(tthread::logevent)
   };
 
   // struct xlogger_shared_data must be located in cross-process memory
@@ -71,7 +71,7 @@ public:
     _logFd = openLog();
 
     if (WRAP(pthread_mutexattr_init)(&_truncateMutexattr) != 0) {
-      fprintf(stderr, "tthread::log: failed initialize mutexatt: %s\n",
+      fprintf(stderr, "tthread::log: failed initialize mutexattr: %s\n",
               strerror(errno));
       ::abort();
     }
@@ -85,7 +85,7 @@ public:
     }
 
     tthread::logheader *header = allocateHeader(memoryLayout);
-    _next = header->getLogEntryCount();
+    _next = header->getEventCount();
     *_next = 0;
     growLog();
   }
@@ -139,7 +139,7 @@ public:
     _thread = thread;
   }
 
-  void add(tthread::logentry e);
+  void add(tthread::logevent e);
 
 private:
 
@@ -210,7 +210,7 @@ private:
       fprintf(stderr, "xlogger: mmap error with %s\n", strerror(errno));
       ::abort();
     }
-    _log = (tthread::logentry *)buf;
+    _log = (tthread::logevent *)buf;
   }
 };
 

@@ -2,8 +2,10 @@
 #define __TTHREAD_LOG_HEADER_H__
 
 #include "visibility.h"
+#include <stdint.h>
 
 namespace tthread {
+#pragma pack(push, 1)
 typedef struct {
   // Address where global memory starts
   const void *globalStart;
@@ -22,19 +24,27 @@ class _PUBLIC_ logheader {
 public:
 
   enum {
-    FILE_MAGIC = 0xBADC3D2,
+    FILE_MAGIC = 0xC3D2C3D2,
+    HEADER_SIZE = 4096,
+    VERSION = 1
   };
 
 private:
 
   // Used to identify log file type
-  unsigned int _fileMagic;
+  uint32_t _fileMagic;
 
-  memorylayout_t _memoryLayout;
+  // Log format version
+  uint32_t _version;
+
+  // Header size in bytes
+  uint64_t _headerSize;
 
   // Number of entries written to the log,
   // the file size might be greater.
-  volatile unsigned long _logEntryCount;
+  volatile uint64_t _eventCount;
+
+  memorylayout_t _memoryLayout;
 
 public:
 
@@ -43,10 +53,12 @@ public:
   // void *buf = mmap(...);
   // new(buf)tthread::logheader(globalStart, globalEnd, heapStart, heapEnd)
   // assert(((unsigned long*) buf)[0] == tthread::logheader::FILE_MAGIC)
-  logheader(memorylayout_t memoryLayout)
-    : _fileMagic(FILE_MAGIC),
-    _memoryLayout(memoryLayout),
-    _logEntryCount(0)
+  logheader(memorylayout_t memoryLayout) :
+    _fileMagic(FILE_MAGIC),
+    _version(VERSION),
+    _headerSize(HEADER_SIZE),
+    _eventCount(0),
+    _memoryLayout(memoryLayout)
   {}
 
   inline const bool validFileMagick() const {
@@ -57,10 +69,15 @@ public:
     return _memoryLayout;
   }
 
-  inline volatile unsigned long *getLogEntryCount() {
-    return &_logEntryCount;
+  inline volatile uint64_t *getEventCount() {
+    return &_eventCount;
+  }
+
+  inline uint32_t getVersion() const {
+    return _version;
   }
 };
+#pragma pack(pop)
 }
 
 #endif /* __TTHREAD_LOG_HEADER_H__ */

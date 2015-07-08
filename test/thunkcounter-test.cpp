@@ -1,9 +1,10 @@
+#include <map>
 #include <pthread.h>
 #include <stdlib.h>
 
 #include "minunit.h"
 #include "tthread/log.h"
-#include "tthread/logentry.h"
+#include "tthread/logevent.h"
 
 enum {
   PAGE_SIZE = 4096
@@ -70,17 +71,25 @@ MU_TEST(test_lock_unlock) {
   tthread::log log2(log.end());
 
   log2.print();
+  std::map<int, int>thunkMap;
 
   for (unsigned int i = 0; i < log2.length(); i++) {
-    tthread::logentry e = log2.get(i);
+    tthread::logevent e = log2.get(i);
+    tthread::EventData d = e.getData();
 
-    if (e.getFirstAccessedAddress() == ctx.data) {
+    mu_check(e.getType() != tthread::logevent::READ);
+
+    if ((e.getType() == e.WRITE)
+        && (d.memory.address == ctx.data)) {
       accesses++;
-      mu_check(e.getAccess() == tthread::logentry::WRITE);
+
+      mu_check(thunkMap.count(e.getThreadId()));
 
       // 1. thunk: pthread_create()
       // 2. thunk: pthread_mutex_lock()
-      mu_check(e.getThunkId() == 2);
+      mu_check(thunkMap[e.getThreadId()] == 2);
+    } else if (e.getType() == tthread::logevent::THUNK) {
+      thunkMap[e.getThreadId()] = d.thunk.id;
     }
   }
 

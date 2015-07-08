@@ -3,10 +3,10 @@
 
 #include "minunit.h"
 #include "tthread/log.h"
-#include "tthread/logentry.h"
+#include "tthread/logevent.h"
 
 enum {
-  PAGE_SIZE = 4096,
+  PAGE_SIZE = 4096
 };
 
 MU_TEST(test_read_after_read) {
@@ -21,9 +21,10 @@ MU_TEST(test_read_after_read) {
   log2.print();
 
   mu_check(log2.length() == 1);
-  mu_check(log2.get(0).getAccess() == tthread::logentry::READ);
+  mu_check(log2.get(0).getType() == tthread::logevent::READ);
+  tthread::EventData data = log2.get(0).getData();
   mu_check(log2.get(0).getThreadId() == getpid());
-  mu_check(log2.get(0).getPageStart() > 0);
+  mu_check(data.memory.address > 0);
 
   // access the same page again
   char c2 = heapbuf[PAGE_SIZE + 1];
@@ -44,7 +45,7 @@ MU_TEST(test_write_after_write) {
   heapbuf[PAGE_SIZE] = 1;
   tthread::log log2(log.end());
   mu_check(log2.length() == 1);
-  mu_check(log2.get(0).getAccess() == tthread::logentry::WRITE);
+  mu_check(log2.get(0).getType() == tthread::logevent::WRITE);
 
   heapbuf[PAGE_SIZE + 2] = 1;
   tthread::log log3(log2.end());
@@ -63,7 +64,7 @@ MU_TEST(test_read_after_write) {
   heapbuf[PAGE_SIZE] = 1;
   tthread::log log2(log.end());
   mu_check(log2.length() == 1);
-  mu_check(log2.get(0).getAccess() == tthread::logentry::WRITE);
+  mu_check(log2.get(0).getType() == tthread::logevent::WRITE);
 
   // read after write will not appear in the log,
   // because x86 mmu does not support this kind of protection
@@ -80,12 +81,12 @@ MU_TEST(test_write_after_read) {
   mu_check(heapbuf[PAGE_SIZE] == 0);
   tthread::log log2(log.end());
   mu_check(log2.length() == 1);
-  mu_check(log2.get(0).getAccess() == tthread::logentry::READ);
+  mu_check(log2.get(0).getType() == tthread::logevent::READ);
 
   heapbuf[PAGE_SIZE] = 1;
   tthread::log log3(log2.end());
   mu_check(log3.length() == 1);
-  mu_check(log3.get(1).getAccess() == tthread::logentry::WRITE);
+  mu_check(log3.get(0).getType() == tthread::logevent::WRITE);
 }
 
 MU_TEST_SUITE(test_suite) {

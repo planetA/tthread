@@ -59,6 +59,7 @@ private:
   size_t _lock_count;
   bool _token_holding;
   xmemory& _memory;
+  xlogger& _logger;
   xthread _thread;
   determ& _determ;
 
@@ -74,6 +75,7 @@ public:
     _lock_count(0),
     _token_holding(false),
     _memory(memory),
+    _logger(logger),
     _thread(*this),
     _determ(determ::newInstance(memory))
   {
@@ -83,6 +85,7 @@ public:
     _master_thread_id = pid;
 
     _thread.setId(pid);
+
     logger.setThread(&_thread);
 
     // xmemory.initialize should happen before others
@@ -662,7 +665,14 @@ public:
       return;
     }
 
-    _thread.startThunk(caller);
+    _thread.startThunk();
+
+    tthread::EventData d;
+    d.thunk.id = _thread.getThunkId();
+
+    tthread::logevent e(tthread::logevent::THUNK, caller, d);
+    e.setThreadId(_thread.getId());
+    _logger.add(e);
 
     // Now start.
     _memory.begin();
