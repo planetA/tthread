@@ -1,7 +1,3 @@
 [submodule "eval/phoenix"]
 	path = eval/phoenix
 	url = https://github.com/kozyraki/phoenix.git
-[submodule "pages"]
-	path = pages
-	url = git@github.com:Mic92/tthread.git
-	branch = gh-pages
