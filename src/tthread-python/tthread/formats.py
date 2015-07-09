@@ -26,7 +26,7 @@ class TsvWriter:
         elif type(event) is accesslog.ReadEvent:
             t = "read"
         else:
-            t = "unknown"
+            return
         if self.log.is_heap(event.address):
             space = "heap"
         elif self.log.is_global(event.address):
