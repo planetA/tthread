@@ -26,7 +26,7 @@ Tthread currently only supports Linux/x86\_64 platforms.
 
 1. Compile your program to object files (here, we use just one, `target.o`).
 
-2. Link to the tthread library. There are two options (neither of which
+2. Link to the tthread library. There are three options (neither of which
    is particular to tthread).
 
   (a) Dynamic linking: this approach requires no environment variables,
@@ -45,6 +45,12 @@ Tthread currently only supports Linux/x86\_64 platforms.
 ```
 % g++ target.o -L<TTHREAD_DIR> -ltthread -dl -o target
 % export LD_LIBRARY_PATH=<TTHREAD_DIR>:$LD_LIBRARY_PATH
+```
+
+  (c) set LD_PRELOAD to <TTHREAD_DIR>/libtthread.so
+
+```
+export LD_PRELOAD=<TTHREAD_DIR>/libtthread.so
 ```
 
 To read the access log at runtime, take a look at [Usage.md](Usage.md)
