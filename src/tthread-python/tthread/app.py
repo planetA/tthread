@@ -71,7 +71,6 @@ def main():
 
     command = args.command + args.arguments
     try:
-        print("$ " + " ".join(command))
         process = tthread.run(command, args.libtthread_path, stdout=stdout)
         log = process.wait()
         if log.return_code != 0:
