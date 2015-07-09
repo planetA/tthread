@@ -1,16 +1,14 @@
 set(PHOENIX_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0/lib/libphoenix.a)
 
-ADD_CUSTOM_TARGET(
+add_custom_target(
   build_phoenix
   COMMAND make
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0
-  DEPENDS ${PHOENIX_LIBRARY}
   COMMENT "Libphoenix makefile target")
 
 add_library(phoenix STATIC IMPORTED)
 set_property(TARGET phoenix APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
-set_target_properties(phoenix PROPERTIES
-  IMPORTED_LOCATION_NOCONFIG "${PHOENIX_LIBRARY}")
+set_target_properties(phoenix PROPERTIES IMPORTED_LOCATION_NOCONFIG ${PHOENIX_LIBRARY})
 add_dependencies(phoenix build_phoenix)
 
 include(DownloadDataset)
