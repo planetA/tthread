@@ -10,6 +10,17 @@ before_script:
   - wget http://www.cmake.org/files/v3.2/cmake-3.2.3-Linux-x86_64.tar.gz
   - tar -xzf cmake-3.2.3-Linux-x86_64.tar.gz
   - sudo cp -fR cmake-3.2.3-Linux-x86_64/* /usr
+  - sudo apt-get -y install gdb
   - cmake .
   - make
-script: ctest -V --timeout 120
+  - ulimit -c unlimited -S
+script:
+  - RESULT=0
+  - ctest -V --timeout 120
+  - if [[ ${RESULT} == 0 ]]; then echo "\\o/ our test worked without problems"; else echo "ruhroh test returned an errorcode of $RESULT"; fi;
+  # If the program returned an error code, now we check for a
+  # core file in the current working directory and dump the backtrace out
+  - for i in $(find ./ -maxdepth 1 -name 'core*' -print); do gdb $(pwd)/test core* -ex "thread apply all bt" -ex "set pagination 0" -batch; done;
+  # now we should present travis with the original
+  # error code so the run cleanly stops
+  - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi;
