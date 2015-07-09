@@ -72,8 +72,8 @@ void log::print() const {
     const tthread::EventData data = e.getData();
 
     switch (e.getType()) {
-    case e.READ:
-    case e.WRITE:
+    case tthread::logevent::READ:
+    case tthread::logevent::WRITE:
     {
       const char *access = e.getType() == logevent::READ ? "read" : "write";
       fprintf(stderr,
@@ -90,7 +90,7 @@ void log::print() const {
       break;
     }
 
-    case e.THUNK:
+    case tthread::logevent::THUNK:
     {
       fprintf(stderr,
               "[thunk] threadId: %d, id: %d, issued at: ",
@@ -102,7 +102,7 @@ void log::print() const {
       break;
     }
 
-    case e.INVALID:
+    case tthread::logevent::INVALID:
       fprintf(stderr, "[invalid entry]\n");
 
     default:
