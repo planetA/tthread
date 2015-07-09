@@ -8,6 +8,9 @@ tthread is based on [dthreads](https://github.com/emeryberger/dthreads)
 [CMake](http://www.cmake.org/) is required to build Tthread:
 
 ```
+$ git clone https://github.com/Mic92/tthread.git
+$ git submodule update --init
+$ cd tthread
 $ cmake .
 $ make
 ```
