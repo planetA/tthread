@@ -20,7 +20,7 @@ class TthreadTest(unittest.TestCase):
         events = list(log.read())
         self.assertEqual(len(events), 1)
         ev = events[0]
-        self.assertIsInstance(ev, tthread.log.WriteEvent)
+        self.assertIsInstance(ev, tthread.accesslog.WriteEvent)
         self.assertGreater(ev.return_address, 0)
         self.assertGreater(ev.address, 0)
         self.assertGreater(ev.thread_id, 0)
