@@ -104,9 +104,12 @@ void log::print() const {
 
     case tthread::logevent::INVALID:
       fprintf(stderr, "[invalid entry]\n");
+      break;
 
     default:
-      printf("foo\n");
+
+      // invalid state
+      assert(1);
     }
   }
 }
