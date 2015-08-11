@@ -21,7 +21,7 @@ The benchmarks however are safe to be used this way.
 
 ## Working Benchmarks
 
-- [ ] blackscholes (Input file not found)
+- [x] blackscholes
 - [x] canneal
 - [x] dedup
 - [ ] ferret (imagemagick)
