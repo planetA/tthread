@@ -618,7 +618,10 @@ public:
     notify_owner:
     i = 0;
 
-    if (sigqueue(owner, SIGUSR1, val) != 0) {
+    // if never owned, try to get it, otherwise signal owner
+    if (_pageOwner[pageNo] == 0) {
+      setSharedPage(pageNo);
+    } else if (sigqueue(owner, SIGUSR1, val) != 0) {
       setSharedPage(pageNo);
       return;
     }
@@ -656,8 +659,12 @@ public:
     INC_COUNTER(dirtypage);
     INC_COUNTER(lazypage);
 
-    // Commit its previous version.
-    memcpy(share, addr, xdefines::PageSize);
+
+    // Commit its previous version, if it has changed
+    if ((_pageInfo[pageNo] != PAGE_ACCESS_NONE)
+        && (_pageInfo[pageNo] != PAGE_ACCESS_READ)) {
+      memcpy(share, addr, xdefines::PageSize);
+    }
 
     if (setShared) {
       // Finally, we should set this page to SHARED state.
@@ -695,7 +702,6 @@ public:
         for (j = startpage; j < endpage; j++) {
           if (_pageOwner[j] == getpid()) {
             commitOwnedPage(j, false);
-            setSharedPage(j);
           }
         }
       }
@@ -772,10 +778,10 @@ public:
 
         isModified = true;
       } else {
-          // in case we own the page,
-          // it should not be released
-          // by during atomicBegin()
-          pageinfo->release = false;
+        // in case we own the page,
+        // it should not be released
+        // by during atomicBegin()
+        pageinfo->release = false;
       }
 
       if (isModified) {
@@ -905,8 +911,8 @@ private:
       mprotectReadWrite(pageStart, pageNo);
 
       // Since we are already wrote to this page before, now we are trying to
-      // write to
-      // this page again. Now we should commit old version to the shared copy.
+      // write to this page again. Now we should commit old version to the
+      // shared copy. record access to owned page
       commitOwnedPage(pageNo, false);
 
     default:
@@ -915,6 +921,11 @@ private:
 
     // page is set SHARED, so just write through
     if (!_isCopyOnWrite) {
+      return;
+    }
+
+    // just record access to owned pages, they will be commited at the end
+    if (_pageOwner[pageNo] == getpid()) {
       return;
     }
 
