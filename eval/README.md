@@ -22,7 +22,7 @@ The benchmarks however are safe to be used this way.
 ## Working Benchmarks
 
 - [ ] blackscholes (Input file not found)
-- [ ] canneal (infinite loop)
+- [x] canneal
 - [x] dedup
 - [ ] ferret (imagemagick)
 - [x] histogram
