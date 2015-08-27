@@ -9,6 +9,8 @@ set(c_tests
   bug-race
   parallel-sum
   lockowner
+  overhead
+  memalign-test
 )
 
 set(cpp_tests
@@ -28,9 +30,10 @@ add_definitions(-DCORES=${CORES})
 include_directories(tthread ../src/include ../src/include/heaplayers ../src/include/heaplayers/util)
 
 foreach(testprog ${c_tests})
-  add_executable(${testprog} ${testprog}.c)
+  add_executable(${testprog} ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT})
-  add_executable(${testprog}-det ${testprog}.c)
+
+  add_executable(${testprog}-det ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog}-det LINK_PUBLIC tthread)
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)

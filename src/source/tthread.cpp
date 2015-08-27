@@ -246,7 +246,11 @@ _PUBLIC_ void free(void *ptr) __THROW {
 }
 
 _PUBLIC_ void *memalign(size_t boundary, size_t size) throw() {
-  DEBUG("memalign is not supported");
+  if (initialized) {
+    return run->memalign(boundary, size);
+  } else {
+    DEBUG("memalign is not supported during Pre-initialization");
+  }
   return NULL;
 }
 

@@ -48,6 +48,8 @@
 
 #include "xlogger.h"
 
+#include "objectheader.h"
+
 class xrun {
 private:
 
@@ -392,6 +394,41 @@ public:
     newptr = _memory.realloc(ptr, sz);
 
     return newptr;
+  }
+
+  inline void *memalign(size_t align, size_t size) {
+    // check if power of 2
+    if ((align & - align) != align) {
+      errno = EINVAL;
+      return NULL;
+    }
+
+    if (align <= 4 * sizeof(size_t)) {
+      return _memory.malloc(size);
+    }
+
+    unsigned char *mem = (unsigned char *)malloc(size + align - 1);
+
+    if (mem == NULL) {
+      return NULL;
+    }
+
+    unsigned char *aligned =
+      (unsigned char *)(((uintptr_t)mem + align - 1) & (-align));
+
+    if (aligned == mem) {
+      return mem;
+    }
+
+    objectHeader *header = ((objectHeader *)mem) - 1;
+    new(header)objectHeader(mem - aligned - sizeof(objectHeader));
+    free(mem);
+
+    char *head = (char *)new (aligned - sizeof(objectHeader))objectHeader(size);
+
+    assert(&mem[size] < head);
+
+    return aligned;
   }
 
   ///// conditional variable functions.

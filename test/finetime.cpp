@@ -1,5 +1,7 @@
 /* Exacttime.c written by Tongping Liu. */
 
+// c++ supports asm keyword in standard
+extern "C" {
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -15,7 +17,7 @@
 #include "time.h"
 
 static struct timeinfo start_ti, stop_ti;
-#define MAX_BUFFER  32768
+#define MAX_BUFFER 32768
 double cpu_freq = 1.0;
 
 /* Get cpu frequency. */
@@ -101,8 +103,6 @@ void start(struct timeinfo *ti)
  */
 double stop(struct timeinfo *begin, struct timeinfo *end)
 {
-  double elapse = 0.0;
-
   if (end == NULL) {
     end = &stop_ti;
   }
@@ -125,4 +125,5 @@ unsigned long elapse2ms(double elapsed)
   //	ms =(unsigned long)(elapsed*1000.0 /cpu_freq);
   ms = (unsigned long)(elapsed * 1000000.0 / cpu_freq);
   return ms;
+}
 }
