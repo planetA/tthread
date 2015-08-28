@@ -10,6 +10,14 @@ install_manifest.txt
 CTestTestfile.cmake
 Testing/
 /eval/datasets/
+/eval/parsec-2.0
+/eval/parsec-3.0
+/eval/parsec-prefix
+/eval/tests/ferret
+/eval/tests/vips
+/eval/tests/canneal
+/eval/tests/blackscholes
+/eval/tests/raytrace
 
 *.o
 *.so
@@ -23,3 +31,8 @@ __pycache__/
 
 .DS_Store
 .gdb_history
+
+test/*
+!test/*.cpp
+!test/*.c
+!test/*.h

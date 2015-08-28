@@ -21,19 +21,23 @@ The benchmarks however are safe to be used this way.
 
 ## Working Benchmarks
 
-- [x] blackscholes
-- [x] canneal
-- [x] dedup
-- [ ] ferret (imagemagick)
-- [x] histogram
-- [x] kmeans
-- [x] linear_regression
-- [x] matrix_multiply
-- [x] pca
-- [x] reverse_index
-- [ ] streamcluster (bufferoverlow in user code)
-    - eval/tests/streamcluster/streamcluster.cpp:1097
-    - work_mem[pid*stride + K+1] = cost_of_opening_x;
-- [x] string_match
-- [x] swaptions
-- [x] word_count
+- phoenix:
+  - [x] histogram
+  - [x] linear_regression
+  - [x] reverse_index
+  - [x] string_match
+  - [x] word_count
+  - [x] kmeans
+  - [x] matrix_multiply
+  - [x] pca
+- parsec:
+  - [x] blackscholes
+  - [x] canneal
+  - [x] dedup
+  - [ ] ferret
+  - [ ] streamcluster (bufferoverlow in user code)
+      - eval/tests/streamcluster/streamcluster.cpp:1097
+      - work_mem[pid*stride + K+1] = cost_of_opening_x;
+  - [ ] vips (mutex_trylock not implemented)
+  - [ ] raytrace
+  - [x] swaptions
