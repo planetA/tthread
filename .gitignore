@@ -18,6 +18,7 @@ Testing/
 /eval/tests/canneal
 /eval/tests/blackscholes
 /eval/tests/raytrace
+/eval/tests/streamcluster
 
 *.o
 *.so
