@@ -7,3 +7,18 @@ handle SIGUSR1 nostop
 # these. `follow-fork-mode child`, will follow new spawned processes instead of
 # the parent processes
 set follow-fork-mode child
+
+define sigcont
+  signal SIGCONT
+end
+document sigcont
+send signal SIGCONT to process
+end
+
+define a
+  attach $arg0
+end
+
+define preload
+  set environment LD_PRELOAD=/home/joerg/git/tthread/src/libtthread.so
+end
