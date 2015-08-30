@@ -8,7 +8,7 @@
 MU_TEST(test_memalign) {
   uintptr_t p1 = (uintptr_t)memalign(3,      1);
 
-  mu_check(p1 == NULL);
+  mu_check(p1 == 0);
   mu_check(errno == EINVAL); // not a power of 2
 
   uintptr_t p2 = (uintptr_t)memalign(MIN_ALIGN_SIZE << 1, 1);
