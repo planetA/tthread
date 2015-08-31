@@ -424,9 +424,7 @@ public:
     new(header)objectHeader(mem - aligned - sizeof(objectHeader));
     free(mem);
 
-    char *head = (char *)new (aligned - sizeof(objectHeader))objectHeader(size);
-
-    assert(&mem[size] < head);
+    new(aligned - sizeof(objectHeader))objectHeader(size);
 
     return aligned;
   }
