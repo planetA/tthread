@@ -664,6 +664,7 @@ public:
     if ((_pageInfo[pageNo] != PAGE_ACCESS_NONE)
         && (_pageInfo[pageNo] != PAGE_ACCESS_READ)) {
       memcpy(share, addr, xdefines::PageSize);
+      mprotect(addr, xdefines::PageSize, PROT_NONE);
     }
 
     if (setShared) {
