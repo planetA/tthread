@@ -101,10 +101,10 @@ public:
       if (res >= 0) {
         return fd;
       }
-      DEBUG("not a valid file descriptor was passed via %s: %s: %s",
-            LOG_FD_ENV,
-            fdStr,
-            strerror(errno));
+      DEBUGF("not a valid file descriptor was passed via %s: %s: %s",
+             LOG_FD_ENV,
+             fdStr,
+             strerror(errno));
     }
 
     // Fallback to private temporary file in case no valid environment variable

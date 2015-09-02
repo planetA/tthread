@@ -185,10 +185,10 @@ public:
 
     _isCopyOnWrite = false;
 
-    DEBUG("xpersist intialize: transient = %p, persistent = %p, size = %zx",
-          _transientMemory,
-          _persistentMemory,
-          size());
+    DEBUGF("xpersist intialize: transient = %p, persistent = %p, size = %zx",
+           _transientMemory,
+           _persistentMemory,
+           size());
 
     // We are trying to use page's version number to speedup the commit phase.
     _persistentVersions = (volatile unsigned long *)mmap(NULL,
@@ -752,7 +752,7 @@ public:
         createTwinPage(pageNo);
       }
 
-      // When there are multiple writes on this pae, the page cannot be
+      // When there are multiple writes on this page, the page cannot be
       // owned.
       // When this page is not owned, then we do commit.
       if ((shareinfo->users != 1)
@@ -929,6 +929,7 @@ private:
     if (_pageOwner[pageNo] == getpid()) {
       return;
     }
+
 
     // Now one more user are using this page.
     xatomic::increment((unsigned long *)&_pageUsers[pageNo]);

@@ -73,7 +73,7 @@ int xthread::getThreadPid(void *v) {
 void xthread::join(void *v, void **result) {
   ThreadStatus *t = (ThreadStatus *)v;
 
-  DEBUG("%d: Joining thread %d", getpid(), t->tid);
+  DEBUGF("%d: Joining thread %d", getpid(), t->tid);
 
   // Grab the thread result from the status structure (set by the thread),
   // reclaim the memory, and return that result.

@@ -167,7 +167,7 @@ public:
 
     _memory.finalcommit(false);
 
-    DEBUG("%d: thread %lu deregister, get token\n", getpid(), _thread_index);
+    DEBUGF("%d: thread %lu deregister, get token\n", getpid(), _thread_index);
     atomicEnd();
 
     // Remove current thread and decrease the fence

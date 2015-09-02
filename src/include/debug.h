@@ -30,15 +30,18 @@
 
 #ifdef DEBUG
 # undef DEBUG
-# define DEBUG(...)                                     \
-  do {                                                  \
-    fprintf(stderr, "%20s:%-4d: ", __FILE__, __LINE__); \
-    fprintf(stderr, __VA_ARGS__);                       \
-    fprintf(stderr, "\n");                              \
+# define DEBUG(msg)                                              \
+  do {                                                           \
+    fprintf(stderr, "%20s:%-4d: %s\n", __FILE__, __LINE__, msg); \
+  } while (0)
+# define DEBUGF(fmt, ...)                                        \
+  do {                                                           \
+    fprintf(stderr, "%20s:%-4d: " fmt "\n", __FILE__, __LINE__); \
   } while (0)
 # define DEBUG_ENABLED
 #else // ifdef DEBUG
-# define DEBUG(_fmt, ...)
+# define DEBUG(msg)
+# define DEBUGF(_fmt, ...)
 #endif // ifdef DEBUG
 
 #ifdef CHECK_SCHEDULE

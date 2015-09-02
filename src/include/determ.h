@@ -418,7 +418,7 @@ public:
       sched_yield();
       xatomic::memoryBarrier();
     }
-    DEBUG("%d: Got token after waitFence", _tokenpos->threadindex);
+    DEBUGF("%d: Got token after waitFence", _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: Got token after waitFence", _tokenpos->threadindex);
     START_TIMER(serial);
   }
@@ -446,10 +446,10 @@ public:
     next = (ThreadEntry *)(_tokenpos->next);
 
     if (next != NULL) {
-      DEBUG("%d : thread %d put token. Now token is passed to thread %d\n",
-            getpid(),
-            threadindex,
-            next->threadindex);
+      DEBUGF("%d : thread %d put token. Now token is passed to thread %d\n",
+             getpid(),
+             threadindex,
+             next->threadindex);
       PRINT_SCHEDULE("thread %d put token and pass token to thread %d\n",
                      threadindex,
                      next->threadindex);
@@ -593,8 +593,8 @@ public:
     // Cleanup the status.
     myentry->status = STATUS_READY;
 
-    DEBUG("%d: pthread_join, pass token to %d before unlock\n",
-          myindex, _tokenpos->threadindex);
+    DEBUGF("%d: pthread_join, pass token to %d before unlock\n",
+           myindex, _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: pthread_join, pass token to %d before unlock\n",
                    myindex, _tokenpos->threadindex);
 
@@ -619,7 +619,7 @@ public:
     ThreadEntry *nextentry;
 
     lock();
-    DEBUG("%d: Deregistering", getpid());
+    DEBUGF("%d: Deregistering", getpid());
 
     // Whether the parent is trying to join current thread now??
     if ((parent->status == STATUS_JOINING)
@@ -659,8 +659,8 @@ public:
     // no one is active.
     _tokenpos = nextentry;
 
-    DEBUG("%d: deregistering. Token is passed to %d\n",
-          getpid(), _tokenpos->threadindex);
+    DEBUGF("%d: deregistering. Token is passed to %d\n",
+           getpid(), _tokenpos->threadindex);
     PRINT_SCHEDULE("%d: deregistering. Token is passed to %d\n", threadindex,
                    _tokenpos->threadindex);
 

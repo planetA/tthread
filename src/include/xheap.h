@@ -80,7 +80,7 @@ public:
     *_remaining = parent::size();
     *_magic = 0xCAFEBABE;
 
-    DEBUG(
+    DEBUGF(
       "xheap initializing: _position %p, _remaining %p, _magic %p, _start %p, _end %p\n",
       (void *)_position,
       (void *)_remaining,
