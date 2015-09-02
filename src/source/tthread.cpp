@@ -496,7 +496,7 @@ _PUBLIC_ int pthread_barrier_wait(pthread_barrier_t *barrier) throw() {
   return 0;
 }
 
-_PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
+void prepare_write(const void *buf, size_t count) {
   // Produce read pagefault to buffer in advance to avoid EFAULT errno
   uint8_t *start = (uint8_t *)buf;
 
@@ -507,11 +507,20 @@ _PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
   }
 
   temp = start[count - 1];
+}
 
+_PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
+  prepare_write(buf, count);
   return WRAP(write)(fd, buf, count);
 }
 
-_PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
+_PUBLIC_ size_t fwrite(const void *ptr, size_t size, size_t nmemb,
+                       FILE *stream) {
+  prepare_write(ptr, size * nmemb);
+  return WRAP(fwrite)(ptr, size, nmemb, stream);
+}
+
+void prepare_read(void *buf, size_t count) {
   // Produce write pagefault to buffer in advance to avoid EFAULT errno
   uint8_t *start = (uint8_t *)buf;
 
@@ -520,8 +529,16 @@ _PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
   }
 
   start[count - 1] = 0;
+}
 
+_PUBLIC_ ssize_t read(int fd, void *buf, size_t count) {
+  prepare_read(buf, count);
   return WRAP(read)(fd, buf, count);
+}
+
+_PUBLIC_ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+  prepare_read(ptr, size * nmemb);
+  return WRAP(fread)(ptr, size, nmemb, stream);
 }
 
 // DISABLED

@@ -11,6 +11,7 @@ set(c_tests
   lockowner
   overhead
   memalign-test
+  read-write-test
 )
 
 set(cpp_tests
