@@ -19,7 +19,7 @@ void *child_thread(void *data)
   unit_work();
 
   /* Page access */
-  pthread_mutex_unlock(&g_lock);
+  pthread_mutex_lock(&g_lock);
 
   return NULL;
 }

@@ -12,6 +12,7 @@ set(c_tests
   overhead
   memalign-test
   read-write-test
+  bug-free-borrowed
 )
 
 set(cpp_tests
