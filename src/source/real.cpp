@@ -34,6 +34,7 @@
 
 // libc functions
 void * (*WRAP(mmap))(void *, size_t, int, int, int, off_t);
+int(*WRAP(munmap))(void *, size_t);
 void * (*WRAP(malloc))(size_t);
 void(*WRAP(free))(void *);
 void * (*WRAP(realloc))(void *, size_t);
@@ -85,6 +86,7 @@ void init_real_functions() {
   DEBUG("initializing references to replaced functions in libc and libpthread");
 
   SET_WRAPPED(mmap,               RTLD_NEXT);
+  SET_WRAPPED(munmap,             RTLD_NEXT);
   SET_WRAPPED(malloc,             RTLD_NEXT);
   SET_WRAPPED(free,               RTLD_NEXT);
   SET_WRAPPED(realloc,            RTLD_NEXT);

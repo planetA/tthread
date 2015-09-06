@@ -8,6 +8,7 @@
 
 // libc functions
 extern void * (*WRAP(mmap))(void *, size_t, int, int, int, off_t);
+extern int(*WRAP(munmap))(void *, size_t);
 extern void * (*WRAP(malloc))(size_t);
 extern void(*WRAP(free))(void *);
 extern void * (*WRAP(realloc))(void *, size_t);
