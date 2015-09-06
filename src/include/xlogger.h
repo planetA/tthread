@@ -153,12 +153,12 @@ private:
       ::abort();
     }
 
-    void *buf = mmap(NULL,
-                     HEADER_SIZE,
-                     PROT_WRITE,
-                     MAP_SHARED,
-                     _logFd,
-                     0);
+    void *buf = WRAP(mmap)(NULL,
+                           HEADER_SIZE,
+                           PROT_WRITE,
+                           MAP_SHARED,
+                           _logFd,
+                           0);
 
     if (buf == MAP_FAILED) {
       fprintf(stderr, "tthread::log: mmap error with %s\n", strerror(errno));
@@ -199,12 +199,12 @@ private:
 
     _mmapOffset = *_fileSize - REQUEST_SIZE;
 
-    char *buf = (char *)mmap(NULL,
-                             REQUEST_SIZE,
-                             PROT_WRITE,
-                             MAP_SHARED,
-                             _logFd,
-                             _mmapOffset + HEADER_SIZE);
+    char *buf = (char *)WRAP(mmap)(NULL,
+                                   REQUEST_SIZE,
+                                   PROT_WRITE,
+                                   MAP_SHARED,
+                                   _logFd,
+                                   _mmapOffset + HEADER_SIZE);
 
     if (buf == MAP_FAILED) {
       fprintf(stderr, "xlogger: mmap error with %s\n", strerror(errno));

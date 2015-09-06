@@ -146,8 +146,9 @@ public:
     //
     // Establish two maps to the backing file.
     // The persistent map (shared maping) is shared.
-    _persistentMemory = (Type *)mmap(NULL, size(), PROT_READ
-                                     | PROT_WRITE, MAP_SHARED, _backingFd, 0);
+    _persistentMemory = (Type *)WRAP(mmap)(NULL, size(), PROT_READ
+                                           | PROT_WRITE, MAP_SHARED, _backingFd,
+                                           0);
 
     if (_persistentMemory == MAP_FAILED) {
       fprintf(stderr, "arguments: start= %p, length=%ld\n",
@@ -169,11 +170,11 @@ public:
     // constructor stuff,
     // we will set to MAP_PRIVATE at first, then memory protection will be
     // opened in initialize().
-    _transientMemory = (Type *)mmap(_startaddr, size(),
-                                    PROT_READ | PROT_WRITE,
-                                    MAP_SHARED |
-                                    (_startaddr != NULL ? MAP_FIXED : 0),
-                                    _backingFd, 0);
+    _transientMemory = (Type *)WRAP(mmap)(_startaddr, size(),
+                                          PROT_READ | PROT_WRITE,
+                                          MAP_SHARED |
+                                          (_startaddr != NULL ? MAP_FIXED : 0),
+                                          _backingFd, 0);
 
     if (_transientMemory == MAP_FAILED) {
       fprintf(stderr, "arguments = %p, %ld, %d, %d, %d\n",
@@ -191,44 +192,46 @@ public:
            size());
 
     // We are trying to use page's version number to speedup the commit phase.
-    _persistentVersions = (volatile unsigned long *)mmap(NULL,
-                                                         TotalPageNums *
-                                                         sizeof(unsigned long),
-                                                         PROT_READ | PROT_WRITE,
-                                                         MAP_SHARED,
-                                                         _versionsFd,
-                                                         0);
+    _persistentVersions = (volatile unsigned long *)WRAP(mmap)(NULL,
+                                                               TotalPageNums *
+                                                               sizeof(unsigned
+                                                                      long),
+                                                               PROT_READ |
+                                                               PROT_WRITE,
+                                                               MAP_SHARED,
+                                                               _versionsFd,
+                                                               0);
 
     _pageUsers =
-      (struct shareinfo *)mmap(NULL,
-                               TotalPageNums * sizeof(struct shareinfo),
-                               PROT_READ | PROT_WRITE,
-                               MAP_SHARED | MAP_ANONYMOUS,
-                               -1,
-                               0);
+      (struct shareinfo *)WRAP(mmap)(NULL,
+                                     TotalPageNums * sizeof(struct shareinfo),
+                                     PROT_READ | PROT_WRITE,
+                                     MAP_SHARED | MAP_ANONYMOUS,
+                                     -1,
+                                     0);
 
     _pageOwner =
-      (volatile int *)mmap(NULL,
-                           TotalPageNums * sizeof(size_t),
-                           PROT_READ | PROT_WRITE,
-                           MAP_SHARED | MAP_ANONYMOUS,
-                           -1,
-                           0);
+      (volatile int *)WRAP(mmap)(NULL,
+                                 TotalPageNums * sizeof(size_t),
+                                 PROT_READ | PROT_WRITE,
+                                 MAP_SHARED | MAP_ANONYMOUS,
+                                 -1,
+                                 0);
 
     // Local
-    _pageInfo = (unsigned long *)mmap(NULL,
-                                      TotalPageNums * sizeof(size_t),
-                                      PROT_READ | PROT_WRITE,
-                                      MAP_PRIVATE | MAP_ANONYMOUS,
-                                      -1,
-                                      0);
-
-    _ownedblockinfo = (unsigned long *)mmap(NULL,
-                                            xdefines::PageSize,
+    _pageInfo = (unsigned long *)WRAP(mmap)(NULL,
+                                            TotalPageNums * sizeof(size_t),
                                             PROT_READ | PROT_WRITE,
                                             MAP_PRIVATE | MAP_ANONYMOUS,
                                             -1,
                                             0);
+
+    _ownedblockinfo = (unsigned long *)WRAP(mmap)(NULL,
+                                                  xdefines::PageSize,
+                                                  PROT_READ | PROT_WRITE,
+                                                  MAP_PRIVATE | MAP_ANONYMOUS,
+                                                  -1,
+                                                  0);
 
     if ((_pageOwner == MAP_FAILED)
         || (_pageInfo == MAP_FAILED)) {
@@ -251,13 +254,15 @@ public:
     }
 
 #ifdef GET_CHARACTERISTICS
-    _pageChanges = (struct pagechangeinfo *)mmap(NULL,
-                                                 TotalPageNums *
-                                                 sizeof(struct pagechangeinfo),
-                                                 PROT_READ | PROT_WRITE,
-                                                 MAP_SHARED | MAP_ANONYMOUS,
-                                                 -1,
-                                                 0);
+    _pageChanges = (struct pagechangeinfo *)WRAP(mmap)(NULL,
+                                                       TotalPageNums *
+                                                       sizeof(struct
+                                                              pagechangeinfo),
+                                                       PROT_READ | PROT_WRITE,
+                                                       MAP_SHARED |
+                                                       MAP_ANONYMOUS,
+                                                       -1,
+                                                       0);
 #endif // ifdef GET_CHARACTERISTICS
   }
 
@@ -832,8 +837,8 @@ private:
     size_t offset = (intptr_t)start - (intptr_t)base();
 
     // Map to readonly private area.
-    area = (Type *)mmap(start, size, prot, flags | MAP_FIXED,
-                        _backingFd, offset);
+    area = (Type *)WRAP(mmap)(start, size, prot, flags | MAP_FIXED,
+                              _backingFd, offset);
 
     if (area == MAP_FAILED) {
       fprintf(stderr,
@@ -867,6 +872,7 @@ private:
   inline void handleRead(int pageNo, unsigned long *pageStart) {
     switch (_pageInfo[pageNo]) {
     case PAGE_UNUSED: // When we are trying to access other-owned page.
+
       // Current page must be owned by other pages.
       notifyOwnerToCommit(pageNo);
       break;
@@ -929,7 +935,6 @@ private:
     if (_pageOwner[pageNo] == getpid()) {
       return;
     }
-
 
     // Now one more user are using this page.
     xatomic::increment((unsigned long *)&_pageUsers[pageNo]);

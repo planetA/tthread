@@ -115,12 +115,12 @@ void log::print() const {
 }
 
 logheader *log::readHeader(int logFd) {
-  char *buf = (char *)mmap(NULL,
-                           xlogger::HEADER_SIZE,
-                           PROT_READ,
-                           MAP_SHARED,
-                           logFd,
-                           0);
+  char *buf = (char *)WRAP(mmap)(NULL,
+                                 xlogger::HEADER_SIZE,
+                                 PROT_READ,
+                                 MAP_SHARED,
+                                 logFd,
+                                 0);
 
   if (buf == MAP_FAILED) {
     fprintf(stderr, "failed to read header: %s", strerror(errno));
@@ -144,12 +144,12 @@ void log::openLog(int logFd) {
   size_t alignedOffset = PAGE_ALIGN_DOWN(_logOffset);
   size_t diff = _logOffset - alignedOffset;
   size_t alignedSize = _logSize + diff;
-  char *buf = (char *)mmap(NULL,
-                           alignedSize,
-                           PROT_READ,
-                           MAP_SHARED,
-                           logFd,
-                           alignedOffset + xlogger::HEADER_SIZE);
+  char *buf = (char *)WRAP(mmap)(NULL,
+                                 alignedSize,
+                                 PROT_READ,
+                                 MAP_SHARED,
+                                 logFd,
+                                 alignedOffset + xlogger::HEADER_SIZE);
 
   if (buf == MAP_FAILED) {
     fprintf(stderr, "tthread::log: mmap error: %s\n", strerror(errno));
