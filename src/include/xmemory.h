@@ -265,7 +265,7 @@ public:
 
     // Set up an alternate signal stack.
     _sigstk.ss_sp = WRAP(mmap)(NULL, SIGSTKSZ, PROT_READ | PROT_WRITE,
-                               MAP_PRIVATE | MAP_ANON, -1, 0);
+                               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     _sigstk.ss_size = SIGSTKSZ;
     _sigstk.ss_flags = 0;
     sigaltstack(&_sigstk, (stack_t *)0);

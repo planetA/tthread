@@ -125,7 +125,7 @@ public:
   static xlogger *allocate(xlogger_shared_data   & data,
                            tthread::memorylayout_t layout) {
     void *buf = WRAP(mmap)(NULL, sizeof(xlogger), PROT_READ | PROT_WRITE,
-                           MAP_PRIVATE | MAP_ANON, -1, 0);
+                           MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     assert(buf != MAP_FAILED);
     return new(buf)xlogger(data, layout);
