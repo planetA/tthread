@@ -177,12 +177,13 @@ _PUBLIC_ void *malloc(size_t sz) __THROW {
       mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
 
       if (alloc->ptr == NULL) {
-        ptr = WRAP(mmap)(NULL,
-                         sz,
-                         PROT_READ | PROT_WRITE,
-                         MAP_SHARED | MAP_ANONYMOUS,
-                         -1,
-                         0);
+        ptr = (void *)syscall(SYS_mmap,
+                              NULL,
+                              sz,
+                              PROT_READ | PROT_WRITE,
+                              MAP_SHARED | MAP_ANONYMOUS,
+                              -1,
+                              0);
         alloc->ptr = ptr;
         alloc->size = sz;
 
