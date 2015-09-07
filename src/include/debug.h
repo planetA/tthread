@@ -25,24 +25,26 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
-#include <assert.h>
 #include <stdio.h>
 
-#ifdef DEBUG
+#ifdef NDEBUG
 # undef DEBUG
 # define DEBUG(msg)                                              \
   do {                                                           \
     fprintf(stderr, "%20s:%-4d: %s\n", __FILE__, __LINE__, msg); \
   } while (0)
-# define DEBUGF(fmt, ...)                                        \
-  do {                                                           \
-    fprintf(stderr, "%20s:%-4d: " fmt "\n", __FILE__, __LINE__); \
+# define DEBUGF(fmt, ...)                                                     \
+  do {                                                                        \
+    fprintf(stderr, "%20s:%-4d: " fmt "\n", __FILE__, __LINE__, __VA_ARGS__); \
   } while (0)
-# define DEBUG_ENABLED
-#else // ifdef DEBUG
+# include <assert.h>
+# define ASSERT(x) assert(x)
+#else // ifdef NDEBUG
 # define DEBUG(msg)
 # define DEBUGF(_fmt, ...)
-#endif // ifdef DEBUG
+# define ASSERT(x) \
+  do { (void)sizeof(x); } while (0)
+#endif // ifdef NDEBUG
 
 #ifdef CHECK_SCHEDULE
 # define PRINT_SCHEDULE(...)      \
