@@ -6,7 +6,7 @@
 #include "time.h"
 
 #define PAGE_SIZE (4096)
-#define PAGE_NUM  (100 *1024)
+#define PAGE_NUM (100 *1024)
 
 void *child_thread(void *data)
 {
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
   // printf("overlap %d\n", overlap_count);
   fprintf(stderr,
-          "Total time %f seconds, per page overhead %d us\n",
+          "Total time %f seconds, per page overhead %lu us\n",
           (double)time / 1000000.00,
           time / PAGE_NUM);
 
