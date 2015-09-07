@@ -9,7 +9,7 @@ FILE(GLOB_RECURSE srcFiles "source/*.cpp")
 add_library(tthread SHARED ${srcFiles})
 target_link_libraries(tthread ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(tthread ${LIBDL_LIBRARIES})
-target_compile_features(tthread PRIVATE cxx_variadic_macros cxx_static_assert)
+target_compile_features(tthread PRIVATE cxx_variadic_macros cxx_static_assert cxx_auto_type)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
   add_definitions(-DDEBUG)
