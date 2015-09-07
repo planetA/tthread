@@ -23,7 +23,6 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
 
-#include <assert.h>
 #include <new>
 #include <sched.h>
 #include <signal.h>
@@ -53,7 +52,7 @@ void *xthread::spawn(const void     *caller,
 
 /// @brief Get thread index for this thread.
 int xthread::getThreadIndex(void *v) {
-  assert(v != NULL);
+  ASSERT(V != NULL);
 
   ThreadStatus *t = (ThreadStatus *)v;
 
@@ -62,7 +61,7 @@ int xthread::getThreadIndex(void *v) {
 
 /// @brief Get thread tid for this thread.
 int xthread::getThreadPid(void *v) {
-  assert(v != NULL);
+  ASSERT(V != NULL);
 
   ThreadStatus *t = (ThreadStatus *)v;
 

@@ -40,7 +40,6 @@
 # include <unistd.h>
 #endif // if !defined(_WIN32)
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -547,7 +546,7 @@ public:
     index = xbitmap::getInstance().get();
 
     // We can never get bitmap index with 0.
-    assert(index != 0);
+    ASSERT(index != 0);
 
     shareinfo->bitmapIndex = index;
 
@@ -772,7 +771,7 @@ public:
           unsigned long *twin =
             (unsigned long *)xbitmap::getInstance().getAddress(
               shareinfo->bitmapIndex);
-          assert(shareinfo->bitmapIndex != 0);
+          ASSERT(shareinfo->bitmapIndex != 0);
 
           recordPageChanges(pageNo);
           INC_COUNTER(slowpage);
@@ -881,7 +880,7 @@ private:
       break;
 
     default:
-      assert(0); // invalid state -> BUG!
+      ASSERT(0); // invalid state -> BUG!
     }
 
     // read a page the first time
@@ -923,7 +922,7 @@ private:
       commitOwnedPage(pageNo, false);
 
     default:
-      assert(0); // invalid state
+      ASSERT(0); // invalid state
     }
 
     // page is set SHARED, so just write through

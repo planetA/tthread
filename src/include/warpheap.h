@@ -77,7 +77,7 @@ public:
     objectHeader *object = new (ptr)objectHeader(sz);
     void *newptr = object + 1;
 
-    assert(getSize(newptr) >= sz);
+    ASSERT(getSize(newptr) >= sz);
     return newptr;
   }
 

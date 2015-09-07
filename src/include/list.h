@@ -61,7 +61,7 @@ inline void moveWholeList(Entry *prev, Entry **src) {
   }
 
   // In our case, _activelist can not be empty.
-  assert(prev != NULL);
+  ASSERT(prev != NULL);
   next = prev->next;
 
   srchead = *src;
@@ -130,7 +130,7 @@ inline void insertNext(Entry *entry, Entry *prev) {
 inline void removeEntry(Entry *entry, Entry **head) {
   Entry *prev, *next;
 
-  assert(*head != NULL);
+  ASSERT(*head != NULL);
 
   prev = entry->prev;
   next = entry->next;

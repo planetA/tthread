@@ -140,7 +140,7 @@ public:
 
     if (!ptr) {
       fprintf(stderr, "%d : SHAREHEAP is exhausted, exit now!!!\n", getpid());
-      assert(ptr != NULL);
+      ::abort();
     }
 
     return ptr;

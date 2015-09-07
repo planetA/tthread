@@ -224,7 +224,7 @@ public:
   void finalize(void) {
     WRAP(pthread_mutex_destroy)(&_mutex);
     WRAP(pthread_cond_destroy)(&cond);
-    assert(_currthreads == 0);
+    ASSERT(_currthreads == 0);
   }
 
   // Increment the fence when all threads has been created by current thread.
@@ -284,7 +284,7 @@ public:
     {
       CondEntry *condentry = (CondEntry *)entry->cond;
       removeEntry((Entry *)entry, &condentry->head);
-      assert(condentry->waiters == 0
+      ASSERT(condentry->waiters == 0
              || condentry->head != NULL);
       isFound = true;
       break;
@@ -295,7 +295,7 @@ public:
 
       // In fact, this case is almost impossible. But just in case, we put code
       // here.
-      assert(0);
+      ASSERT(0);
       isFound = false;
       break;
     }
@@ -441,7 +441,7 @@ public:
               _tokenpos->tid,
               _tokenpos->threadindex,
               threadindex);
-      assert(0);
+      ASSERT(0);
     }
     next = (ThreadEntry *)(_tokenpos->next);
 
@@ -538,7 +538,7 @@ public:
   // Deterministic pthread_join
   inline bool join(int guestindex, int myindex, bool wakeup) {
     // Check whether I am holding the lock or not.
-    assert(myindex == _tokenpos->threadindex);
+    ASSERT(myindex == _tokenpos->threadindex);
 
     ThreadEntry *joinee;
     ThreadEntry *myentry;
@@ -648,7 +648,7 @@ public:
     }
 
     nextentry = (ThreadEntry *)entry->next;
-    assert(nextentry != entry);
+    ASSERT(nextentry != entry);
 
     // Remove this thread entry from activelist.
     removeEntry((Entry *)entry, &_activelist);
@@ -725,7 +725,7 @@ public:
   inline bool lock_isacquired(void *mutex) {
     LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
 
-    assert(entry != NULL);
+    ASSERT(entry != NULL);
     return entry->is_acquired;
   }
 
@@ -804,7 +804,7 @@ public:
     // Initialize the real conditional entry.
     WRAP(pthread_cond_init)(&entry->realcond, &_condattr);
 
-    assert(entry->waiters == 0
+    ASSERT(entry->waiters == 0
            || entry->head != NULL);
     return entry;
   }
@@ -831,7 +831,7 @@ public:
 
     lock();
 
-    assert(_tokenpos == entry);
+    ASSERT(_tokenpos == entry);
 
     // Get next entry.
     next = (ThreadEntry *)entry->next;
@@ -844,7 +844,7 @@ public:
 
     // One more waiter for this condvar.
     condentry->waiters++;
-    assert(condentry->waiters == 0
+    ASSERT(condentry->waiters == 0
            || condentry->head != NULL);
 
     // Set current thread status.
@@ -909,7 +909,7 @@ public:
 
     // Remove the head entry in cond variable.
     ThreadEntry *entry = (ThreadEntry *)removeHeadEntry(&condentry->head);
-    assert(entry != NULL);
+    ASSERT(entry != NULL);
 
     // It is important to add the thread to the next.
     // If the thread wakenup is added to the tail, then the thread cannot get
@@ -942,7 +942,7 @@ public:
       condentry = cond_init(cond);
     }
 
-    assert(condentry != NULL);
+    ASSERT(condentry != NULL);
 
     // No need to wakeup if no one is waiting.
     if (condentry->waiters == 0) {
@@ -1029,7 +1029,7 @@ public:
     pthread_barrierattr_t attr;
 
     if (entry == NULL) {
-      assert(0);
+      ASSERT(0);
     }
 
     entry->maxthreads = count;
@@ -1054,7 +1054,7 @@ public:
     bool lastThread = false;
 
     barentry = (BarrierEntry *)getSyncEntry(bar);
-    assert(barentry != NULL);
+    ASSERT(barentry != NULL);
 
     ThreadEntry *entry = &_entries[threadindex];
     pthread_mutex_t *mutex = &_mutex;
@@ -1067,7 +1067,7 @@ public:
     WRAP(pthread_mutex_lock)(mutex);
 
     // Check whether I am holding the token. If not, wrong!
-    assert(_tokenpos == entry);
+    ASSERT(_tokenpos == entry);
 
     (*threads)++;
 
@@ -1140,7 +1140,7 @@ public:
 private:
 
   inline void *allocThreadEntry(int threadindex) {
-    assert(threadindex < _maxthreadentries);
+    ASSERT(threadindex < _maxthreadentries);
     return &_entries[threadindex];
   }
 

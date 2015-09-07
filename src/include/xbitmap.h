@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 
+#include "debug.h"
 #include "xdefines.h"
 
 class xbitmap {
@@ -95,7 +96,7 @@ public:
       // we may want to increase the size of bitmap automatically in the future.
       fprintf(stderr, "%d: not enough bitmap _cur is %d????\n", getpid(),
               *_cur);
-      assert(0);
+      ASSERT(0);
     }
     return index;
   }
@@ -109,7 +110,7 @@ public:
   }
 
   int getVersion(int index) {
-    assert(index != 0);
+    ASSERT(index != 0);
     return _versionStart[index];
   }
 

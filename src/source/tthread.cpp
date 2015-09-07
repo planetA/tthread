@@ -130,7 +130,7 @@ void initialize() {
     initialized = false;                \
     void *array[2];                     \
     int size = backtrace(array, 2);     \
-    assert(size == 2);                  \
+    ASSERT(size == 2);                  \
     initialized = was_initialized;      \
     array[1];                           \
   })
@@ -142,7 +142,7 @@ void finalize() {
   memory->closeProtection();
   initialized = false;
 
-  #ifdef DEBUG_ENABLED
+  #ifdef DEBUG
   fprintf(stderr, "\nStatistics information:\n");
   PRINT_TIMER(serial);
   PRINT_COUNTER(commit);
@@ -237,7 +237,8 @@ _PUBLIC_ void free(void *ptr) __THROW {
       mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
 
       if (alloc->ptr == ptr) {
-        assert(munmap(ptr, alloc->size) == 0);
+        int res = munmap(ptr, alloc->size);
+        ASSERT(res == 0);
         alloc->ptr = NULL;
         alloc->size = 0;
         return;

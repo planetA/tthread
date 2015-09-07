@@ -462,10 +462,10 @@ public:
   }
 
   void startFence(void) {
-    assert(_fence_enabled != true);
+    ASSERT(_fence_enabled != true);
 
     // We start fence only if we are have more than two processes.
-    assert(_children_threads_count != 0);
+    ASSERT(_children_threads_count != 0);
 
     // Start fence.
     _determ.startFence(_children_threads_count);
@@ -638,9 +638,9 @@ public:
                  void       *cond,
                  void       *lock) {
     // corresponding lock should be acquired before.
-    assert(_token_holding == true);
+    ASSERT(_token_holding == true);
 
-    // assert(_determ.lock_is_acquired() == true);
+    // ASSERT(_determ.lock_is_acquired() == true);
     atomicEnd();
 
     // We have to release token in cond_wait, otherwise

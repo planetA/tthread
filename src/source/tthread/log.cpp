@@ -27,7 +27,7 @@ log::log(off_t offset) :
   _logOffset(offset),
   _log(NULL)
 {
-  assert(offset > 0);
+  ASSERT(offset > 0);
   openLog(tthread::logger->getLogFd());
 }
 
@@ -42,7 +42,7 @@ log::log(int logFd, off_t offset) :
   _logOffset(offset),
   _log(NULL)
 {
-  assert(offset > 0);
+  ASSERT(offset > 0);
   openLog(tthread::logger->getLogFd());
 }
 
@@ -109,7 +109,7 @@ void log::print() const {
     default:
 
       // invalid state
-      assert(1);
+      ASSERT(1);
     }
   }
 }

@@ -28,7 +28,6 @@
 #ifndef _XMEMORY_H_
 #define _XMEMORY_H_
 
-#include <assert.h>
 #include <execinfo.h>
 #include <signal.h>
 #include <stdio.h>
@@ -193,8 +192,8 @@ public:
       _globals.handleAccess(addr, is_write, issuerAddress);
     } else {
       // None of the above - something is wrong.
-      fprintf(stderr, "%d: wrong faulted address\n", getpid());
-      assert(0);
+      fprintf(stderr, "%d: wrong faulted address at %p\n", getpid(), addr);
+      ::abort();
     }
   }
 

@@ -75,12 +75,8 @@ int(*WRAP(pthread_barrier_init))(pthread_barrier_t *, pthread_barrierattr_t *,
 int(*WRAP(pthread_barrier_wait))(pthread_barrier_t *);
 int(*WRAP(pthread_barrier_destroy))(pthread_barrier_t *);
 
-#ifndef assert
-# define assert(x)
-#endif // ifndef assert
-
 #define SET_WRAPPED(x, handle) WRAP(x) = (typeof(WRAP(x)))dlsym(handle, # x); \
-  assert(# x)
+  ASSERT(# x)
 
 void init_real_functions() {
   DEBUG("initializing references to replaced functions in libc and libpthread");
