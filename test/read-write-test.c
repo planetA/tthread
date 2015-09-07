@@ -66,7 +66,7 @@ MU_TEST(test_fwrite) {
   ssize_t n = fwrite(buf, sizeof(char), BUF_SIZE, f);
   mu_check(n == BUF_SIZE);
 
-  close(f);
+  fclose(f);
 }
 
 MU_TEST_SUITE(test_suite) {
