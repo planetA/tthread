@@ -66,4 +66,4 @@ endforeach(testprog)
 
 set(CMAKE_C_FLAGS "-std=c99")
 
-add_definitions(-D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE)
+add_definitions(-D_BSD_SOURCE -D_XOPEN_SOURCE=700)
