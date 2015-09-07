@@ -75,8 +75,14 @@ int(*WRAP(pthread_barrier_init))(pthread_barrier_t *, pthread_barrierattr_t *,
 int(*WRAP(pthread_barrier_wait))(pthread_barrier_t *);
 int(*WRAP(pthread_barrier_destroy))(pthread_barrier_t *);
 
-#define SET_WRAPPED(x, handle) WRAP(x) = (typeof(WRAP(x)))dlsym(handle, # x); \
-  ASSERT(# x)
+#define SET_WRAPPED(x, handle)                               \
+  do {                                                       \
+    static_assert(sizeof(void *) == sizeof(typeof(WRAP(x))), \
+                  "pointer cast impossible");                \
+    void *vp = dlsym(handle, # x);                           \
+    ASSERT(vp);                                              \
+    *reinterpret_cast<void **>(&WRAP(x)) = vp;               \
+  } while (0)                                                \
 
 void init_real_functions() {
   DEBUG("initializing references to replaced functions in libc and libpthread");
