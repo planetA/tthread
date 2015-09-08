@@ -37,7 +37,6 @@ private:
   pthread_mutex_t *_truncateMutex;
   pthread_mutexattr_t _truncateMutexattr;
 
-
   /*** process local ***/
 
   xthread *_thread;

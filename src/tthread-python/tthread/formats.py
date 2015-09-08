@@ -32,7 +32,7 @@ class TsvWriter:
         elif self.log.is_global(event.address):
             space = "global"
         else:
-            space = "unknown"
+            space = "mmap"
         writer.writerow((t,
                 event.return_address,
                 event.thread_id,

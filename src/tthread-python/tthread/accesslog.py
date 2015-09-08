@@ -70,6 +70,8 @@ class Log:
         return self.header.heap_start <= addr <= self.header.heap_end
     def is_global(self, addr):
         return self.header.global_start <= addr <= self.header.global_end
+    def is_mmap(self, addr):
+        return not (is_heap(add) or is_global(addr))
     def _read_header(self):
         try:
             stat = os.fstat(self.file.fileno())

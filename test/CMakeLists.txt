@@ -24,6 +24,7 @@ set(cpp_tests
   xatomic-test
   xlogger-test
   malloc-free-test
+  mmap-test
 )
 
 include(ProcessorCount)
@@ -63,10 +64,11 @@ foreach(testprog ${cpp_tests})
   target_link_libraries(${testprog} LINK_PUBLIC tthread)
   if(LIBRT_LIBRARIES)
     target_link_libraries(${testprog} LINK_PUBLIC ${LIBRT_LIBRARIES})
+    target_compile_features(${testprog} PRIVATE cxx_auto_type)
   endif(LIBRT_LIBRARIES)
   add_test(${testprog} ${testprog})
 endforeach(testprog)
 
 set(CMAKE_C_FLAGS "-std=c99")
 
-add_definitions(-D_BSD_SOURCE -D_XOPEN_SOURCE=700)
+add_definitions(-D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_DEFAULT_SOURCE)

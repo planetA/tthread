@@ -50,14 +50,17 @@
 #include "debug.h"
 
 // Heap Layers
+#include "accessedmmappages.h"
 #include "heaplayers/stlallocator.h"
 #include "internalheap.h"
+#include "mmappage.h"
 #include "objectheader.h"
 #include "tthread/log.h"
 #include "warpheap.h"
 #include "xdefines.h"
 #include "xglobals.h"
 #include "xheap.h"
+#include "xmmap.h"
 #include "xoneheap.h"
 #include "xpageentry.h"
 
@@ -85,10 +88,15 @@ private:
 
   int _heapid;
 
+  xmmap _mmap;
+  accessedmmappages _accessedmmappages;
+  xlogger *_logger;
+
 public:
 
   void initialize(xlogger& logger) {
     DEBUG("initializing xmemory");
+    _logger = &logger;
 
     // Intercept SEGV signals (used for trapping initial reads and
     // writes to pages).
@@ -98,6 +106,7 @@ public:
     // normally.
     _pheap.initialize(logger);
     _globals.initialize(logger);
+    _mmap.initialize(logger);
     xpageentry::getInstance().initialize();
 
     // Initialize the internal heap.
@@ -188,18 +197,28 @@ public:
                            const void *issuerAddress) {
     if (_pheap.inRange(addr)) {
       _pheap.handleAccess(addr, is_write, issuerAddress);
+      return;
     } else if (_globals.inRange(addr)) {
       _globals.handleAccess(addr, is_write, issuerAddress);
-    } else {
+      return;
+    }
+
+    const mmappage *page = _mmap.find(addr);
+
+    if (page == NULL) {
       // None of the above - something is wrong.
       fprintf(stderr, "%d: wrong faulted address at %p\n", getpid(), addr);
       ::abort();
+    } else {
+      page->handleAccess(*_logger, addr, is_write, issuerAddress);
+      _accessedmmappages.add(addr);
     }
   }
 
   inline void commit() {
     _pheap.checkandcommit();
     _globals.checkandcommit();
+    _accessedmmappages.reset();
   }
 
   inline void forceCommit(int pid) {
@@ -219,6 +238,15 @@ public:
   // Commit every page owned by me.
   inline void finalcommit(bool release) {
     _pheap.finalcommit(release);
+  }
+
+  void *map(void *addr, size_t length, int prot, int flags, int fd,
+            off_t offset) {
+    return _mmap.map(addr, length, prot, flags, fd, offset);
+  }
+
+  int unmap(void *addr, size_t len) {
+    return _mmap.unmap(addr, len);
   }
 
 public:

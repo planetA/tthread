@@ -543,19 +543,21 @@ _PUBLIC_ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
   return WRAP(fread)(ptr, size, nmemb, stream);
 }
 
-// DISABLED
-#if 0
-void *mmap(void *addr, size_t length, int prot, int flags, int fd,
-           off_t offset) {
-  int newflags = flags;
-
-  if ((initialized == true)
-      && (flags & MAP_PRIVATE)) {
-    //		newflags = (flags & ~MAP_PRIVATE) | MAP_SHARED;
-    printf("flags %x and newflags %x\n", flags, newflags);
+_PUBLIC_ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+                    off_t offset) __THROW {
+  if (initialized) {
+    return run->mmap(addr, length, prot, flags, fd, offset);
   }
-  return WRAP(mmap)(addr, length, prot, newflags, fd, offset);
+
+  return WRAP(mmap)(addr, length, prot, flags, fd, offset);
 }
 
-#endif // if 0
+_PUBLIC_ int munmap(void *addr, size_t len) __THROW {
+  if (initialized) {
+    return run->munmap(addr, len);
+  }
+
+  return WRAP(munmap)(addr, len);
+}
+
 }
