@@ -1,7 +1,6 @@
 #ifndef _REAL_H_
 #define _REAL_H_
 
-#include <pthread.h>
 #include <sys/types.h>
 
 #define WRAP(x) _real_ ## x
@@ -15,9 +14,9 @@ extern void * (*WRAP(realloc))(void *, size_t);
 extern void * (*WRAP(memalign))(size_t, size_t);
 extern size_t(*WRAP(malloc_usable_size))(void *);
 extern ssize_t(*WRAP(read))(int, void *, size_t);
-extern size_t(*WRAP(fread))(void *, size_t, size_t, FILE *);
+extern size_t(*WRAP(fread))(void *, size_t, size_t, void *);
 extern ssize_t(*WRAP(write))(int, const void *, size_t);
-extern ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, FILE *);
+extern ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, void *);
 
 extern int(*WRAP(sigwait))(const sigset_t *, int *);
 

@@ -2,6 +2,7 @@
 
 // c++ supports asm keyword in standard
 extern "C" {
+#include <assert.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ double get_cpufreq(void)
   char line[MAX_BUFFER];
   int fd = open("/proc/cpuinfo", O_RDONLY);
 
-  read(fd, line, MAX_BUFFER);
+  assert(read(fd, line, MAX_BUFFER) != -1);
   char *pos = strstr(line, searchStr);
 
   if (pos) {

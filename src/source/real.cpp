@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <dlfcn.h>
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-
 /*
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +21,12 @@
  * @author Charlie Curtsinger <http://www.cs.umass.edu/~charlie>
  */
 
+#include <assert.h>
+#include <dlfcn.h>
 #include <pthread.h>
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "real.h"
@@ -41,9 +40,9 @@ void * (*WRAP(realloc))(void *, size_t);
 void * (*WRAP(memalign))(size_t, size_t);
 size_t(*WRAP(malloc_usable_size))(void *);
 ssize_t(*WRAP(read))(int, void *, size_t);
-size_t(*WRAP(fread))(void *, size_t, size_t, FILE *);
+size_t(*WRAP(fread))(void *, size_t, size_t, void *);
 ssize_t(*WRAP(write))(int, const void *, size_t);
-ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, FILE *);
+ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, void *);
 int(*WRAP(sigwait))(const sigset_t *, int *);
 
 // pthread basics

@@ -31,13 +31,8 @@
 
 #ifndef _XDEFINES_H_
 #define _XDEFINES_H_
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/types.h>
-#include <syscall.h>
 
-#include "prof.h"
 #if defined(__APPLE__)
 
 // We are going to use the Mach-O substitutes for _end, etc.,
@@ -45,6 +40,7 @@
 # include <mach-o/getsect.h>
 #endif // if defined(__APPLE__)
 
+#include "prof.h"
 
 struct xlogger_shared_data {
   volatile off_t fileSize;
