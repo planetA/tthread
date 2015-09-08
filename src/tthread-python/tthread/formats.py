@@ -65,7 +65,7 @@ class Tsv2Writer:
         elif self.log.is_global(event.address):
             space = "global"
         else:
-            space = "unknown"
+            space = "mmap"
         writer.writerow((a, event.return_address, event.thread_id, thunk[0], thunk[1], space))
 
 #class JsonWriter:
