@@ -53,9 +53,9 @@ MU_TEST(test_reset_mmap_access) {
   tthread::log log3(log2.end());
   bool found = false;
 
-  for (int i = 0; i < log3.length(); i++) {
+  for (unsigned int i = 0; i < log3.length(); i++) {
     auto ev = log3.get(i);
-    found |= ev.getThreadId() != pthread_self()
+    found |= ev.getThreadId() != (int)pthread_self()
              && ev.getData().memory.address == &buf[1];
   }
   mu_check(found); // other thread has accessed &buf[1]

@@ -18,6 +18,8 @@ MU_TEST(test_read_after_read) {
   char c = heapbuf[PAGE_SIZE];
   tthread::log log2(log.end());
 
+  mu_check(c == 0);
+
   log2.print();
 
   mu_check(log2.length() == 1);
@@ -30,11 +32,13 @@ MU_TEST(test_read_after_read) {
   char c2 = heapbuf[PAGE_SIZE + 1];
   tthread::log log3(log2.end());
   mu_check(log3.length() == 0);
+  mu_check(c2 == 0);
 
   // access the next page again
   char c3 = heapbuf[PAGE_SIZE * 2];
   tthread::log log4(log3.end());
   mu_check(log4.length() == 1);
+  mu_check(c3 == 0);
 }
 
 MU_TEST(test_write_after_write) {

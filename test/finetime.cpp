@@ -15,6 +15,7 @@ extern "C" {
 #include <time.h>
 #include <unistd.h>
 
+#include "debug.h"
 #include "time.h"
 
 static struct timeinfo start_ti, stop_ti;
@@ -28,8 +29,9 @@ double get_cpufreq(void)
   const char searchStr[] = "cpu MHz\t\t: ";
   char line[MAX_BUFFER];
   int fd = open("/proc/cpuinfo", O_RDONLY);
+  int res = read(fd, line, MAX_BUFFER);
 
-  assert(read(fd, line, MAX_BUFFER) != -1);
+  ASSERT(res != -1);
   char *pos = strstr(line, searchStr);
 
   if (pos) {

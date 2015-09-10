@@ -41,22 +41,19 @@ set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
 
 foreach(testprog ${c_tests})
   add_executable(${testprog} ${testprog}.c finetime.cpp)
-  target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT_LIBRARIES})
 
   add_executable(${testprog}-det ${testprog}.c finetime.cpp)
-  target_link_libraries(${testprog}-det LINK_PUBLIC tthread)
-
-  target_link_libraries(${testprog} LINK_PUBLIC ${LIBRT_LIBRARIES})
-  target_link_libraries(${testprog}-det LINK_PUBLIC ${LIBRT_LIBRARIES})
+  target_link_libraries(${testprog}-det LINK_PUBLIC tthread ${LIBRT_LIBRARIES})
 
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)
 
 foreach(testprog ${cpp_tests})
-  add_executable(${testprog} ${testprog}.cpp)
-  target_link_libraries(${testprog} LINK_PUBLIC tthread)
-  target_compile_features(${testprog} PRIVATE cxx_auto_type)
-  target_link_libraries(${testprog} LINK_PUBLIC ${LIBRT_LIBRARIES})
+  add_executable(${testprog} ${testprog}.cpp finetime.cpp)
+  target_link_libraries(${testprog} LINK_PUBLIC tthread ${LIBRT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  target_compile_features(${testprog} PRIVATE cxx_auto_type cxx_variadic_macros)
+
   add_test(${testprog} ${testprog})
 endforeach(testprog)
 
