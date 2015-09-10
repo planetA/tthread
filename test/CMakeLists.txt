@@ -8,7 +8,7 @@ set(c_tests
   bug-order
   bug-race
   parallel-sum
-  lockowner
+  #lockowner
   overhead
   memalign-test
   read-write-test
