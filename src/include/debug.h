@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 
-#ifdef NDEBUG
+#ifdef DEBUG
 # undef DEBUG
 # define DEBUG(msg)                                              \
   do {                                                           \

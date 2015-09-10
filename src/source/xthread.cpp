@@ -52,7 +52,7 @@ void *xthread::spawn(const void     *caller,
 
 /// @brief Get thread index for this thread.
 int xthread::getThreadIndex(void *v) {
-  ASSERT(V != NULL);
+  ASSERT(v != NULL);
 
   ThreadStatus *t = (ThreadStatus *)v;
 
@@ -61,7 +61,7 @@ int xthread::getThreadIndex(void *v) {
 
 /// @brief Get thread tid for this thread.
 int xthread::getThreadPid(void *v) {
-  ASSERT(V != NULL);
+  ASSERT(v != NULL);
 
   ThreadStatus *t = (ThreadStatus *)v;
 
