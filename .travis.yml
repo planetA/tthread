@@ -28,7 +28,7 @@ addons:
     - clang-3.7
     - gdb
 script:
-  - RESULT=0
   - make test
+  - RESULT=0
   - for i in core*; do b=$(file "$i" | sed "s/.*from '\([^']\+\)'.*/\1/"); gdb "$b" "$i" -ex "thread apply all bt" -ex "set pagination 0" -batch; done
   - if [[ ${RESULT} != 0 ]]; then exit $RESULT ; fi;

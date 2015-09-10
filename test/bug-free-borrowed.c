@@ -32,8 +32,7 @@ void *free_borrowed(void *arg_) {
 }
 
 MU_TEST(test_free_borrowed) {
-  void *buf;
-  void *arg = &buf;
+  void *buf = malloc(sizeof(void *));
   pthread_t malloc_thread, free_thread;
 
   mu_check(pthread_barrier_init(&malloc_barrier, NULL, 2) == 0);
