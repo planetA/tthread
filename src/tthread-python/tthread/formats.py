@@ -12,8 +12,16 @@ class TsvWriter:
         for event in self.log.read():
             if type(event) is accesslog.ThunkEvent:
                 self._write_thunk(w, event)
+            elif type(event) is accesslog.FinishEvent:
+                self._write_finish(w, event)
             else:
                 self._write_access(w, event)
+    def _write_finish(self, writer, event):
+        writer.writerow(("finish",
+                event.return_address,
+                event.thread_id,
+                "-",
+                "-"))
     def _write_thunk(self, writer, event):
         writer.writerow(("thunk",
                 event.return_address,
