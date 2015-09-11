@@ -448,15 +448,12 @@ public:
       (unsigned long *)((intptr_t)_transientMemory + xdefines::PageSize *
                         pageNo);
 
-    tthread::logevent::Type t = is_write ? tthread::logevent::WRITE :
-                                tthread::logevent::READ;
+    auto t = is_write ? tthread::logevent::WRITE :
+             tthread::logevent::READ;
     tthread::EventData m;
 
     m.memory.address = addr;
-
-    tthread::logevent e(t, issuerAddress, m);
-
-    _logger->add(e);
+    _logger->add(tthread::logevent(t, issuerAddress, m));
 
     if (is_write) {
       handleWrite(pageNo, pageStart);

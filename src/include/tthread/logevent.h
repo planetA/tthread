@@ -22,6 +22,7 @@ typedef union EventData {
     // memory address at which the first page fault was triggered
     const void *address;
   } memory;
+  struct {} finish; // no data so far
 } Data;
 
 class _PUBLIC_ logevent {
@@ -31,7 +32,8 @@ public:
     INVALID = 0,
     WRITE = 1,
     READ = 2,
-    THUNK = 3
+    THUNK = 3,
+    FINISH = 4
   };
 
 private:

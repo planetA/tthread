@@ -27,8 +27,7 @@
 
 #include <stdio.h>
 
-#ifdef DEBUG
-# undef DEBUG
+#ifdef DEBUG_ENABLED
 # define DEBUG(msg)                                              \
   do {                                                           \
     fprintf(stderr, "%20s:%-4d: %s\n", __FILE__, __LINE__, msg); \

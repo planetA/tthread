@@ -158,7 +158,7 @@ void xthread::run_thread(const void     *caller,
                          void           *arg) {
   _run.atomicBegin(caller);
   void *result = fn(arg);
-  _run.threadDeregister();
+  _run.threadDeregister(caller);
 
   t->retval = result;
 }

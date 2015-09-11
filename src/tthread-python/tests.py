@@ -18,7 +18,7 @@ class TthreadTest(unittest.TestCase):
         log = process.wait()
         self.assertEqual(log.return_code, 0)
         events = list(log.read())
-        self.assertEqual(len(events), 1)
+        self.assertEqual(len(events), 8)
         ev = events[0]
         self.assertIsInstance(ev, tthread.accesslog.WriteEvent)
         self.assertGreater(ev.return_address, 0)

@@ -20,6 +20,7 @@ Supported events:
 - WriteEvent
 - ReadEvent
 - ThunkEvent
+- FinishEvent
 
 All these events contain the following fields:
 
@@ -36,11 +37,14 @@ Read-/WriteEvent contain the following additional field:
 
 - **address** memory address which was accessed
 
+FinishEvent before a thread exists
+
 To check in which memory space an address belongs to use
 
 ```python
 log.is_heap(<addr>)
 log.is_global(<addr>)
+log.is_mmap(<addr>)
 ```
 
 To generate tab-seperated log files use `tthread` application in `bin`:
@@ -91,4 +95,4 @@ thunk   94525342585784  8768    4   -
 write   140049782269278 8768    140041149788224 heap
 ```
 
-As it is tab-seperated in can be imported into spreadsheet application without any addional tools.
+As it is tab-seperated in can be imported into spreadsheet application without any additional tools.

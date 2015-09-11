@@ -162,7 +162,7 @@ public:
     _determ.waitChildRegistered();
   }
 
-  inline void threadDeregister(void) {
+  inline void threadDeregister(const void *caller) {
     waitToken();
 
     _memory.finalcommit(false);
@@ -172,6 +172,10 @@ public:
 
     // Remove current thread and decrease the fence
     _determ.deregisterThread(_thread_index);
+
+    _logger.add(tthread::logevent(tthread::logevent::FINISH,
+                                  caller,
+                                  tthread::EventData()));
   }
 
   inline void closeFence(void) {

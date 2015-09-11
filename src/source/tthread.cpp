@@ -143,7 +143,7 @@ void finalize() {
   memory->closeProtection();
   initialized = false;
 
-  #ifdef DEBUG
+  #ifdef DEBUG_ENABLED
   fprintf(stderr, "\nStatistics information:\n");
   PRINT_TIMER(serial);
   PRINT_COUNTER(commit);
@@ -311,7 +311,7 @@ _PUBLIC_ int sched_yield(void) __THROW {
 
 _PUBLIC_ void pthread_exit(void *value_ptr) {
   if (initialized) {
-    run->threadDeregister();
+    run->threadDeregister(CALLER);
   }
   _exit(0);
 }

@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <tthread/log.h>
 #include <tthread/logevent.h>
@@ -7,6 +8,11 @@ int global_var = 0;
 enum { PageSize = 4096UL };
 enum { PAGE_SIZE_MASK = (PageSize - 1) };
 
+void *child(void *ignored) {
+  printf("global_var=%d\n", global_var = 0);
+  return NULL;
+}
+
 #define PAGE_ALIGN_DOWN(x) (((size_t)(x)) & ~PAGE_SIZE_MASK)
 
 int main(int argc, char **argv) {
@@ -14,6 +20,9 @@ int main(int argc, char **argv) {
   tthread::log log;
 
   global_var = 1;
+  pthread_t thread;
+  pthread_create(&thread, NULL, child, NULL);
+  pthread_join(thread, NULL);
 
   // the size of an log instance will be not changed after instantiation
   // to get all events happend after `log` was created, use:
@@ -52,6 +61,9 @@ int main(int argc, char **argv) {
               e.getReturnAddress());
       break;
     }
+
+    case tthread::logevent::FINISH:
+      fprintf(stderr, "thread %d finish\n", e.getThreadId());
 
     case tthread::logevent::INVALID:
       fprintf(stderr, "[invalid entry]\n");
