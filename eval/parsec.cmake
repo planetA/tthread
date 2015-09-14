@@ -101,8 +101,6 @@ else() # EQUAL 2
   set(DEDUP_THREADS 1)
 endif()
 
-set(ENV[IM_CONCURRENCY )
-
 add_definitions(-DENABLE_THREADS -DPARALLEL)
 AddParsecBenchmark(canneal
   ARGS ${CANNEAL_THREADS} 15000 2000 ${TEST_PATH}/canneal/400000.nets 128
