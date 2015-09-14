@@ -31,7 +31,7 @@ ExternalProject_Add(parsec
   PATCH_COMMAND sh -c "find . -name '*.pod' -print0 | xargs -0 sed -ie 's/=item \\([0-9]\\+\\)/=item C\\1/'; find . -name 'parsec_barrier.hpp' -type f -print0 | xargs -0 sed -ie 's!^#define ENABLE_AUTOMATIC_DROPIN!//#define ENABLE_AUTOMATIC_DROPIN!'"
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ../gcc.bldconf config/gcc.bldconf
   SOURCE_DIR parsec-3.0
-  BUILD_COMMAND bin/parsecmgmt -a build -c gcc -p canneal -p dedup -p blackscholes -p streamcluster -p ferret -p raytrace -p swaptions -p vips
+  BUILD_COMMAND bin/parsecmgmt -a build -c gcc-pthreads -p canneal -p dedup -p blackscholes -p streamcluster -p ferret -p raytrace -p swaptions -p vips
   INSTALL_COMMAND ""
   BUILD_IN_SOURCE 1
   LOG_BUILD 1
@@ -60,7 +60,7 @@ function(AddParsecBenchmark benchmark)
 
   add_custom_command(TARGET bench-${benchmark} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E
-    copy ${PARSEC_APP_PATH}/${AddParsecBenchmark_PATH}/inst/amd64-linux.gcc/bin/${AddParsecBenchmark_EXE}
+    copy ${PARSEC_APP_PATH}/${AddParsecBenchmark_PATH}/inst/amd64-linux.gcc-pthreads/bin/${AddParsecBenchmark_EXE}
     ${executable})
 
   if (NOT "x${AddParsecBenchmark_ARCHIVE}x" STREQUAL "xx")
@@ -69,7 +69,6 @@ function(AddParsecBenchmark benchmark)
       tar xzf ${PARSEC_APP_PATH}/${AddParsecBenchmark_PATH}/inputs/${AddParsecBenchmark_ARCHIVE}
       WORKING_DIRECTORY ${destination})
   endif()
-
 
   add_custom_target(bench-${benchmark}-pthread
     COMMAND ${CMAKE_COMMAND} -E env
