@@ -1,9 +1,5 @@
 include(ExternalProject)
 
-include(ProcessorCount)
-
-ProcessorCount(NCORES)
-
 file(WRITE gcc.bldconf "
 # Generated configuration file
 export LIBS=''
@@ -22,7 +18,7 @@ export CC_ver=$($CC --version)
 export CXX_ver=$($CXX --version)
 export LD_ver=$($LD --version)
 export LD_LIBRARY_PATH=
-export MAKE='make -j${NCORES}'
+export MAKE='make -j${AVAILABLE_CORES}'
 export M4=m4
 ")
 
@@ -71,16 +67,15 @@ function(AddParsecBenchmark benchmark)
   endif()
 
   add_custom_target(bench-${benchmark}-pthread
-    COMMAND ${CMAKE_COMMAND} -E env
-      ${AddParsecBenchmark_ENV}
-      ${executable} ${AddParsecBenchmark_ARGS}
+    COMMAND ${CMAKE_COMMAND} -E
+    env ${AddParsecBenchmark_ENV} ${CMAKE_COMMAND} -E
+    time ./${executable} ${AddParsecBenchmark_ARGS}
     DEPENDS bench-${benchmark})
 
   add_custom_target(bench-${benchmark}-tthread
-    COMMAND ${CMAKE_COMMAND} -E env
-      ${AddParsecBenchmark_ENV}
-      "LD_PRELOAD=${PROJECT_SOURCE_DIR}/src/libtthread.so"
-      ${executable} ${AddParsecBenchmark_ARGS}
+    COMMAND ${CMAKE_COMMAND} -E
+    env ${AddParsecBenchmark_ENV} "LD_PRELOAD=${PROJECT_SOURCE_DIR}/src/libtthread.so" ${CMAKE_COMMAND} -E
+    time ./${executable} ${AddParsecBenchmark_ARGS}
     DEPENDS bench-${benchmark})
 endfunction()
 
@@ -88,7 +83,6 @@ AddParsecBenchmark(blackscholes
   ARGS 8 in_10M.txt prices.txt
   PATH apps/blackscholes
   ARCHIVE input_native.tar)
-
 
 if(${NCORES} EQUAL 8)
   set(CANNEAL_THREADS 7)

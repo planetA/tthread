@@ -6,6 +6,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native -O3 -g")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
+include(ProcessorCount)
+ProcessorCount(AVAILABLE_CORES)
+set(NCORES ${AVAILABLE_CORES} CACHE FILEPATH "number of cores in the benchmark")
+
 include(phoenix.cmake)
 include(parsec.cmake)
 
