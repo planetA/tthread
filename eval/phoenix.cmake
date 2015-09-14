@@ -1,15 +1,21 @@
 set(PHOENIX_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0/lib/libphoenix.a)
 
 add_custom_target(
-  build_phoenix
-  COMMAND make
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0
-  COMMENT "Libphoenix makefile target")
+  git_submodule_init
+  COMMAND git submodule update --init
+  COMMENT "Checkout phoenix")
 
 add_library(phoenix STATIC IMPORTED)
 set_property(TARGET phoenix APPEND PROPERTY IMPORTED_CONFIGURATIONS NOCONFIG)
 set_target_properties(phoenix PROPERTIES IMPORTED_LOCATION_NOCONFIG ${PHOENIX_LIBRARY})
-add_dependencies(phoenix build_phoenix)
+add_custom_command(
+   OUTPUT "${PHOENIX_LIBRARY}"
+   COMMAND make
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/phoenix/phoenix-2.0
+   COMMENT "Libphoenix makefile target"
+   DEPENDS git_submodule_init)
+add_custom_target(libphoenix DEPENDS "${PHOENIX_LIBRARY}")
+add_dependencies(phoenix libphoenix)
 
 include(DownloadDataset)
 
