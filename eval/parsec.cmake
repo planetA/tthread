@@ -1,5 +1,9 @@
 include(ExternalProject)
 
+include(ProcessorCount)
+
+ProcessorCount(NCORES)
+
 file(WRITE gcc.bldconf "
 # Generated configuration file
 export LIBS=''
@@ -18,7 +22,7 @@ export CC_ver=$($CC --version)
 export CXX_ver=$($CXX --version)
 export LD_ver=$($LD --version)
 export LD_LIBRARY_PATH=
-export MAKE=make
+export MAKE='make -j${NCORES}'
 export M4=m4
 ")
 
@@ -32,8 +36,6 @@ ExternalProject_Add(parsec
   BUILD_IN_SOURCE 1
   LOG_BUILD 1
 )
-
-
 
 set(PARSEC_APP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/parsec-3.0/pkgs)
 set(TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests/)
@@ -88,9 +90,6 @@ AddParsecBenchmark(blackscholes
   PATH apps/blackscholes
   ARCHIVE input_native.tar)
 
-include(ProcessorCount)
-
-ProcessorCount(NCORES)
 
 if(${NCORES} EQUAL 8)
   set(CANNEAL_THREADS 7)
@@ -141,8 +140,6 @@ AddParsecBenchmark(raytrace
   EXE rtview
   ARCHIVE input_native.tar)
 
-#add_subdirectory(src)
-#
 #add_custom_target(bench-raytrace-tthread
 #  COMMAND ${benchmark}-tthread ${AddBenchmark_ARGS})
 #
