@@ -8,7 +8,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../cmake)
 
 include(ProcessorCount)
 ProcessorCount(AVAILABLE_CORES)
-set(NCORES ${AVAILABLE_CORES} CACHE FILEPATH "number of cores in the benchmark")
+set(NCORES ${AVAILABLE_CORES} CACHE STRING "number of cores in the benchmark")
 
 include(phoenix.cmake)
 include(parsec.cmake)
