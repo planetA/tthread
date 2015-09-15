@@ -4,6 +4,7 @@ import os, sys
 import subprocess
 import time
 import argparse
+import multiprocessing
 
 if sys.version_info >= (3,3):
     import shlex
@@ -20,18 +21,12 @@ def sh(cmd, verbose=True):
         sys.stderr.write("$ %s %s\n" % (cmd[0], args))
     return subprocess.call(cmd)
 
-def taskset(cmd, threads=16, verbose=True):
-    if threads == 16:
-        mask = "0-15"
-    elif threads == 8:
-        mask = "0,2,4,6,8,10,12,14"
-    elif threads == 4:
-        mask = "0,4,8,12"
-    elif threads == 2:
-        mask = "0,6"
-    else:
-        raise "invalid number of threads: %s" % threads
-    return sh(["taskset", "--cpu-list", mask] + cmd)
+TOTAL_THREADS = multiprocessing.count()
+def set_cpus(threads=TOTAL_THREADS, verbose=True):
+    for i in list(range(1, TOTAL_THREADS)):
+        enable = int((i % (TOTAL_THREADS / threads)) == 0)
+        with open("/sys/devices/system/cpu/cpu%d/online" % i, "w") as f:
+            f.write(str(enable))
 
 BENCHMARKS = [
         "kmeans",
@@ -54,9 +49,10 @@ BENCHMARKS = [
 
 def run_benchmark(name, cores):
     times = []
+    set_cpus(cores)
     for i in range(6):
         start = time.time()
-        taskset(["ninja", name], cores)
+        sh(["ninja", name])
         duration = time.time() - start
         times.append(duration)
     return (sum(times) - max(times) - min(times)) / 8
@@ -75,7 +71,8 @@ def main():
                 sh(["cmake", "-DCMAKE_BUILD_TYPE=Release", "-DNCORES=%d" % threads, "-DBENCHMARK=On"])
                 mean1 = run_benchmark("bench-%s-pthread" % bench, threads)
                 mean2 = run_benchmark("bench-%s-tthread" % bench, threads)
-                f.write("%d;%f;%f" %(threads, mean1, mean2))
+                f.write("%d;%f;%f\n" %(threads, mean1, mean2))
+                f.flush()
 
 if __name__ == '__main__':
     main()
