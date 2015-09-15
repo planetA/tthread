@@ -87,7 +87,7 @@ public:
   }
 
   int get(void) {
-    int index;
+    int index = 0;
 
     if ((*_cur + 1) < _total) {
       index = *_cur;

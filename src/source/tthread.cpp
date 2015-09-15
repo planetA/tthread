@@ -62,9 +62,9 @@ runtime_data_t *global_data;
 static bool initialized = false;
 static char xrunbuf[sizeof(xrun)];
 static char xmemorybuf[sizeof(xmemory)];
-#ifdef DEBUG
+#ifdef DEBUG_ENABLED
 static char logbuf[sizeof(tthread::log)];
-#endif // ifdef DEBUG
+#endif // ifdef DEBUG_ENABLED
 static xrun *run;
 static xmemory *memory;
 
@@ -234,7 +234,7 @@ _PUBLIC_ void free(void *ptr) __THROW {
   } else {
     DEBUG("Pre-initialization free forwarded to munmap");
 
-    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+    for (int i = 0; i < MAX_MMAP_ALLOCATIONS; i++) {
       mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
 
       if (alloc->ptr == ptr) {
@@ -263,7 +263,7 @@ _PUBLIC_ size_t malloc_usable_size(void *ptr) __THROW {
   } else {
     DEBUG("Pre-initialization malloc_usable_size");
 
-    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+    for (int i = 0; i < MAX_MMAP_ALLOCATIONS; i++) {
       mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
 
       if (alloc->ptr == ptr) {
@@ -280,7 +280,7 @@ _PUBLIC_ void *realloc(void *ptr, size_t sz) throw() {
   } else {
     DEBUG("Pre-initialization realloc forwared to mremap.");
 
-    for (int i; i < MAX_MMAP_ALLOCATIONS; i++) {
+    for (int i = 0; i < MAX_MMAP_ALLOCATIONS; i++) {
       mmap_allocation_t *alloc = &preinit_mmap_allocations[i];
 
       if (alloc->ptr == ptr) {
