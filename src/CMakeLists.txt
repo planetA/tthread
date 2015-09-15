@@ -28,7 +28,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR __COMPILER_GNU)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 endif()
 
-set_target_properties(tthread PROPERTIES COMPILE_FLAGS "-fPIC")
+set_target_properties(tthread PROPERTIES COMPILE_FLAGS "-fPIC -g")
 set_target_properties(tthread PROPERTIES COMPILE_DEFINITIONS "SSE_SUPPORT;NDEBUG;LOCK_OWNERSHIP;DETERM_MEMORY_ALLOC;LOCK_OWNERSHIP")
 # By forcing to load all symbols at instant, we avoid segmentation faults in
 # GOT, when entries are updated in the segmentation fault handler.
