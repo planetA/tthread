@@ -106,6 +106,9 @@ void log::print() const {
       fprintf(stderr, "[invalid entry]\n");
       break;
 
+    case tthread::logevent::FINISH:
+      fprintf(stderr, "[finish] child %d finished\n", e.getThreadId());
+
     default:
 
       // invalid state
