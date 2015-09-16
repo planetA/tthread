@@ -22,5 +22,6 @@ public:
     for (pages::const_iterator it = _pages.begin(); it != _pages.end(); ++it) {
       mprotect(*it, xdefines::PageSize, PROT_NONE);
     }
+    _pages.clear();
   }
 };
