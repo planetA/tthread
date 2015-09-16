@@ -68,15 +68,19 @@ function(AddParsecBenchmark benchmark)
 
   add_custom_target(bench-${benchmark}-pthread
     COMMAND ${CMAKE_COMMAND} -E
-    env ${AddParsecBenchmark_ENV} ${CMAKE_COMMAND} -E
-    time ./${executable} ${AddParsecBenchmark_ARGS}
-    DEPENDS bench-${benchmark})
+    time ${CMAKE_COMMAND} -E
+    env ${AddParsecBenchmark_ENV}
+    ${executable} ${AddParsecBenchmark_ARGS}
+    DEPENDS bench-${benchmark}
+    WORKING_DIRECTORY ${destination})
 
   add_custom_target(bench-${benchmark}-tthread
     COMMAND ${CMAKE_COMMAND} -E
-    env ${AddParsecBenchmark_ENV} "LD_PRELOAD=${PROJECT_SOURCE_DIR}/src/libtthread.so" ${CMAKE_COMMAND} -E
-    time ./${executable} ${AddParsecBenchmark_ARGS}
-    DEPENDS bench-${benchmark})
+    time ${CMAKE_COMMAND} -E
+    env ${AddParsecBenchmark_ENV} "LD_PRELOAD=${PROJECT_SOURCE_DIR}/src/libtthread.so"
+    ${executable} ${AddParsecBenchmark_ARGS}
+    DEPENDS bench-${benchmark}
+    WORKING_DIRECTORY ${destination})
 endfunction()
 
 AddParsecBenchmark(blackscholes
