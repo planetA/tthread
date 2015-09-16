@@ -24,7 +24,9 @@ export M4=m4
 
 ExternalProject_Add(parsec
   URL http://parsec.cs.princeton.edu/download/3.0/parsec-3.0.tar.gz
-  PATCH_COMMAND sh -c "find . -name '*.pod' -print0 | xargs -0 sed -ie 's/=item \\([0-9]\\+\\)/=item C\\1/'; find . -name 'parsec_barrier.hpp' -type f -print0 | xargs -0 sed -ie 's!^#define ENABLE_AUTOMATIC_DROPIN!//#define ENABLE_AUTOMATIC_DROPIN!'"
+  PATCH_COMMAND
+  sh -c "find . -name '*.pod' -print0 | xargs -0 sed -ie 's/=item \\([0-9]\\+\\)/=item C\\1/'" &&
+  sh -c "find . -name 'parsec_barrier.hpp' -type f -print0 | xargs -0 sed -ie 's!^#define ENABLE_AUTOMATIC_DROPIN!//#define ENABLE_AUTOMATIC_DROPIN!'"
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ../gcc.bldconf config/gcc.bldconf
   SOURCE_DIR parsec-3.0
   BUILD_COMMAND bin/parsecmgmt -a build -c gcc-pthreads -p canneal -p dedup -p blackscholes -p streamcluster -p ferret -p raytrace -p swaptions -p vips
