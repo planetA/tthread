@@ -9,10 +9,10 @@ cmake -DBENCHMARK=ON .
 
 This will also download the datasets required for Phoenix and Parsec Benchmarks.
 
-If you experience out-of-memory while running the benchmark, set `vm.overcommit_memory` to 2.
+If you experience out-of-memory while running the benchmark, set `vm.overcommit_memory` to 1.
 
 ```
-sysctl -w vm.overcommit_memory=2
+sysctl -w vm.overcommit_memory=1
 ```
 
 Tthread will allocate a lot virtual memory, because of private memory mappings (per thread).
