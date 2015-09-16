@@ -18,7 +18,7 @@ export CC_ver=$($CC --version)
 export CXX_ver=$($CXX --version)
 export LD_ver=$($LD --version)
 export LD_LIBRARY_PATH=
-export MAKE='make -j${AVAILABLE_CORES}'
+export MAKE='make'
 export M4=m4
 ")
 
