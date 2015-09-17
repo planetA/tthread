@@ -9,13 +9,14 @@ enum { PageSize = 4096UL };
 enum { PAGE_SIZE_MASK = (PageSize - 1) };
 
 void *child(void *ignored) {
+  (void)(ignored);
   printf("global_var=%d\n", global_var = 0);
   return NULL;
 }
 
 #define PAGE_ALIGN_DOWN(x) (((size_t)(x)) & ~PAGE_SIZE_MASK)
 
-int main(int argc, char **argv) {
+int main() {
   // read-only log all current logged events
   tthread::log log;
 
