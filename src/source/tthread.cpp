@@ -38,6 +38,7 @@
 #include "prof.h"
 #include "real.h"
 #include "tthread/log.h"
+#include "unused.h"
 #include "visibility.h"
 #include "xdefines.h"
 #include "xlogger.h"
@@ -310,6 +311,8 @@ _PUBLIC_ int sched_yield(void) __THROW {
 }
 
 _PUBLIC_ void pthread_exit(void *value_ptr) {
+  UNUSED(value_ptr);
+
   if (initialized) {
     run->threadDeregister(CALLER);
   }
@@ -344,6 +347,8 @@ _PUBLIC_ pthread_t pthread_self(void) __THROW {
 
 _PUBLIC_ int pthread_kill(pthread_t thread, int sig) __THROW {
   DEBUG("pthread_kill is not supported");
+  UNUSED(thread);
+  UNUSED(sig);
   return 0;
 }
 
@@ -367,6 +372,7 @@ _PUBLIC_ int pthread_mutex_lock(pthread_mutex_t *mutex) throw() {
 }
 
 _PUBLIC_ int pthread_mutex_trylock(pthread_mutex_t *mutex) throw() {
+  UNUSED(mutex);
   DEBUG("pthread_mutex_trylock is not supported");
   return 0;
 }
@@ -417,6 +423,8 @@ _PUBLIC_ int pthread_create(pthread_t            *tid,
                             void *(*fn)(
                               void *),
                             void                 *arg) throw() {
+  UNUSED(attr);
+
   if (!initialized) {
     return EAGAIN;
   }
@@ -439,6 +447,8 @@ _PUBLIC_ int pthread_join(pthread_t tid, void **val) {
 
 _PUBLIC_ int pthread_cond_init(pthread_cond_t           *cond,
                                const pthread_condattr_t *attr) throw() {
+  UNUSED(attr);
+
   if (initialized) {
     run->cond_init((void *)cond);
   }
@@ -479,6 +489,8 @@ _PUBLIC_ int pthread_cond_destroy(pthread_cond_t *cond) throw() {
 _PUBLIC_ int pthread_barrier_init(pthread_barrier_t           *barrier,
                                   const pthread_barrierattr_t *attr,
                                   unsigned int                count) throw() {
+  UNUSED(attr);
+
   if (initialized) {
     return run->barrier_init(barrier, count);
   }

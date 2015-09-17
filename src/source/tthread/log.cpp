@@ -35,7 +35,7 @@ log::log(int logFd) :
   _logOffset(0),
   _log(NULL)
 {
-  openLog(tthread::logger->getLogFd());
+  openLog(logFd);
 }
 
 log::log(int logFd, off_t offset) :
@@ -43,7 +43,7 @@ log::log(int logFd, off_t offset) :
   _log(NULL)
 {
   ASSERT(offset > 0);
-  openLog(tthread::logger->getLogFd());
+  openLog(logFd);
 }
 
 log::~log() {
@@ -54,7 +54,7 @@ size_t log::length() const {
   return (_logSize - _logOffset) / sizeof(logevent);
 }
 
-const logevent log::get(unsigned long i) const {
+logevent log::get(unsigned long i) {
   if (i > length()) {
     throw std::out_of_range("not in range of log");
   }

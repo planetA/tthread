@@ -61,11 +61,11 @@ public:
     _memoryLayout(memoryLayout)
   {}
 
-  inline const bool validFileMagick() const {
+  inline bool validFileMagick() {
     return _fileMagic == FILE_MAGIC;
   }
 
-  inline memorylayout_t getMemoryLayout() const {
+  inline memorylayout_t getMemoryLayout() {
     return _memoryLayout;
   }
 
@@ -73,7 +73,7 @@ public:
     return &_eventCount;
   }
 
-  inline uint32_t getVersion() const {
+  inline uint32_t getVersion() {
     return _version;
   }
 };

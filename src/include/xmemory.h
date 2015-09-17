@@ -255,6 +255,7 @@ public:
 
   /// @brief Signal handler to trap SEGVs.
   static void segvHandle(int signum, siginfo_t *siginfo, void *unused) {
+    ASSERT(signum == SIGSEGV);
     void *addr = siginfo->si_addr; // address of access
     ucontext *context = (ucontext *)unused;
     void *pc = (void *)context->uc_mcontext.gregs[REG_RIP];
@@ -277,6 +278,8 @@ public:
   }
 
   static void signalHandler(int signum, siginfo_t *siginfo, void *context) {
+    UNUSED(context);
+    ASSERT(signum == SIGUSR1);
     union sigval signal = siginfo->si_value;
     int page_no;
 

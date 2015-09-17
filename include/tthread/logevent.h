@@ -62,19 +62,19 @@ public:
     _threadId = threadId;
   }
 
-  inline const Data& getData() const {
+  inline Data& getData() {
     return _data;
   }
 
-  inline const Type getType() const {
+  inline Type getType() {
     return (Type)_type;
   }
 
-  inline const void *getReturnAddress() const {
+  inline const void *getReturnAddress() {
     return _returnAddress;
   }
 
-  inline const int getThreadId() const {
+  inline int getThreadId() {
     return _threadId;
   }
 };

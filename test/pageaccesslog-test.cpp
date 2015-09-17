@@ -26,7 +26,7 @@ MU_TEST(test_read_after_read) {
   mu_check(log2.get(0).getType() == tthread::logevent::READ);
   tthread::EventData data = log2.get(0).getData();
   mu_check(log2.get(0).getThreadId() == getpid());
-  mu_check(data.memory.address > 0);
+  mu_check(data.memory.address != 0);
 
   // access the same page again
   char c2 = heapbuf[PAGE_SIZE + 1];
@@ -103,7 +103,7 @@ MU_TEST_SUITE(test_suite) {
   MU_RUN_TEST(test_write_after_read);
 }
 
-int main(int argc, char **argv) {
+int main() {
   MU_RUN_SUITE(test_suite);
   MU_REPORT();
   return minunit_fail;

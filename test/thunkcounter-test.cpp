@@ -105,7 +105,7 @@ MU_TEST_SUITE(test_suite) {
   MU_RUN_TEST(test_lock_unlock);
 }
 
-int main(int argc, char **argv) {
+int main() {
   MU_RUN_SUITE(test_suite);
   MU_REPORT();
   return minunit_fail;

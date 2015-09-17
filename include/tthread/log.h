@@ -47,7 +47,7 @@ public:
     return _logSize;
   }
 
-  const logevent get(unsigned long i) const;
+  logevent get(unsigned long i);
   void print() const;
 };
 }

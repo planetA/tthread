@@ -32,6 +32,7 @@
 #define _XHEAP_H_
 
 #include "debug.h"
+#include "unused.h"
 #include "xdefines.h"
 #include "xpersist.h"
 #include "xplock.h"
@@ -163,6 +164,7 @@ public:
 
   // These should never be used.
   inline void free(void *ptr) {
+    UNUSED(ptr);
     sanityCheck();
   }
 

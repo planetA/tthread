@@ -58,6 +58,7 @@
 
 #include "debug.h"
 
+#include "unused.h"
 #include "xpageentry.h"
 
 #if defined(sun)
@@ -485,7 +486,7 @@ public:
 
   // Write those difference between local and twin to the destination.
   inline void writePageDiffs(const void *local, const void *twin,
-                             void *dest, int pageno) {
+                             void *dest) {
 #ifdef SSE_SUPPORT
 
     // Now we are using the SSE3 instructions to speedup the commits.
@@ -581,7 +582,9 @@ public:
   }
 
 #else // ifdef GET_CHARACTERISTICS
-  inline void recordPageChanges(int pageNo) {}
+  inline void recordPageChanges(int pageNo) {
+    UNUSED(pageNo);
+  }
 
 #endif // ifdef GET_CHARACTERISTICS
 
@@ -775,7 +778,7 @@ public:
 
           // Use the slower page commit, comparing to "twin".
           setSharedPage(pageNo);
-          writePageDiffs(local, twin, share, pageNo);
+          writePageDiffs(local, twin, share);
         }
 
         isModified = true;

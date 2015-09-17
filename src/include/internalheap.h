@@ -20,6 +20,7 @@
 
  */
 
+#include "unused.h"
 #include "warpheap.h"
 #include "xdefines.h"
 
@@ -60,7 +61,9 @@ public:
     }
   }
 
-  void free(void *addr) {}
+  void free(void *addr) {
+    UNUSED(addr);
+  }
 
 private:
 
