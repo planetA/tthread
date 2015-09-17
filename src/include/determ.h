@@ -68,9 +68,9 @@ private:
   class ThreadEntry {
 public:
 
-    inline ThreadEntry() {}
+    ThreadEntry() {}
 
-    inline ThreadEntry(int tid, int threadindex) {
+    ThreadEntry(int tid, int threadindex) {
       this->tid = tid;
       this->threadindex = threadindex;
       this->wait = 0;
@@ -500,7 +500,7 @@ public:
 
   // Those children are waiting on _cond_children when the parent is still
   // spawning new threads in order to guarantee the determinism.
-  inline void waitParentNotify(void) {
+  void waitParentNotify(void) {
     lock();
 
     _childregistered = true;
@@ -511,7 +511,7 @@ public:
   }
 
   // Parent should call this function.
-  inline void waitChildRegistered(void) {
+  void waitChildRegistered(void) {
     lock();
 
     if (!_childregistered) {
@@ -528,14 +528,14 @@ public:
   // Now wakeup all threads waiting on _cond_children when
   // parent finishs the spawning. In fact, parent met some synchronizations
   // points now.
-  inline void notifyWaitingChildren(void) {
+  void notifyWaitingChildren(void) {
     lock();
     WRAP(pthread_cond_broadcast)(&_cond_children);
     unlock();
   }
 
   // Deterministic pthread_join
-  inline bool join(int guestindex, int myindex, bool wakeup) {
+  bool join(int guestindex, int myindex, bool wakeup) {
     // Check whether I am holding the lock or not.
     ASSERT(myindex == _tokenpos->threadindex);
 
@@ -693,7 +693,7 @@ public:
   // Since it is called without the token,
   // if no one uses this lock before, the caller cannot
   // own the lock in order to guarantee the determinism.
-  inline bool lock_isowner(void *mutex) {
+  bool lock_isowner(void *mutex) {
     // fprintf(stderr, "%d: lock_isowner\n", getpid());
     LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
 
@@ -721,7 +721,7 @@ public:
 
   // Check whether lock is acquired.
   // Whenever the lock is owned by someone, we don't need to acquire the lock.
-  inline bool lock_isacquired(void *mutex) {
+  bool lock_isacquired(void *mutex) {
     LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
 
     ASSERT(entry != NULL);
@@ -733,7 +733,7 @@ public:
   // The function is to avoid the problem caused by turning multiple locks
   // into one big lock. The idea is that when one lock is not released,
   // next thread to acquire this should not move on.
-  inline bool lock_acquire(void *mutex) {
+  bool lock_acquire(void *mutex) {
     LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
     bool result = true;
 
@@ -783,7 +783,7 @@ public:
     return result;
   }
 
-  inline void lock_release(void *mutex) {
+  void lock_release(void *mutex) {
     LockEntry *entry = (LockEntry *)getSyncEntry(mutex);
 
     entry->is_acquired = false;
@@ -1151,27 +1151,27 @@ private:
     // Do nothing now.
   }
 
-  inline void *allocSyncEntry(int size) {
+  void *allocSyncEntry(int size) {
     return InternalHeap::getInstance().malloc(size);
   }
 
-  inline void freeSyncEntry(void *ptr) {
+  void freeSyncEntry(void *ptr) {
     if (ptr != NULL) {
       InternalHeap::getInstance().free(ptr);
     }
   }
 
-  inline LockEntry *allocLockEntry(void) {
+  LockEntry *allocLockEntry(void) {
     // fprintf(stderr, "%d: alloc lock entry with size %d\n", getpid(),
     // sizeof(LockEntry));
     return (LockEntry *)allocSyncEntry(sizeof(LockEntry));
   }
 
-  inline CondEntry *allocCondEntry(void) {
+  CondEntry *allocCondEntry(void) {
     return (CondEntry *)allocSyncEntry(sizeof(CondEntry));
   }
 
-  inline BarrierEntry *allocBarrierEntry(void) {
+  BarrierEntry *allocBarrierEntry(void) {
     return (BarrierEntry *)allocSyncEntry(sizeof(BarrierEntry));
   }
 

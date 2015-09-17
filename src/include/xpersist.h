@@ -356,7 +356,7 @@ public:
   }
 
   /// @return true iff the address is in this space.
-  inline bool inRange(void *addr) {
+  bool inRange(void *addr) {
     if (((size_t)addr >= (size_t)base())
         && ((size_t)addr
             < (size_t)base() + size())) {
@@ -388,13 +388,13 @@ public:
   }
 
   // Change the page to read-only mode.
-  inline void mprotectRead(void *addr, int pageNo) {
+  void mprotectRead(void *addr, int pageNo) {
     _pageInfo[pageNo] = PAGE_ACCESS_READ;
     mprotect(addr, xdefines::PageSize, PROT_READ);
   }
 
   // Change the page to r/w mode.
-  inline void mprotectReadWrite(void *addr, int pageNo) {
+  void mprotectReadWrite(void *addr, int pageNo) {
     if (_pageOwner[pageNo] == getpid()) {
       _pageInfo[pageNo] = PAGE_ACCESS_READ_WRITE;
     }
@@ -409,7 +409,7 @@ public:
   // in the beginning. The difference is that they don't need to commit
   // immediately in order to reduce the time of serial phases.
   // The function will be called when one thread is getting a new superblock.
-  inline void setOwnedPage(void *addr, size_t size) {
+  void setOwnedPage(void *addr, size_t size) {
     if (!_isCopyOnWrite) {
       return;
     }
@@ -465,13 +465,13 @@ public:
   }
 
   /// @brief Start a transaction.
-  inline void begin() {
+  void begin() {
     // Update all pages related in this dirty page list
     updateAll();
   }
 
 #ifndef SSE_SUPPORT
-  inline void commitWord(char *src, char *twin, char *dest) {
+  void commitWord(char *src, char *twin, char *dest) {
     for (int i = 0; i < sizeof(long long); i++) {
       if (src[i] != twin[i]) {
         dest[i] = src[i];
@@ -482,8 +482,8 @@ public:
 #endif // ifndef SSE_SUPPORT
 
   // Write those difference between local and twin to the destination.
-  inline void writePageDiffs(const void *local, const void *twin,
-                             void *dest) {
+  void writePageDiffs(const void *local, const void *twin,
+                      void *dest) {
 #ifdef SSE_SUPPORT
 
     // Now we are using the SSE3 instructions to speedup the commits.
@@ -558,7 +558,7 @@ public:
   }
 
 #ifdef GET_CHARACTERISTICS
-  inline void recordPageChanges(int pageNo) {
+  void recordPageChanges(int pageNo) {
     struct pagechangeinfo *page =
       (struct pagechangeinfo *)&_pageChanges[pageNo];
     unsigned short tid = page->tid;
@@ -579,7 +579,7 @@ public:
   }
 
 #else // ifdef GET_CHARACTERISTICS
-  inline void recordPageChanges(int pageNo) {
+  void recordPageChanges(int pageNo) {
     UNUSED(pageNo);
   }
 
@@ -589,7 +589,7 @@ public:
   // owned-by-it pages.
   // This happens when one thread are trying to call pthread_kill or
   // pthread_cancel to kill one thread.
-  inline void forceCommitOwnedPages(int pid, void *end) {
+  void forceCommitOwnedPages(int pid, void *end) {
     size_t startpage = 0;
     size_t endpage = ((intptr_t)end - (intptr_t)base()) / xdefines::PageSize;
 
@@ -602,7 +602,7 @@ public:
     }
   }
 
-  inline void notifyOwnerToCommit(int pageNo) {
+  void notifyOwnerToCommit(int pageNo) {
     // Get the owner information.
     unsigned int owner = _pageOwner[pageNo];
 
@@ -637,7 +637,7 @@ public:
     }
   }
 
-  inline void setSharedPage(int pageNo) {
+  void setSharedPage(int pageNo) {
     if (_pageOwner[pageNo] != (int)SHARED_PAGE) {
       xatomic::exchange((unsigned long *)&_pageOwner[pageNo], SHARED_PAGE);
       _pageInfo[pageNo] = PAGE_ACCESS_READ;
@@ -648,7 +648,7 @@ public:
     _ownedblocks = 0;
   }
 
-  inline void commitOwnedPage(int pageNo, bool setShared) {
+  void commitOwnedPage(int pageNo, bool setShared) {
     // Get corresponding entry.
     void *addr = (void *)((intptr_t)base() + pageNo * xdefines::PageSize);
     void *share =
@@ -681,7 +681,7 @@ public:
   }
 
   // Commit all pages when the thread is going to exit
-  inline void finalcommit(bool release) {
+  void finalcommit(bool release) {
     int blocks = _ownedblocks;
     int startpage;
     int endpage;
@@ -716,7 +716,7 @@ public:
   }
 
   // Commit local modifications to shared mapping
-  inline void checkandcommit() {
+  void checkandcommit() {
     struct shareinfo *shareinfo = NULL;
     struct xpageinfo *pageinfo = NULL;
     int pageNo;
@@ -822,7 +822,7 @@ public:
   }
 
   /// @brief Commit all writes.
-  inline void memoryBarrier() {
+  void memoryBarrier() {
     xatomic::memoryBarrier();
   }
 
@@ -865,7 +865,7 @@ private:
     mprotect(local, xdefines::PageSize * pages, protection);
   }
 
-  inline void handleRead(int pageNo, unsigned long *pageStart) {
+  void handleRead(int pageNo, unsigned long *pageStart) {
     switch (_pageInfo[pageNo]) {
     case PAGE_UNUSED: // When we are trying to access other-owned page.
 
@@ -884,7 +884,7 @@ private:
     mprotectRead(pageStart, pageNo);
   }
 
-  inline void handleWrite(int pageNo, unsigned long *pageStart) {
+  void handleWrite(int pageNo, unsigned long *pageStart) {
     // Check the access type of this page.
     switch (_pageInfo[pageNo]) {
     case PAGE_UNUSED: // When we are trying to access other-owned page.

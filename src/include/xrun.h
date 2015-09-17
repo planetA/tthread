@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -28,9 +28,6 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  * @author Charlie Curtsinger <http://www.cs.umass.edu/~charlie>
  */
-
-#ifndef _XRUN_H_
-#define _XRUN_H_
 
 #include <link.h>
 #include <pthread.h>
@@ -129,8 +126,8 @@ public:
 
   // New created thread should call this.
   // Now only the current thread is active.
-  inline int childRegister(int pid,
-                           int parentindex) {
+  int childRegister(int pid,
+                    int parentindex) {
     // Get the global thread index for this thread, which will be used
     // internally.
     _thread_index = xatomic::increment_and_return(&global_data->thread_index);
@@ -162,7 +159,7 @@ public:
     _determ.waitChildRegistered();
   }
 
-  inline void threadDeregister(const void *caller) {
+  void threadDeregister(const void *caller) {
     waitToken();
 
     _memory.finalcommit(false);
@@ -187,7 +184,7 @@ public:
     global_data->thread_index = 1;
   }
 
-  inline void forceThreadCommit(void *v) {
+  void forceThreadCommit(void *v) {
     int pid;
 
     pid = _thread.getThreadPid(v);
@@ -200,9 +197,9 @@ public:
   }
 
   /// @brief Spawn a thread.
-  inline void *spawn(const void     *caller,
-                     threadFunction *fn,
-                     void           *arg) {
+  void *spawn(const void     *caller,
+              threadFunction *fn,
+              void           *arg) {
     // If system is not protected, we should open protection.
     if (!_isCopyOnWrite) {
       setCopyOnWrite(true);
@@ -242,9 +239,9 @@ public:
   }
 
   /// @brief Wait for a thread.
-  inline void join(const void *caller,
-                   void       *v,
-                   void       **result) {
+  void join(const void *caller,
+            void       *v,
+            void       **result) {
     int  child_threadindex = 0;
     bool wakeupChildren = false;
 
@@ -304,8 +301,8 @@ public:
   }
 
   /// @brief Do a pthread_cancel
-  inline void cancel(const void *caller,
-                     void       *v) {
+  void cancel(const void *caller,
+              void       *v) {
     int threadindex;
     bool isFound = false;
 
@@ -334,9 +331,9 @@ public:
     }
   }
 
-  inline void kill(const void *caller,
-                   void       *v,
-                   int        sig) {
+  void kill(const void *caller,
+            void       *v,
+            int        sig) {
     if ((sig == SIGKILL)
         || (sig == SIGTERM)) {
       cancel(caller, v);
@@ -364,8 +361,8 @@ public:
     return _memory.malloc(sz);
   }
 
-  inline void *calloc(size_t nmemb,
-                      size_t sz) {
+  void *calloc(size_t nmemb,
+               size_t sz) {
     void *ptr = _memory.malloc(nmemb * sz);
 
     memset(ptr, 0, nmemb * sz);
@@ -381,8 +378,8 @@ public:
     return _memory.getSize(ptr);
   }
 
-  inline void *realloc(void   *ptr,
-                       size_t sz) {
+  void *realloc(void   *ptr,
+                size_t sz) {
     void *newptr;
 
     if (ptr == NULL) {
@@ -400,7 +397,7 @@ public:
     return newptr;
   }
 
-  inline void *memalign(size_t align, size_t size) {
+  void *memalign(size_t align, size_t size) {
     // check if power of 2
     if ((align & - align) != align) {
       errno = EINVAL;
@@ -738,5 +735,3 @@ public:
     _memory.commit();
   }
 };
-
-#endif // ifndef _XRUN_H_

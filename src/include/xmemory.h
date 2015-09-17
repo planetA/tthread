@@ -127,13 +127,13 @@ public:
     _heapid = id % xdefines::NUM_HEAPS;
   }
 
-  inline void *malloc(size_t sz) {
+  void *malloc(size_t sz) {
     void *ptr = _pheap.malloc(_heapid, sz);
 
     return ptr;
   }
 
-  inline void *realloc(void *ptr, size_t sz) {
+  void *realloc(void *ptr, size_t sz) {
     size_t s = getSize(ptr);
     void *newptr = malloc(sz);
 
@@ -145,12 +145,12 @@ public:
     return newptr;
   }
 
-  inline void free(void *ptr) {
+  void free(void *ptr) {
     return _pheap.free(_heapid, ptr);
   }
 
   /// @return the allocated size of a dynamically-allocated object.
-  inline size_t getSize(void *ptr) {
+  size_t getSize(void *ptr) {
     // Just pass the pointer along to the heap.
     return _pheap.getSize(ptr);
   }
@@ -175,7 +175,7 @@ public:
     _pheap.closeProtection();
   }
 
-  inline void begin() {
+  void begin() {
     // Reset global and heap protection.
     _globals.begin();
     _pheap.begin();
@@ -189,9 +189,9 @@ public:
     }
   }
 
-  inline void handleAccess(void       *addr,
-                           bool       is_write,
-                           const void *issuerAddress) {
+  void handleAccess(void       *addr,
+                    bool       is_write,
+                    const void *issuerAddress) {
     if (_pheap.inRange(addr)) {
       _pheap.handleAccess(addr, is_write, issuerAddress);
       return;
@@ -212,28 +212,28 @@ public:
     }
   }
 
-  inline void commit() {
+  void commit() {
     _pheap.checkandcommit();
     _globals.checkandcommit();
     _accessedmmappages.reset();
   }
 
-  inline void forceCommit(int pid) {
+  void forceCommit(int pid) {
     _pheap.forceCommit(pid, _pheap.getend());
   }
 
   // Since globals will not owned by one thread, there is no need
   // to cleanup and commit.
-  inline void cleanupOwnedBlocks(void) {
+  void cleanupOwnedBlocks(void) {
     _pheap.cleanupOwnedBlocks();
   }
 
-  inline void commitOwnedPage(int page_no, bool set_shared) {
+  void commitOwnedPage(int page_no, bool set_shared) {
     _pheap.commitOwnedPage(page_no, set_shared);
   }
 
   // Commit every page owned by me.
-  inline void finalcommit(bool release) {
+  void finalcommit(bool release) {
     _pheap.finalcommit(release);
   }
 
