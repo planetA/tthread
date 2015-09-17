@@ -1,5 +1,4 @@
-#ifndef _REAL_H_
-#define _REAL_H_
+#pragma once
 
 #include <sys/types.h>
 
@@ -51,5 +50,3 @@ extern int(*WRAP(pthread_barrier_wait))(pthread_barrier_t *);
 extern int(*WRAP(pthread_barrier_destroy))(pthread_barrier_t *);
 
 void init_real_functions();
-
-#endif // ifndef _REAL_H_

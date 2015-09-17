@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -24,9 +24,6 @@
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  * @author Charlie Curtsinger <http://www.cs.umass.edu/~charlie>
  */
-
-#ifndef _XMEMORY_H_
-#define _XMEMORY_H_
 
 #include <execinfo.h>
 #include <signal.h>
@@ -336,5 +333,3 @@ public:
     sigprocmask(SIG_UNBLOCK, &siga.sa_mask, NULL);
   }
 };
-
-#endif // ifndef _XMEMORY_H_

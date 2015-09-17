@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -27,9 +27,6 @@
  * @author Emery Berger <http://www.cs.umass.edu/~emery>
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
-
-#ifndef _WARPHEAP_H_
-#define _WARPHEAP_H_
 
 #include "real.h"
 #include "xadaptheap.h"
@@ -222,5 +219,3 @@ class PerThreadHeap : public PPHeap<xdefines::NUM_HEAPS, KingsleyStyleHeap<
 
 template<int NumHeaps, int ChunkSize, class SourceHeap>
 class warpheap : public xadaptheap<PerThreadHeap, SourceHeap, ChunkSize>{};
-
-#endif // _WARPHEAP_H_

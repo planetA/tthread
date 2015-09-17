@@ -1,5 +1,4 @@
-#ifndef __XPAGEINFO_H__
-#define __XPAGEINFO_H__
+#pragma once
 
 struct xpageinfo {
   int pageNo;
@@ -11,5 +10,3 @@ struct xpageinfo {
   bool isShared;
   bool release;
 };
-
-#endif /* __XPAGEINFO_H__ */

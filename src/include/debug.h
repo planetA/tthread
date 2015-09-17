@@ -1,5 +1,4 @@
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -54,5 +53,3 @@
 #else // ifdef CHECK_SCHEDULE
 # define PRINT_SCHEDULE(_fmt, ...)
 #endif // ifdef CHECK_SCHEDULE
-
-#endif // ifndef _DEBUG_H_

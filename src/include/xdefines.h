@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -29,8 +29,6 @@
  * @author Charlie Curtsinger <http://www.cs.umass.edu/~charlie>
  */
 
-#ifndef _XDEFINES_H_
-#define _XDEFINES_H_
 #include <sys/types.h>
 
 #if defined(__APPLE__)
@@ -104,5 +102,3 @@ extern char _edata;
 #endif // if defined(__APPLE__)
 
 #define GLOBALS_SIZE (GLOBALS_END - GLOBALS_START)
-
-#endif // ifndef _XDEFINES_H_

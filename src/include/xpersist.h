@@ -1,7 +1,4 @@
-// -*- C++ -*-
-
-#ifndef _XPERSIST_H_
-#define _XPERSIST_H_
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -1030,5 +1027,3 @@ private:
 
   int _threadindex;
 };
-
-#endif // ifndef _XPERSIST_H_

@@ -1,5 +1,4 @@
-#ifndef __TTHREAD_LOG_HEADER_H__
-#define __TTHREAD_LOG_HEADER_H__
+#pragma once
 
 #include "visibility.h"
 #include <stdint.h>
@@ -79,5 +78,3 @@ public:
 };
 #pragma pack(pop)
 }
-
-#endif /* __TTHREAD_LOG_HEADER_H__ */

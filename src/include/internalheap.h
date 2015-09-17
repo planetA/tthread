@@ -1,7 +1,4 @@
-// -*- C++ -*-
-
-#ifndef _INTERNALHEAP_H_
-#define _INTERNALHEAP_H_
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -182,5 +179,3 @@ public:
     return InternalHeap::getInstance().free(ptr);
   }
 };
-
-#endif // ifndef _INTERNALHEAP_H_

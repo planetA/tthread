@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -28,9 +28,6 @@
  * @author Emery Berger <http://www.cs.umass.edu/~emery>
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
-
-#ifndef _XATOMIC_H_
-#define _XATOMIC_H_
 
 class xatomic {
 public:
@@ -92,5 +89,3 @@ public:
     __asm__ __volatile__ ("mfence" : : : "memory");
   }
 };
-
-#endif // ifndef _XATOMIC_H_

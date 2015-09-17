@@ -1,5 +1,4 @@
-#ifndef __TTHREAD_LOG_ENTRY_H__
-#define __TTHREAD_LOG_ENTRY_H__
+#pragma once
 
 /*
  * @file   tthread/logentry.h
@@ -80,5 +79,3 @@ public:
 };
 #pragma pack(pop)
 }
-
-#endif /* __TTHREAD_LOG_ENTRY_H__ */

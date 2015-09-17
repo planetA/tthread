@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -20,9 +20,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
-
-#ifndef _PRIVATEHEAP_H_
-#define _PRIVATEHEAP_H_
 
 /**
  * @file privateheap.h
@@ -54,5 +51,3 @@ public:
     return WRAP(realloc)(ptr, sz);
   }
 };
-
-#endif // ifndef _PRIVATEHEAP_H_

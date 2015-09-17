@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -27,9 +27,6 @@
  * @author Emery Berger <http://www.cs.umass.edu/~emery>
  * @author Tongping Liu <http://www.cs.umass.edu/~tonyliu>
  */
-
-#ifndef _XHEAP_H_
-#define _XHEAP_H_
 
 #include "debug.h"
 #include "unused.h"
@@ -201,5 +198,3 @@ private:
   // threads.
   xplock *_lock;
 };
-
-#endif // ifndef _XHEAP_H_

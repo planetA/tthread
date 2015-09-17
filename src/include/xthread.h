@@ -1,7 +1,4 @@
-// -*- C++ -*-
-
-#ifndef _XTHREAD_H_
-#define _XTHREAD_H_
+#pragma once
 
 #include <errno.h>
 #include <stdlib.h>
@@ -126,5 +123,3 @@ private:
     munmap(ptr, sz);
   }
 };
-
-#endif // ifndef _XTHREAD_H_

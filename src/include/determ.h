@@ -1,5 +1,4 @@
-#ifndef __DETERM_H__
-#define __DETERM_H__
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -1216,5 +1215,3 @@ private:
     WRAP(pthread_mutex_unlock)(&_mutex);
   }
 };
-
-#endif // ifndef __DETERM_H__

@@ -1,5 +1,4 @@
-#ifndef __TTHREAD_LOG_H__
-#define __TTHREAD_LOG_H__
+#pragma once
 
 /*
  * @file   tthread/log.h
@@ -51,5 +50,3 @@ public:
   void print() const;
 };
 }
-
-#endif /* __TTHREAD_LOG_H__ */

@@ -1,6 +1,4 @@
-// -*- C++ -*-
-#ifndef _XBITMAP_H_
-#define _XBITMAP_H_
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -129,5 +127,3 @@ private:
   int *_versionStart;
   void *_pageStart;
 };
-
-#endif // ifndef _XBITMAP_H_

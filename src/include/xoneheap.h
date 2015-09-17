@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -20,9 +20,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
-
-#ifndef _XONEHEAP_H_
-#define _XONEHEAP_H_
 
 /**
  * @class xoneheap
@@ -138,5 +135,3 @@ private:
     return _heap;
   }
 };
-
-#endif // _XONEHEAP_H_

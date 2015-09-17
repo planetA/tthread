@@ -1,6 +1,4 @@
-// -*- C++ -*-
-#ifndef _XPAGEENTRY_H_
-#define _XPAGEENTRY_H_
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -114,5 +112,3 @@ private:
 
   struct xpageinfo *_start;
 };
-
-#endif // ifndef _XPAGEENTRY_H_

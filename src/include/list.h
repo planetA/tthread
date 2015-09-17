@@ -1,5 +1,4 @@
-#ifndef __LIST_H__
-#define __LIST_H__
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -184,4 +183,3 @@ inline Entry *removeHeadEntry(Entry **head) {
   return header;
 }
 }
-#endif /* __ALIVETHREADS_H__ */

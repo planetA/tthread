@@ -1,5 +1,4 @@
-#ifndef _XPLOCK_H_
-#define _XPLOCK_H_
+#pragma once
 
 #if !defined(_WIN32)
 # include <pthread.h>
@@ -59,5 +58,3 @@ private:
   /// A pointer to the lock.
   pthread_mutex_t *_lock;
 };
-
-#endif // ifndef _XPLOCK_H_

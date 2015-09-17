@@ -1,5 +1,4 @@
-#ifndef __PROF_H__
-#define __PROF_H__
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -83,4 +82,3 @@ struct runtime_stats {};
 # define PRINT_COUNTER(x)
 
 #endif // ifdef ENABLE_PROFILING
-#endif // ifndef __PROF_H__

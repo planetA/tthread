@@ -1,5 +1,4 @@
-#ifndef __MMAPPAGE_H__
-#define __MMAPPAGE_H__
+#pragma once
 
 #include <assert.h>
 #include <vector>
@@ -63,5 +62,3 @@ public:
     isWrite ? handleWrite(pageaddr) : handleRead(pageaddr);
   }
 };
-
-#endif /* __MMAPOBJECT_H__ */

@@ -1,3 +1,5 @@
+#pragma once
+
 // Macros to export symbols
 #if defined _WIN32 \
   || defined __CYGWIN__
@@ -8,7 +10,7 @@
       #   define _PUBLIC_ __declspec(dllexport) // Note: actually gcc seems to
                                                 // also supports this syntax.
     #  endif // ifdef __GNUC__
-  # else // ifdef BUILDING_DLL
+  # else    // ifdef BUILDING_DLL
     #  ifdef __GNUC__
       #   define _PUBLIC_ __attribute__((dllimport))
     #  else // ifdef __GNUC__

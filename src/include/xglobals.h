@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -20,9 +20,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
-#ifndef _XGLOBALS_H_
-#define _XGLOBALS_H_
-
 #include "xdefines.h"
 #include "xpersist.h"
 
@@ -44,5 +41,3 @@ public:
            __data_start);
   }
 };
-
-#endif // ifndef _XGLOBALS_H_

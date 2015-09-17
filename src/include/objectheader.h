@@ -1,5 +1,4 @@
-#ifndef __OBJECTHEADER_H__
-#define __OBJECTHEADER_H__
+#pragma once
 
 /*
    This program is free software; you can redistribute it and/or modify
@@ -76,5 +75,3 @@ private:
   size_t _size;
   size_t _magic;
 };
-
-#endif /* __OBJECTHEADER_H__ */

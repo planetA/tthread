@@ -1,5 +1,4 @@
-#ifndef __XLOGGER_H__
-#define __XLOGGER_H__
+#pragma once
 
 /*
  * @file   tthread/log.h
@@ -216,5 +215,3 @@ private:
     _log = (tthread::logevent *)buf;
   }
 };
-
-#endif /* __XLOGGER_H__ */

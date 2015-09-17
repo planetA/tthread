@@ -1,4 +1,4 @@
-// -*- C++ -*-
+#pragma once
 
 /*
    Author: Emery Berger, http://www.cs.umass.edu/~emery
@@ -20,9 +20,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
  */
-
-#ifndef _XADAPTHEAP_H_
-#define _XADAPTHEAP_H_
 
 #include "xlogger.h"
 
@@ -77,5 +74,3 @@ private:
 
   Heap<Source, ChunkSize> *_heap;
 };
-
-#endif // _XADAPTHEAP_H_
