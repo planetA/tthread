@@ -4,22 +4,16 @@
 #define _XTHREAD_H_
 
 #include <errno.h>
-
-#if !defined(_WIN32)
-# include <sys/types.h>
-# include <sys/wait.h>
-#endif // if !defined(_WIN32)
-
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "real.h"
 #include "xdefines.h"
 
 // Heap Layers
-
 #include "heaplayers/freelistheap.h"
-#include "heaplayers/mmapheap.h"
-#include "heaplayers/util/cpuinfo.h"
 
 extern "C" {
 // The type of a pthread function.

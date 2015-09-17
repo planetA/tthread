@@ -24,6 +24,7 @@
  */
 
 #include <new>
+#include <pthread.h>
 #include <sched.h>
 #include <signal.h>
 #include <stddef.h>
@@ -32,7 +33,6 @@
 #include <unistd.h>
 
 #include "debug.h"
-#include "sassert.h"
 #include "xrun.h"
 #include "xthread.h"
 

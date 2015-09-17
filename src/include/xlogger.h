@@ -6,9 +6,13 @@
  * @brief  Logger for memory access events to build a data graph
  */
 #include <assert.h>
+#include <fcntl.h>
+#include <new>
+#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "real.h"

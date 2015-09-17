@@ -30,7 +30,7 @@ set(cpp_tests
 include(ProcessorCount)
 ProcessorCount(CORES)
 add_definitions(-DCORES=${CORES})
-include_directories(tthread ../src/include ../src/include/heaplayers ../src/include/heaplayers/util)
+include_directories(tthread ../include ../src/include ../src/include/heaplayers ../src/include/heaplayers/util)
 
 # Check for clock_gettime()
 # is included in newer versions of glibc directly in libc,

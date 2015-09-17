@@ -31,7 +31,6 @@
 #ifndef _WARPHEAP_H_
 #define _WARPHEAP_H_
 
-#include "heaplayers/util/sassert.h"
 #include "real.h"
 #include "xadaptheap.h"
 #include "xdefines.h"
@@ -39,11 +38,8 @@
 #include "heaplayers/adapt.h"
 #include "heaplayers/ansiwrapper.h"
 #include "heaplayers/kingsleyheap.h"
-
-// #include "heaplayers/adaptheap.h"
-#include "heaplayers/sanitycheckheap.h"
-#include "heaplayers/util/dllist.h"
 #include "heaplayers/util/sllist.h"
+
 #include "heaplayers/zoneheap.h"
 #include "objectheader.h"
 

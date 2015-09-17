@@ -25,7 +25,10 @@ __builtin_return_address(0);
 }
 " HAS_BUILTIN_RETURN_ADDRESS)
 
-add_subdirectory(src)
+if(LIB_INSTALL_DIR)
+else()
+  set(LIB_INSTALL_DIR lib)
+endif()
 
 option (BENCHMARK OFF)
 if (BENCHMARK)
@@ -34,5 +37,6 @@ if (BENCHMARK)
   endif()
 endif (BENCHMARK)
 
+add_subdirectory(src)
+add_subdirectory(include)
 add_subdirectory(test)
-
