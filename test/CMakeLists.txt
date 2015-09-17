@@ -42,9 +42,11 @@ set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
 foreach(testprog ${c_tests})
   add_executable(${testprog} ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT_LIBRARIES})
+  target_compile_features(${testprog} PRIVATE cxx_variadic_macros)
 
   add_executable(${testprog}-det ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog}-det LINK_PUBLIC tthread ${LIBRT_LIBRARIES})
+  target_compile_features(${testprog}-det PRIVATE cxx_variadic_macros)
 
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)
