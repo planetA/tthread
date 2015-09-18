@@ -1,26 +1,33 @@
 macro(AddBenchmark benchmark)
   set(multiValueArgs DEFINITIONS RENAME)
-  cmake_parse_arguments(AddBenchmark
+  cmake_parse_arguments(bench
     ""
     ""
     "ARGS;DEFINITIONS;LIBS;INCLUDES;FILES"
     ${ARGN})
 
-  add_executable(${benchmark}-pthread ${AddBenchmark_FILES})
-  target_link_libraries(${benchmark}-pthread ${CMAKE_THREAD_LIBS_INIT}
-    ${AddBenchmark_LIBS})
-  add_custom_target(bench-${benchmark}-pthread
-    COMMAND ${CMAKE_COMMAND} -E
-    time ./${benchmark}-pthread ${AddBenchmark_ARGS})
-  target_include_directories(${benchmark}-pthread PRIVATE include . ${AddBenchmark_INCLUDES})
-  target_compile_definitions(${benchmark}-pthread PRIVATE ${AddBenchmark_DEFINITIONS})
+  foreach(type pthread tthread)
+    set(target ${benchmark}-${type})
+    add_executable(${target} ${bench_FILES})
 
-  add_executable(${benchmark}-tthread ${AddBenchmark_FILES})
-  target_link_libraries(${benchmark}-tthread LINK_PUBLIC tthread
-    ${AddBenchmark_LIBS})
-  add_custom_target(bench-${benchmark}-tthread
-    COMMAND ${CMAKE_COMMAND} -E
-    time ./${benchmark}-tthread ${AddBenchmark_ARGS})
-  target_include_directories(${benchmark}-tthread PRIVATE include . ${AddBenchmark_INCLUDES})
-  target_compile_definitions(${benchmark}-tthread PRIVATE ${AddBenchmark_DEFINITIONS})
+    set(libs ${bench_LIBS})
+    if(${type} EQUAL ${pthread})
+      set(libs "${CMAKE_THREAD_LIBS_INIT};${bench_LIBS}")
+    else()
+      set(libs "tthread;${bench_LIBS}")
+    endif()
+
+    set(src ${CMAKE_CURRENT_SOURCE_DIR})
+    set_target_properties(${target} PROPERTIES
+      COMPILE_FLAGS "-march=native -mtune=native -O3 -pipe"
+      COMPILE_DEFINITIONS "${bench_DEFINITIONS}"
+      INCLUDE_DIRECTORIES "${src}/include;${src};${bench_INCLUDES}"
+      COMPILE_FEATURES cxx_variadic_macros cxx_static_assert cxx_auto_type
+      LINK_LIBRARIES "${libs}"
+    )
+
+    add_custom_target(bench-${benchmark}-${type}
+      COMMAND ${CMAKE_COMMAND} -E
+      time ./${benchmark}-${type} ${bench_ARGS})
+  endforeach()
 endmacro(AddBenchmark)
