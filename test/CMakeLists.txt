@@ -12,7 +12,7 @@ set(c_tests
   overhead
   memalign-test
   read-write-test
-  bug-free-borrowed
+  #bug-free-borrowed
 )
 
 set(cpp_tests
@@ -29,8 +29,14 @@ set(cpp_tests
 
 include(ProcessorCount)
 ProcessorCount(CORES)
-add_definitions(-DCORES=${CORES})
-include_directories(tthread ../include ../src/include ../src/include/heaplayers ../src/include/heaplayers/util)
+set(TTHREAD_DEFINITIONS "CORES=${CORES}")
+
+set(TTHREAD_INCLUDES
+  ../include
+  ../src/include
+  ../src/include/heaplayers
+  ../src/include/heaplayers/util
+)
 
 # Check for clock_gettime()
 # is included in newer versions of glibc directly in libc,
@@ -43,10 +49,14 @@ foreach(testprog ${c_tests})
   add_executable(${testprog} ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT_LIBRARIES})
   target_compile_features(${testprog} PRIVATE cxx_variadic_macros)
+  target_include_directories(${testprog} PRIVATE ${TTHREAD_INCLUDES})
+  target_compile_definitions(${testprog} PRIVATE ${TTHREAD_DEFINITIONS})
 
   add_executable(${testprog}-det ${testprog}.c finetime.cpp)
   target_link_libraries(${testprog}-det LINK_PUBLIC tthread ${LIBRT_LIBRARIES})
   target_compile_features(${testprog}-det PRIVATE cxx_variadic_macros)
+  target_include_directories(${testprog}-det PRIVATE ${TTHREAD_INCLUDES})
+  target_compile_definitions(${testprog}-det PRIVATE ${TTHREAD_DEFINITIONS})
 
   add_test(${testprog} ${testprog}-det)
 endforeach(testprog)
@@ -55,6 +65,8 @@ foreach(testprog ${cpp_tests})
   add_executable(${testprog} ${testprog}.cpp finetime.cpp)
   target_link_libraries(${testprog} LINK_PUBLIC tthread ${LIBRT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   target_compile_features(${testprog} PRIVATE cxx_auto_type cxx_variadic_macros)
+  target_include_directories(${testprog} PRIVATE ${TTHREAD_INCLUDES})
+  target_compile_definitions(${testprog}PRIVATE ${TTHREAD_DEFINITIONS})
 
   add_test(${testprog} ${testprog})
 endforeach(testprog)
