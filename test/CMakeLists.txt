@@ -66,7 +66,7 @@ foreach(testprog ${cpp_tests})
   target_link_libraries(${testprog} LINK_PUBLIC tthread ${LIBRT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   target_compile_features(${testprog} PRIVATE cxx_auto_type cxx_variadic_macros)
   target_include_directories(${testprog} PRIVATE ${TTHREAD_INCLUDES})
-  target_compile_definitions(${testprog}PRIVATE ${TTHREAD_DEFINITIONS})
+  target_compile_definitions(${testprog} PRIVATE ${TTHREAD_DEFINITIONS})
 
   add_test(${testprog} ${testprog})
 endforeach(testprog)
