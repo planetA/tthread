@@ -12,7 +12,7 @@ macro(AddBenchmark benchmark)
   add_custom_target(bench-${benchmark}-pthread
     COMMAND ${CMAKE_COMMAND} -E
     time ./${benchmark}-pthread ${AddBenchmark_ARGS})
-  target_include_directories(bench-${benchmark}-pthread include . ${AddBenchmark_INCLUDES})
+  target_include_directories(bench-${benchmark}-pthread PRIVATE include . ${AddBenchmark_INCLUDES})
   target_compile_definitions(bench-${benchmark}-pthread ${AddBenchmark_DEFINITIONS})
 
   add_executable(${benchmark}-tthread ${AddBenchmark_FILES})
@@ -21,6 +21,6 @@ macro(AddBenchmark benchmark)
   add_custom_target(bench-${benchmark}-tthread
     COMMAND ${CMAKE_COMMAND} -E
     time ./${benchmark}-tthread ${AddBenchmark_ARGS})
-  target_include_directories(bench-${benchmark}-tthread include . ${AddBenchmark_INCLUDES})
+  target_include_directories(bench-${benchmark}-tthread PRIVATE include . ${AddBenchmark_INCLUDES})
   target_compile_definitions(bench-${benchmark}-tthread ${AddBenchmark_DEFINITIONS})
 endmacro(AddBenchmark)

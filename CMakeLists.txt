@@ -30,11 +30,9 @@ else()
   set(LIB_INSTALL_DIR lib)
 endif()
 
-option (BENCHMARK OFF)
+option (BENCHMARK "Enable Benchmarking" OFF)
 if (BENCHMARK)
-  if (NOT BENCHMARK STREQUAL "OFF")
-    add_subdirectory(eval)
-  endif()
+  add_subdirectory(eval)
 endif (BENCHMARK)
 
 add_subdirectory(src)
