@@ -61,6 +61,7 @@ To read the access log at runtime, take a look at [Usage.md](Usage.md)
 ### Run the Tests ###
 
 ```
+cmake -DTESTING=ON .
 make test
 ```
 

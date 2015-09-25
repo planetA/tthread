@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.1)
-enable_testing()
 project(tthread)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -33,8 +32,13 @@ endif()
 option (BENCHMARK "Enable Benchmarking" OFF)
 if (BENCHMARK)
   add_subdirectory(eval)
-endif (BENCHMARK)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(include)
-add_subdirectory(test)
+
+option (TESTING "Enable Testing" OFF)
+if (TESTING)
+  enable_testing()
+  add_subdirectory(test)
+endif()
