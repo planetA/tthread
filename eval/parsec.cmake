@@ -37,53 +37,7 @@ ExternalProject_Add(parsec
 
 set(PARSEC_APP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/parsec-3.0/pkgs)
 set(TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests/)
-
-function(AddParsecBenchmark benchmark)
-  set(multiValueArgs DEFINITIONS RENAME)
-  cmake_parse_arguments(AddParsecBenchmark
-    ""
-    ""
-    "ARGS;PATH;ARCHIVE;ENV;EXE"
-    ${ARGN})
-
-  set(destination ${CMAKE_CURRENT_SOURCE_DIR}/tests/${benchmark})
-  set(executable ${destination}/${benchmark})
-
-  add_custom_target(bench-${benchmark})
-  add_dependencies(bench-${benchmark} parsec)
-
-  if ("x${AddParsecBenchmark_EXE}x" STREQUAL "xx")
-    set(AddParsecBenchmark_EXE ${benchmark})
-  endif()
-
-  add_custom_command(TARGET bench-${benchmark} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E
-    copy ${PARSEC_APP_PATH}/${AddParsecBenchmark_PATH}/inst/amd64-linux.gcc-pthreads/bin/${AddParsecBenchmark_EXE}
-    ${executable})
-
-  if (NOT "x${AddParsecBenchmark_ARCHIVE}x" STREQUAL "xx")
-    add_custom_command(TARGET bench-${benchmark} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E
-      tar xzf ${PARSEC_APP_PATH}/${AddParsecBenchmark_PATH}/inputs/${AddParsecBenchmark_ARCHIVE}
-      WORKING_DIRECTORY ${destination})
-  endif()
-
-  add_custom_target(bench-${benchmark}-pthread
-    COMMAND ${CMAKE_COMMAND} -E
-    time ${CMAKE_COMMAND} -E
-    env ${AddParsecBenchmark_ENV}
-    ${executable} ${AddParsecBenchmark_ARGS}
-    DEPENDS bench-${benchmark}
-    WORKING_DIRECTORY ${destination})
-
-  add_custom_target(bench-${benchmark}-tthread
-    COMMAND ${CMAKE_COMMAND} -E
-    time ${CMAKE_COMMAND} -E
-    env ${AddParsecBenchmark_ENV} "LD_PRELOAD=${PROJECT_SOURCE_DIR}/src/libtthread.so"
-    ${executable} ${AddParsecBenchmark_ARGS}
-    DEPENDS bench-${benchmark}
-    WORKING_DIRECTORY ${destination})
-endfunction()
+include(AddParsecBenchmark)
 
 AddParsecBenchmark(blackscholes
   ARGS 8 in_10M.txt prices.txt

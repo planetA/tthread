@@ -34,10 +34,8 @@ The benchmarks however are safe to be used this way.
   - [x] blackscholes
   - [x] canneal
   - [x] dedup
-  - [ ] ferret (builds now, not reviewed yet)
+  - [ ] ferret
   - [x] streamcluster
-      - eval/tests/streamcluster/streamcluster.cpp:1097
-      - work_mem[pid*stride + K+1] = cost_of_opening_x;
   - [ ] vips (mutex_trylock not implemented -> infinite loop?)
   - [ ] raytrace (Own task scheduler, No commit on sched_yield -> infinite loop?)
   - [x] swaptions

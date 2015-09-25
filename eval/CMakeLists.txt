@@ -12,12 +12,3 @@ set(NCORES ${AVAILABLE_CORES} CACHE STRING "number of cores in the benchmark")
 
 include(phoenix.cmake)
 include(parsec.cmake)
-
-include(AddBenchmark)
-
-file(GLOB benchmarks tests/*)
-foreach(entry ${benchmarks})
-  if(EXISTS ${entry}/CMakeLists.txt)
-    add_subdirectory(${entry})
-  endif()
-endforeach(entry)
