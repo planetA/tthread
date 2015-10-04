@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,14 +83,16 @@ bool notifyParent() {
   }
   close(control_fds[1]);
 
+  if (fcntl(control_fds[0], F_SETFD, FD_CLOEXEC) == -1) {
+    perror("failed to pipe to CLOEXEC");
+  }
+
   char buf[3];
   int rc = read(control_fds[0], &buf, sizeof(buf));
 
   if (rc != sizeof(buf)) {
     perror("failed to sync up with pipe from TTHREAD_NOTIFY_SOCK");
-    close(control_fds[0]);
     return false;
   }
-  close(control_fds[0]);
   return true;
 }
