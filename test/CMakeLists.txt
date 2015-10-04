@@ -23,11 +23,12 @@ set(cpp_tests
   xlogger-test
   malloc-free-test
   mmap-test
+  notify-test
 )
 
 include(ProcessorCount)
 ProcessorCount(CORES)
-set(TTHREAD_DEFINITIONS "CORES=${CORES}")
+set(TTHREAD_DEFINITIONS "CORES=${CORES};TEST_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
 set(TTHREAD_INCLUDES
   ../include

@@ -35,6 +35,7 @@
 #include <unistd.h>
 
 #include "debug.h"
+#include "notify.h"
 #include "prof.h"
 #include "real.h"
 #include "tthread/log.h"
@@ -49,11 +50,8 @@
 # include <execinfo.h>
 #endif // ifndef BUILTIN_RETURN_ADDRESS
 
-#if defined(__GNUG__)
 void initialize() __attribute__((constructor));
-
 void finalize() __attribute__((destructor));
-#endif // if defined(__GNUG__)
 
 // points to cross process shared data
 runtime_data_t *global_data;
@@ -87,7 +85,6 @@ xlogger *logger;
 void initialize() {
   DEBUG("intializing libtthread");
 
-
   init_real_functions();
 
   global_data = (runtime_data_t *)WRAP(mmap)(NULL,
@@ -112,6 +109,8 @@ void initialize() {
                                       memory->getLayout());
 
   run = new(xrunbuf)xrun(*memory, *tthread::logger);
+
+  notifyParent();
   initialized = true;
 }
 
