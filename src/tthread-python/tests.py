@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os
 import unittest
 import tthread
 
 TEST_ROOT = os.path.realpath(os.path.dirname(__file__))
 
+
 class TthreadTest(unittest.TestCase):
     def test_accesslog(self):
         test_binary = os.path.join(TEST_ROOT, "../../test/usage-test")
         if not os.path.isfile(test_binary):
-            self.fail("test binary '%s' does not exists, please run 'make' first" % test_binary)
+            msg = "test binary '%s' does not exists, please run 'make' first" \
+                    % test_binary
+            self.fail(msg)
         path = tthread.default_library_path()
         if not os.path.isfile(path):
             self.fail("'%s' does not exists, please run 'make' first" % path)

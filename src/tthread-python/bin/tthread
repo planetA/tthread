@@ -4,7 +4,8 @@ try:
     from tthread.app import main
 except ImportError:
     # put .. in sys.path, for development purpose
-    import sys, os
+    import sys
+    import os
     path = os.path.abspath(os.path.join(__file__, "../.."))
     sys.path.append(path)
     from tthread.app import main
