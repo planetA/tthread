@@ -1,9 +1,12 @@
 import os
+import sys
 import subprocess
+import multiprocessing as mp
+from threading import BrokenBarrierError
 
-
-class Error(EnvironmentError):
-    pass
+from inspector import cgroups
+from inspector import perf
+from inspector.error import Error
 
 
 def default_library_path():
@@ -12,31 +15,43 @@ def default_library_path():
     return os.path.realpath(tthread_dir)
 
 
-class Process:
-    def __init__(self, popen):
-        self.popen = popen
-
-    def wait(self):
-        return self.popen.wait()
-
-
-def preexec_fn():
-    pass
-
-
-def run(command,
-        tthread_path=default_library_path(),
-        stdin=None,
-        stdout=None,
-        stderr=None):
+def _exec_program(barrier, command, tthread_path):
     env = os.environ.copy()
     env["LD_PRELOAD"] = tthread_path
     env["TTHREAD_NO_LOG"] = "1"
     env["LD_BIND_NOW"] = "1"
-    popen = subprocess.Popen(command,
-                             env=env,
-                             stdin=stdin,
-                             stdout=stdout,
-                             stderr=stderr,
-                             preexec_fn=preexec_fn)
-    return Process(popen)
+    try:
+        barrier.wait(timeout=3)
+    except BrokenBarrierError:
+        print("Parent process timed out", file=sys.stderr)
+    os.execlpe(*command, env)
+
+
+def _run_perf(barrier, perf_cmd, process, cgroup):
+    cgroup.addPids(process.pid)
+    command = [perf_cmd,
+               "record",
+               "-e", "major-faults,intel_pt/tsc=1/u",
+               "-G", cgroup.name,
+               "-a", ]
+    print("$ " + " ".join(command))
+    perf_process = subprocess.Popen(command)
+    try:
+        barrier.wait(timeout=3)
+    except BrokenBarrierError:
+        raise Error("Child process timed out")
+    return perf.Process(perf_process, process, cgroup)
+
+
+def run(command,
+        tthread_path=default_library_path(),
+        perf_cmd="perf"):
+    cgroup_name = "inspector-%d" % os.getpid()
+    cgroup = cgroups.PerfEvent(cgroup_name)
+    cgroup.create()
+
+    barrier = mp.Barrier(2)
+    process = mp.Process(target=_exec_program,
+                         args=(barrier, command, tthread_path))
+    process.start()
+    return _run_perf(barrier, perf_cmd, process, cgroup)

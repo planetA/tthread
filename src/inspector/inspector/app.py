@@ -16,9 +16,11 @@ def parse_arguments():
     h1 = "path to libtthread.so " \
          "(default: ../../libtthread.so - relative to script path)"
     parser.add_argument("--libtthread-path",
-                        nargs="?",
                         default=inspector.default_library_path(),
                         help=h1)
+    parser.add_argument("--perf-path",
+                        default="perf",
+                        help="Path to perf tool")
     parser.add_argument("command", nargs=1,
                         help="command to execute with")
     parser.add_argument("arguments", nargs="*",
@@ -32,5 +34,7 @@ def main():
         abort("this script requires Python 3.x, not Python 2.x")
     args = parse_arguments()
     command = args.command + args.arguments
-    process = inspector.run(command, args.libtthread_path)
+    process = inspector.run(command,
+                            args.libtthread_path,
+                            perf_cmd=args.perf_path)
     process.wait()

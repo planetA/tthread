@@ -1,5 +1,5 @@
 import os
-from inspector import Error
+from inspector.error import Error
 
 
 def find_mount(cgroup_type):
@@ -24,6 +24,7 @@ class PerfEvent():
             msg = "mount for perf_event cgroup not found in /proc/mounts. " \
                   "Has kernel CONFIG_PERF_EVENTS=y set?"
             raise Error(msg)
+        self.name = name
         self.mountpoint = os.path.join(mount, name)
 
     def addPids(self, *pids):
