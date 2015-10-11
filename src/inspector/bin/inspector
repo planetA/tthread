@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+try:
+    from inspector.app import main
+except ImportError:
+    # put .. in sys.path, for development purpose
+    import sys
+    import os
+    path = os.path.abspath(os.path.join(__file__, "../.."))
+    sys.path.append(path)
+    from inspector.app import main
+
+if __name__ == "__main__":
+    main()
