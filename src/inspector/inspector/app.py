@@ -20,7 +20,7 @@ def parse_arguments():
     parser.add_argument("--libtthread-path",
                         default=default_library_path(),
                         help=h1)
-    parser.add_argument("--perf-path",
+    parser.add_argument("--perf-command",
                         default="perf",
                         help="Path to perf tool")
     parser.add_argument("command", nargs=1,
@@ -28,6 +28,9 @@ def parse_arguments():
     parser.add_argument("arguments", nargs="*",
                         default=[],
                         help="arguments passed to command")
+    parser.add_argument("--perf-log",
+                        default="perf.data",
+                        help="File name to write log")
     return parser.parse_args()
 
 
@@ -38,5 +41,6 @@ def main():
     command = args.command + args.arguments
     process = inspector.run(command,
                             args.libtthread_path,
-                            perf_cmd=args.perf_path)
+                            perf_command=args.perf_command,
+                            perf_log=args.perf_log)
     process.wait()

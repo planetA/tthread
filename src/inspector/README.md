@@ -17,9 +17,8 @@
 # Usage
 
 ```
-$ ./bin/inspector --help
 usage: inspector [-h] [--libtthread-path LIBTTHREAD_PATH]
-                 [--perf-path PERF_PATH]
+                 [--perf-command PERF_COMMAND] [--perf-log PERF_LOG]
                  command [arguments [arguments ...]]
 
 Run program with tthread and intel PT
@@ -33,6 +32,7 @@ optional arguments:
   --libtthread-path LIBTTHREAD_PATH
                         path to libtthread.so (default: ../../libtthread.so -
                         relative to script path)
-  --perf-path PERF_PATH
+  --perf-command PERF_COMMAND
                         Path to perf tool
+  --perf-log PERF_LOG   File name to write log
 ```

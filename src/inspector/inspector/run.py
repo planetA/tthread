@@ -26,13 +26,14 @@ def _exec_program(barrier, command, tthread_path):
     os.execlpe(*command, env)
 
 
-def _run_perf(barrier, perf_cmd, process, cgroup):
+def _run_perf(barrier, perf_command, perf_log, process, cgroup):
     cgroup.addPids(process.pid)
-    command = [perf_cmd,
+    command = [perf_command,
                "record",
-               "-e", "major-faults,intel_pt/tsc=1/u",
-               "-G", cgroup.name,
-               "-a", ]
+               "--output", perf_log,
+               "--event", "major-faults,intel_pt/tsc=1/u",
+               "--cgroup", cgroup.name,
+               "--all-cpus", ]
     perf_process = subprocess.Popen(command)
 
     for i in range(30):
@@ -49,7 +50,8 @@ def _run_perf(barrier, perf_cmd, process, cgroup):
 
 def run(command,
         tthread_path=default_library_path(),
-        perf_cmd="perf"):
+        perf_command="perf",
+        perf_log="perf.data"):
     cgroup_name = "inspector-%d" % os.getpid()
     cgroup = cgroups.PerfEvent(cgroup_name)
     cgroup.create()
@@ -58,4 +60,4 @@ def run(command,
     process = mp.Process(target=_exec_program,
                          args=(barrier, command, tthread_path))
     process.start()
-    return _run_perf(barrier, perf_cmd, process, cgroup)
+    return _run_perf(barrier, perf_command, perf_log, process, cgroup)
