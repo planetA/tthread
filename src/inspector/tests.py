@@ -22,8 +22,9 @@ class PerfTest(unittest.TestCase):
         sample_app = os.path.join(TEST_ROOT, "../../test/usage-test")
         perf_cmd = os.getenv("PERF_COMMAND", "perf")
         process = inspector.run([sample_app], perf_cmd=perf_cmd)
-        rc = process.wait()
+        (rc, perf_rc) = process.wait()
         self.assertEqual(0, rc)
+        self.assertEqual(-15, perf_rc)  # SIGTERM == 15
 
 if __name__ == '__main__':
     unittest.main()

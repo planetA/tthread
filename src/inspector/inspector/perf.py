@@ -14,7 +14,8 @@ class Process:
                 pid, status = os.wait()
                 if pid == self.traced_process.pid:
                     self.perf_process.terminate()
-                    return status
+                    perf_status = self.perf_process.wait()
+                    return (status, perf_status)
                 elif pid == self.perf_process.pid:
                     self.traced_process.terminate()
                     raise Error("perf exited prematurally with %d" % status)

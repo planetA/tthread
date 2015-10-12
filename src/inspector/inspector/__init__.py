@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import subprocess
 import multiprocessing as mp
 from threading import BrokenBarrierError
@@ -34,8 +35,13 @@ def _run_perf(barrier, perf_cmd, process, cgroup):
                "-e", "major-faults,intel_pt/tsc=1/u",
                "-G", cgroup.name,
                "-a", ]
-    print("$ " + " ".join(command))
     perf_process = subprocess.Popen(command)
+
+    for i in range(30):
+        if perf_process.poll() is None \
+           or os.path.exists("perf.data"):
+            break
+        time.sleep(0.1)  # 30 * 0.1 = 3 sec
     try:
         barrier.wait(timeout=3)
     except BrokenBarrierError:
