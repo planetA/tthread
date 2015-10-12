@@ -20,6 +20,18 @@
 
 To trace system wide and manage cgroups inspector needs **root privileges**
 
+Suppose you have enabled testing with `cmake -DTESTING=ON .`:
+
+```bash
+# record
+root> ./bin/inspector ../../test/parallel-sum
+root> du ./perf.data
+1,1M    ./perf.data
+1,1M    total
+# show and decode log
+root> perf script | less
+```
+
 ```
 usage: inspector [-h] [--libtthread-path LIBTTHREAD_PATH]
                  [--perf-command PERF_COMMAND] [--perf-log PERF_LOG]
