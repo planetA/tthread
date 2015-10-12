@@ -1,5 +1,5 @@
 import os
-from inspector.error import Error
+from inspector import Error
 
 
 class Process:
