@@ -5,6 +5,7 @@ import sys
 import argparse
 
 from .run import default_library_path
+from . import Error
 
 
 def abort(msg):
@@ -39,8 +40,11 @@ def main():
         abort("this script requires Python 3.x, not Python 2.x")
     args = parse_arguments()
     command = args.command + args.arguments
-    process = inspector.run(command,
-                            args.libtthread_path,
-                            perf_command=args.perf_command,
-                            perf_log=args.perf_log)
-    process.wait()
+    try:
+        process = inspector.run(command,
+                                args.libtthread_path,
+                                perf_command=args.perf_command,
+                                perf_log=args.perf_log)
+        process.wait()
+    except Error as e:
+        print("[inspector] Error while tracing: %s" % e, file=sys.stderr)
