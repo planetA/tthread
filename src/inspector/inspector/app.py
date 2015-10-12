@@ -4,6 +4,8 @@ import inspector
 import sys
 import argparse
 
+from .run import default_library_path
+
 
 def abort(msg):
     print(msg, file=sys.stderr)
@@ -16,7 +18,7 @@ def parse_arguments():
     h1 = "path to libtthread.so " \
          "(default: ../../libtthread.so - relative to script path)"
     parser.add_argument("--libtthread-path",
-                        default=inspector.default_library_path(),
+                        default=default_library_path(),
                         help=h1)
     parser.add_argument("--perf-path",
                         default="perf",
