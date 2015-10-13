@@ -24,14 +24,20 @@ def parse_arguments():
     parser.add_argument("--perf-command",
                         default="perf",
                         help="Path to perf tool")
+    parser.add_argument("--perf-log",
+                        default="perf.data",
+                        help="File name to write log")
+    parser.add_argument("--set-user",
+                        default=None,
+                        help="Run command as user")
+    parser.add_argument("--set-group",
+                        default=None,
+                        help="Run command as group")
     parser.add_argument("command", nargs=1,
                         help="command to execute with")
     parser.add_argument("arguments", nargs="*",
                         default=[],
                         help="arguments passed to command")
-    parser.add_argument("--perf-log",
-                        default="perf.data",
-                        help="File name to write log")
     return parser.parse_args()
 
 
@@ -44,7 +50,9 @@ def main():
         process = inspector.run(command,
                                 args.libtthread_path,
                                 perf_command=args.perf_command,
-                                perf_log=args.perf_log)
+                                perf_log=args.perf_log,
+                                user=args.set_user,
+                                group=args.set_group)
         process.wait()
     except Error as e:
         print("[inspector] Error while tracing: %s" % e, file=sys.stderr)
