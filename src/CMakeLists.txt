@@ -1,4 +1,4 @@
-file(GLOB_RECURSE srcFiles "source/*.cpp")
+file(GLOB_RECURSE srcFiles "tthread/*.cpp")
 add_library(tthread SHARED ${srcFiles})
 
 set(TTHREAD_DEFINITIONS "")
