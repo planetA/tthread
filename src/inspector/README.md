@@ -35,6 +35,7 @@ root> perf script | less
 ```
 usage: inspector [-h] [--libtthread-path LIBTTHREAD_PATH]
                  [--perf-command PERF_COMMAND] [--perf-log PERF_LOG]
+                 [--set-user SET_USER] [--set-group SET_GROUP] [--quiet]
                  command [arguments [arguments ...]]
 
 Run program with tthread and intel PT
@@ -51,4 +52,8 @@ optional arguments:
   --perf-command PERF_COMMAND
                         Path to perf tool
   --perf-log PERF_LOG   File name to write log
+  --set-user SET_USER   Run command as user
+  --set-group SET_GROUP
+                        Run command as group
+  --quiet               not output (suitable for scripting)
 ```
