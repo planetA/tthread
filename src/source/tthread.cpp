@@ -110,7 +110,6 @@ void initialize() {
 
   run = new(xrunbuf)xrun(*memory, *tthread::logger);
 
-  notifyParent();
   initialized = true;
 }
 
