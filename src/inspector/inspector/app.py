@@ -33,6 +33,9 @@ def parse_arguments():
     parser.add_argument("--set-group",
                         default=None,
                         help="Run command as group")
+    parser.add_argument("--quiet", action='store_true',
+                        default=False,
+                        help="not output (suitable for scripting)")
     parser.add_argument("command", nargs=1,
                         help="command to execute with")
     parser.add_argument("arguments", nargs="*",
@@ -53,6 +56,10 @@ def main():
                                 perf_log=args.perf_log,
                                 user=args.set_user,
                                 group=args.set_group)
-        process.wait()
+        status = process.wait()
+        if not args.quiet:
+            msg = "%s %.7fms total" % \
+                    (args.command[0], status.duration * 1000)
+            print(msg)
     except Error as e:
         print("[inspector] Error while tracing: %s" % e, file=sys.stderr)
