@@ -3,6 +3,15 @@ Tthread: Tracing Multithreading library
 
 tthread is based on [dthreads](https://github.com/emeryberger/dthreads)
 
+### TThread-Python ###
+
+For python api and scripts, see [here](src/tthread-python/README.md)
+
+### Inspector ###
+
+Combines tthread and [Intel Pt](https://software.intel.com/en-us/blogs/2013/09/18/processor-tracing)
+to build a concurrent data provenance graph. See [here](src/inspector/README.md)
+
 ### Building Tthread ###
 
 [CMake](http://www.cmake.org/) is required to build Tthread:
