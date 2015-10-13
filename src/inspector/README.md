@@ -9,11 +9,11 @@
 - hardware which is capable of Intel PT (processors since the Broadwell
   architecture)
 - A linux kernel with the Intel PT PMU driver for perf (was merged in v3.16-rc4) and `perf_event` cgroup:
-  - check if `/sys/bus/event\_source/devices/intel\_pt` exists
+  - check if `/sys/bus/event_source/devices/intel_pt` exists
   - check if kernel option is activated `zgrep CONFIG_CGROUP_PERF /proc/config.gz`
-  - check if perf_event cgroup is mounted in `/sys/fs/cgroup/perf_event`
+  - check if perf\_event cgroup is mounted in `/sys/fs/cgroup/perf_event`
 - Perf tool with support for Intel PT (merged release candiates of v4.3):
-  - check with `perf list | grep intel\_pt`
+  - check with `perf list | grep intel_pt`
 - python3 to run the script
 
 ## Usage
