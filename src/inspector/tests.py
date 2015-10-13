@@ -30,10 +30,11 @@ class PerfTest(unittest.TestCase):
             process = inspector.run([sample_app],
                                     perf_command=perf_cmd(),
                                     perf_log=log_file.name)
-            (rc, perf_rc) = process.wait()
-            self.assertEqual(0, rc)
-            self.assertEqual(-15, perf_rc)  # SIGTERM == 15
+            status = process.wait()
+            self.assertEqual(0, status.exit_code)
+            self.assertEqual(-15, status.perf_exit_code)  # SIGTERM == 15
             self.assertGreater(os.path.getsize(log_file.name), 1000)
+            self.assertGreater(status.duration, 0)
 
 if __name__ == '__main__':
     unittest.main()

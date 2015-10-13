@@ -1,5 +1,5 @@
 import os
-from inspector import Error
+from . import Error
 
 
 def find_mount(cgroup_type):

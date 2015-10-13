@@ -7,7 +7,7 @@ import sys
 import multiprocessing as mp
 from threading import BrokenBarrierError
 
-from inspector import cgroups, Error, perf
+from . import cgroups, Error, perf
 
 
 def drop_privileges(user, group):
