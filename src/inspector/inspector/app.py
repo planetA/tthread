@@ -33,15 +33,19 @@ def parse_arguments():
     parser.add_argument("--set-group",
                         default=None,
                         help="Run command as group")
-    parser.add_argument("--no-processor-trace", action='store_true',
+    parser.add_argument("--no-processor-trace",
+                        action='store_true',
                         default=False,
                         help="disable processor trace")
-    parser.add_argument("--quiet", action='store_true',
+    parser.add_argument("--quiet",
+                        action='store_true',
                         default=False,
                         help="not output (suitable for scripting)")
-    parser.add_argument("command", nargs=1,
+    parser.add_argument("command",
+                        nargs=1,
                         help="command to execute with")
-    parser.add_argument("arguments", nargs="*",
+    parser.add_argument("arguments",
+                        nargs="*",
                         default=[],
                         help="arguments passed to command")
     return parser.parse_args()

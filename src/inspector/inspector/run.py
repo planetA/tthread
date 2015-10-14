@@ -5,14 +5,14 @@ from . import cgroups, perf
 from . import tthread
 
 
-def default_library_path():
+def default_tthread_path():
     script_dir = os.path.dirname(__file__)
     tthread_dir = os.path.join(script_dir, "..", "..", "libtthread.so")
     return os.path.realpath(tthread_dir)
 
 
 def run(command,
-        tthread_path=default_library_path(),
+        tthread_path=default_tthread_path(),
         perf_command="perf",
         perf_log="perf.data",
         user=None,
