@@ -36,5 +36,16 @@ class PerfTest(unittest.TestCase):
             self.assertGreater(os.path.getsize(log_file.name), 1000)
             self.assertGreater(status.duration, 0)
 
+    def test_run_without_pt(self):
+        sample_app = os.path.join(TEST_ROOT, "../../test/usage-test")
+
+        with tempfile.NamedTemporaryFile() as log_file:
+            process = inspector.run([sample_app],
+                                    perf_command=perf_cmd(),
+                                    perf_log=log_file.name,
+                                    processor_trace=False)
+            status = process.wait()
+            self.assertEqual(0, status.exit_code)
+
 if __name__ == '__main__':
     unittest.main()

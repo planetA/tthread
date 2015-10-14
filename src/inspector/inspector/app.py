@@ -33,6 +33,9 @@ def parse_arguments():
     parser.add_argument("--set-group",
                         default=None,
                         help="Run command as group")
+    parser.add_argument("--no-processor-trace", action='store_true',
+                        default=False,
+                        help="disable processor trace")
     parser.add_argument("--quiet", action='store_true',
                         default=False,
                         help="not output (suitable for scripting)")
@@ -55,7 +58,8 @@ def main():
                                 perf_command=args.perf_command,
                                 perf_log=args.perf_log,
                                 user=args.set_user,
-                                group=args.set_group)
+                                group=args.set_group,
+                                processor_trace=not args.no_processor_trace)
         status = process.wait()
         if not args.quiet:
             msg = "%s %.7fms total" % \
