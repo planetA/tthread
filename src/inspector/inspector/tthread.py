@@ -35,9 +35,10 @@ class Command():
 
     def exec(self, command, barrier):
         env = os.environ.copy()
-        if self.tthread_path is None:
-            env["LD_PRELOAD"] = self.tthread_path
+        if self.tthread_path is not None:
+            env["LD_PRELOAD"] = str(self.tthread_path)
             env["TTHREAD_NO_LOG"] = "1"
+            env["TTHREAD_NO_MMAP_PROTECT"] = "1"
             env["LD_BIND_NOW"] = "1"
         try:
             barrier.wait(timeout=3)
