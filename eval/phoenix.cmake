@@ -59,7 +59,19 @@ AddPhoenixBenchmark(word_count
     ${PHOENIX_SRC}/word_count/word_count-pthread.c
     ${PHOENIX_SRC}/word_count/sort-pthread.c)
 
-set(phoenix_benchmarks histogram linear_regression reverse_index string_match word_count)
+AddPhoenixBenchmark(kmeans
+  ARGS -d 3 -c 1000 -p 100000 -s 1000
+  FILES ${PHOENIX_SRC}/kmeans/kmeans-pthread.c)
+
+AddPhoenixBenchmark(matrix_multiply
+  ARGS 2000 2000
+  FILES ${PHOENIX_SRC}/matrix_multiply/matrix_multiply-pthread.c)
+
+AddPhoenixBenchmark(pca
+  ARGS -r 4000 -c 4000 -s 100
+  FILES ${PHOENIX_SRC}/pca/pca-pthread.c)
+
+set(phoenix_benchmarks histogram linear_regression reverse_index string_match word_count kmeans pca)
 
 foreach(bench ${phoenix_benchmarks})
   list(APPEND phoenix_pthread_benchmarks bench-${bench}-pthread)
