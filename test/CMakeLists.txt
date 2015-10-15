@@ -23,7 +23,6 @@ set(cpp_tests
   xlogger-test
   malloc-free-test
   mmap-test
-  notify-test
 )
 
 include(ProcessorCount)
