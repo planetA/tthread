@@ -18,52 +18,46 @@ add_custom_target(libphoenix DEPENDS "${PHOENIX_LIBRARY}")
 add_dependencies(phoenix libphoenix)
 
 include(DownloadDataset)
+include(AddPhoenixBenchmark)
 
-# Phoenix benchmark data
+set(PHOENIX_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(PHOENIX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 DownloadDataset(http://csl.stanford.edu/%7Echristos/data/histogram.tar.gz
   histogram.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-AddBenchmark(histogram
+AddPhoenixBenchmark(histogram
   ARGS ${DATASET_HOME}/histogram_datafiles/large.bmp
-  FILES histogram-pthread.c
-  INCLUDES ../../include
-  LIBS phoenix)
+  FILES ${PHOENIX_SRC}/histogram/histogram-pthread.c)
 
 DownloadDataset(http://csl.stanford.edu/%7Echristos/data/linear_regression.tar.gz
   linear_regression.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-AddBenchmark(linear_regression
+AddPhoenixBenchmark(linear_regression
   ARGS ${DATASET_HOME}/linear_regression_datafiles/key_file_500MB.txt
-  FILES linear_regression-pthread.c
-  INCLUDES ../../include
-  LIBS phoenix)
+  FILES ${PHOENIX_SRC}/linear_regression/linear_regression-pthread.c)
 
 DownloadDataset(http://csl.stanford.edu/%7Echristos/data/reverse_index.tar.gz
   reverse_index.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-AddBenchmark(reverse_index
+AddPhoenixBenchmark(reverse_index
   ARGS ${DATASET_HOME}/reverse_index_datafiles
-  FILES reverseindex-pthread.c
-  INCLUDES ../../include
-  LIBS phoenix)
+  FILES ${PHOENIX_SRC}/reverse_index/reverseindex-pthread.c)
 
 DownloadDataset(http://csl.stanford.edu/%7Echristos/data/string_match.tar.gz
   string_match.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-AddBenchmark(string_match
+AddPhoenixBenchmark(string_match
   ARGS ${DATASET_HOME}/string_match_datafiles/key_file_500MB.txt
-  FILES string_match-pthread.c
-  INCLUDES ../../include
-  LIBS phoenix)
+  FILES ${PHOENIX_SRC}/string_match/string_match-pthread.c)
 
 DownloadDataset(http://csl.stanford.edu/%7Echristos/data/word_count.tar.gz
   word_count.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-AddBenchmark(word_count
+AddPhoenixBenchmark(word_count
   ARGS ${DATASET_HOME}/word_count_datafiles/word_100MB.txt
-  FILES word_count-pthread.c sort-pthread.c
-  INCLUDES ../../include
-  LIBS phoenix)
+  FILES
+    ${PHOENIX_SRC}/word_count/word_count-pthread.c
+    ${PHOENIX_SRC}/word_count/sort-pthread.c)
 
 set(phoenix_benchmarks histogram linear_regression reverse_index string_match word_count)
 
