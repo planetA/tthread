@@ -4,14 +4,15 @@ Makefile
 *.ninja
 .ninja_deps
 .ninja_log
+.direnv
 cmake_install.cmake
 compile_commands.json
 install_manifest.txt
 CTestTestfile.cmake
 Testing/
 /eval/datasets/
-/eval/parsec-2.0
 /eval/parsec-3.0
+/eval/ex-parsec*
 /eval/parsec-prefix
 /eval/tests/ferret
 /eval/tests/vips
@@ -32,6 +33,7 @@ __pycache__/
 
 .DS_Store
 .gdb_history
+.direnv
 
 test/*
 !test/*.cpp
