@@ -46,4 +46,4 @@ class Command():
             print("Parent process timed out", file=sys.stderr)
         self.cgroup.addPids(os.getpid())
         drop_privileges(self.user, self.group)
-        os.execlpe(*command, env)
+        os.execvpe(command[0], command, env)
