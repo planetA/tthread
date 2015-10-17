@@ -74,7 +74,7 @@ class Benchmark():
             self.command = command
         self.perf_command = "perf"
 
-    def run(self, cores, with_pt, with_tthread):
+    def run(self, cores, perf_log, with_pt, with_tthread):
         def format_arg(arg):
             if issubclass(type(arg), NCores):
                 return str(arg.to_param(cores))
@@ -93,7 +93,8 @@ class Benchmark():
             proc = inspector.run(cmd,
                                  perf_command=self.perf_command,
                                  processor_trace=with_pt,
-                                 tthread_path=libtthread)
+                                 tthread_path=libtthread,
+                                 perf_log=perf_log)
             status = proc.wait()
             if status.exit_code != 0:
                 raise OSError("command: %s\nfailed with: %d" %
@@ -164,6 +165,9 @@ def main():
     parser.add_argument("--perf-command",
                         default="perf",
                         help="Path to perf tool")
+    parser.add_argument("--perf-log",
+                        default="perf.data",
+                        help="Path to perf log")
     parser.add_argument("output",
                         nargs="?",
                         default=".",
@@ -185,13 +189,17 @@ def main():
                 path = os.path.join(args.output, bench.name + ".csv")
                 sys.stderr.write(">> run %s\n" % bench.name)
 
-                pthread_mean = bench.run(threads, False, False)
-                tthread_mean = bench.run(threads, False, True)
-                with_pt_mean = bench.run(threads, True, True)
+                def run(pt, tthread):
+                    return bench.run(threads, args.perf_log, pt, tthread)
 
-                row = (threads, pthread_mean, tthread_mean, with_pt_mean)
+                pthread = run(False, False)
+                tthread = run(False, True)
+                pt = run(True, False)
+                both = run(True, True)
+
+                row = (threads, pthread, tthread, pt, both)
                 with open(path, "a+") as f:
-                    f.write("%d;%f;%f;%f\n" % row)
+                    f.write(";".join(row) + "\n")
             except OSError as e:
                 print("failed to run %s: %s" % (bench.name, e))
 
