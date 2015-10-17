@@ -173,7 +173,12 @@ def main():
                         default=".",
                         help="output directory to write measurements")
     args = parser.parse_args()
-    perf_command = os.path.realpath(args.perf_command)
+
+    if "/" in args.perf_command:
+        # resolve relatives command paths
+        perf_command = os.path.realpath(args.perf_command)
+    else:
+        perf_command = args.perf_command
 
     os.chdir(os.path.join(SCRIPT_ROOT, "../.."))
 
