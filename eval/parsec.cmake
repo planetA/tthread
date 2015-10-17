@@ -30,7 +30,7 @@ ExternalProject_Add(parsec
   cp ${CMAKE_CURRENT_SOURCE_DIR}/tests/streamcluster/streamcluster.cpp ${CMAKE_CURRENT_SOURCE_DIR}/parsec-3.0/pkgs/kernels/streamcluster/src
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ../gcc.bldconf config/gcc.bldconf
   SOURCE_DIR parsec-3.0
-  BUILD_COMMAND bin/parsecmgmt -a build -c gcc-pthreads -p canneal -p dedup -p blackscholes -p streamcluster -p ferret -p raytrace -p swaptions -p vips
+  BUILD_COMMAND bin/parsecmgmt -a build -c gcc-pthreads -p canneal -p dedup -p blackscholes -p streamcluster -p ferret -p swaptions -p vips
   INSTALL_COMMAND ""
   BUILD_IN_SOURCE 1
   LOG_BUILD 1
