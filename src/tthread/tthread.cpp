@@ -520,6 +520,7 @@ void prepare_write(const void *buf, size_t count) {
   }
 
   temp = start[count - 1];
+  UNUSED(temp);
 }
 
 _PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
