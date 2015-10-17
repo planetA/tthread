@@ -4,8 +4,8 @@ file(WRITE gcc.bldconf "
 # Generated configuration file
 export LIBS=''
 export EXTRA_LIBS=''
-export CC='${CMAKE_C_COMPILER}'
-export CXX='${CMAKE_CXX_COMPILER}'
+export CC='gcc'
+export CXX='g++'
 export LD='${CMAKE_LINKER}'
 export RANLIB='${CMAKE_RANLIB}'
 export STRIP='${CMAKE_STRIP}'
