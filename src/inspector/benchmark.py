@@ -42,12 +42,12 @@ class DedupThreads(NCores):
 
 def set_online_cpus(threads=TOTAL_THREADS, verbose=True):
     for i in list(range(1, TOTAL_THREADS - 1)):
-        enable = (i % (TOTAL_THREADS / threads)) == 0
+        enable = (i % int(TOTAL_THREADS / threads)) == 0
         with open("/sys/devices/system/cpu/cpu%d/online" % i, "w") as f:
             if enable:
-                f.write("1")
+                f.write("1\n")
             else:
-                f.write("0")
+                f.write("0\n")
 
 
 def sh(cmd, verbose=True):
