@@ -184,6 +184,8 @@ def main():
 
     sh(["cmake", "-DCMAKE_BUILD_TYPE=Release", "-DBENCHMARK=On"])
     sh(["cmake", "--build", "."])
+    sh(["cmake", "--build", ".", "--target", "build-parsec"])
+    sh(["cmake", "--build", ".", "--target", "build-phoenix"])
 
     for threads in [16, 8, 4, 2]:
         os.environ["IM_CONCURRENCY"] = str(threads)

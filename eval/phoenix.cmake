@@ -76,7 +76,9 @@ set(phoenix_benchmarks histogram linear_regression reverse_index string_match wo
 foreach(bench ${phoenix_benchmarks})
   list(APPEND phoenix_pthread_benchmarks bench-${bench}-pthread)
   list(APPEND phoenix_tthread_benchmarks bench-${bench}-tthread)
-endforeach(bench)
+  list(APPEND phoenix_build_targets ${bench})
+endforeach()
 
 add_custom_target(phoenix-tthread DEPENDS ${phoenix_tthread_benchmarks})
 add_custom_target(phoenix-pthread DEPENDS ${phoenix_pthread_benchmarks})
+add_custom_target(build-phoenix DEPENDS ${phoenix_build_targets})

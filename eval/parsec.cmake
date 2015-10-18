@@ -91,14 +91,8 @@ AddParsecBenchmark(raytrace
   EXE rtview
   ARCHIVE input_native.tar)
 
-#add_custom_target(bench-raytrace-tthread
-#  COMMAND ${benchmark}-tthread ${AddBenchmark_ARGS})
-#
-#add_custom_target(bench-${benchmark}-pthread
-#  COMMAND ${benchmark}-pthread ${AddBenchmark_ARGS})
-#
-#AddBenchmark(raytrace
-#  ARGS ${DATASET_HOME}/reverse_index_datafiles
-#  FILES reverseindex-pthread.c
-#  INCLUDES ../../include
-#  LIBS phoenix)
+set(parsec_benchmarks canneal dedup ferret swaptions streamcluster vips raytrace)
+foreach(bench ${parsec_benchmarks})
+  list(APPEND parsec_build_targets bench-${bench})
+endforeach()
+add_custom_target(build-parsec DEPENDS ${parsec_build_targets})
