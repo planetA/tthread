@@ -6,7 +6,7 @@ macro(AddPhoenixBenchmark benchmark)
     "ARGS;DEFINITIONS;ENV;FILES"
     ${ARGN})
 
-  set(destination ${CMAKE_CURRENT_SOURCE_DIR}/tests/${benchmark})
+  set(destination tests/${benchmark})
 
   set(src ${CMAKE_CURRENT_SOURCE_DIR})
 
