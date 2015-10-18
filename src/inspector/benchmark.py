@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import argparse
+import json
 import subprocess
 import inspector
 if sys.version_info >= (3, 3):
@@ -191,9 +192,12 @@ def main():
         os.environ["IM_CONCURRENCY"] = str(threads)
         set_online_cpus(threads)
         for bench in benchmarks:
+            run_name = "%s-%d" % (bench.name, threads)
+            if run_name in log:
+                print(">> skip %s" % run_name)
+                continue
             bench.perf_command = perf_command
             try:
-                path = os.path.join(args.output, bench.name + ".csv")
                 sys.stderr.write(">> run %s\n" % bench.name)
 
                 def run(pt, tthread):
@@ -205,8 +209,9 @@ def main():
                 both = run(True, True)
 
                 row = (threads, pthread, tthread, pt, both)
-                with open(path, "a+") as f:
-                    f.write(";".join(row) + "\n")
+                log[run_name] = row
+                with open(path, "w") as f:
+                    json.dump(log, f)
             except OSError as e:
                 print("failed to run %s: %s" % (bench.name, e))
 
