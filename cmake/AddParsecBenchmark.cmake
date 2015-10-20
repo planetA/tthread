@@ -21,7 +21,7 @@ macro(AddParsecBenchmark benchmark)
     copy ${PARSEC_APP_PATH}/${bench_PATH}/inst/amd64-linux.gcc-pthreads/bin/${bench_EXE}
     ${executable})
 
-  if (NOT "x${_ARCHIVE}x" STREQUAL "xx")
+  if (NOT "x${bench_ARCHIVE}x" STREQUAL "xx")
     add_custom_command(TARGET bench-${benchmark} PRE_BUILD
       COMMAND ${CMAKE_COMMAND} -E
       tar xzf ${PARSEC_APP_PATH}/${bench_PATH}/inputs/${bench_ARCHIVE}
