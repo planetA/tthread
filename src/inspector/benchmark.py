@@ -169,7 +169,7 @@ benchmarks = [
 ]
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description="Run benchmarks.")
     parser.add_argument("--perf-command",
                         default="perf",
@@ -178,10 +178,15 @@ def main():
                         default="perf.data",
                         help="Path to perf log")
     parser.add_argument("output",
-                        nargs="?",
                         default=".",
                         help="output directory to write measurements")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    output = os.path.realpath(args.output)
+    perf_log = os.path.realpath(args.perf_log)
 
     if "/" in args.perf_command:
         # resolve relatives command paths
@@ -196,6 +201,13 @@ def main():
     sh(["cmake", "--build", ".", "--target", "build-parsec"])
     sh(["cmake", "--build", ".", "--target", "build-phoenix"])
 
+    path = os.path.join(output, "log.json")
+
+    if os.path.exists(path):
+        log = json.load(open(path))
+    else:
+        log = {}
+
     for threads in [16, 8, 4, 2]:
         os.environ["IM_CONCURRENCY"] = str(threads)
         set_online_cpus(threads)
@@ -209,12 +221,12 @@ def main():
                 sys.stderr.write(">> run %s\n" % bench.name)
 
                 def run(pt, tthread):
-                    return bench.run(threads, args.perf_log, pt, tthread)
+                    return bench.run(threads, perf_log, pt, tthread)
 
-                pthread = run(False, False)
+                both    = run(True, True)
+                pt      = run(True, False)
                 tthread = run(False, True)
-                pt = run(True, False)
-                both = run(True, True)
+                pthread = run(False, False)
 
                 row = (threads, pthread, tthread, pt, both)
                 log[run_name] = row
