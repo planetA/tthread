@@ -84,20 +84,23 @@ class Benchmark():
         os.chdir(test_path(self.name))
         cmd = ["./" + self.command] + args
         durations = []
+        if with_tthread:
+            libtthread = inspector.default_tthread_path()
+        else:
+            libtthread = None
+        for c in cmd:
+            assert type(c) is not None
         for i in range(6):
-            if with_pt:
-                libtthread = inspector.default_tthread_path()
-            else:
-                libtthread = None
-            for c in cmd:
-                assert type(c) is not None
+            print("$ " + " ".join(cmd)
+                  + (" pt" if with_pt else "")
+                  + (" tthread" if with_tthread else ""))
+            if os.path.exists(perf_log):
+                os.remove(perf_log)
             proc = inspector.run(cmd,
                                  perf_command=self.perf_command,
                                  processor_trace=with_pt,
                                  tthread_path=libtthread,
                                  perf_log=perf_log)
-            if os.path.exists(perf_log):
-                os.remove(perf_log)
             status = proc.wait()
             if status.exit_code != 0:
                 raise OSError("command: %s\nfailed with: %d" %
