@@ -96,6 +96,8 @@ class Benchmark():
                                  processor_trace=with_pt,
                                  tthread_path=libtthread,
                                  perf_log=perf_log)
+            if os.path.exists(perf_log):
+                os.remove(perf_log)
             status = proc.wait()
             if status.exit_code != 0:
                 raise OSError("command: %s\nfailed with: %d" %
