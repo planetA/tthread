@@ -163,7 +163,7 @@ benchmarks = [
               [dataset_home("string_match_datafiles/key_file_500MB.txt")]),
     Benchmark("word_count",
               [dataset_home("word_count_datafiles/word_100MB.txt")]),
-    Benchmark("kmeans", ["-d", 3, "-c", 1000, "-p", 100000, "-s", 1000]),
+    Benchmark("kmeans", ["-d", 3, "-c", 500, "-p", 50000, "-s", 500]),
     Benchmark("matrix_multiply", [2000, 2000]),
     Benchmark("pca", ["-r", 4000, "-c", 4000, "-s", 100])
 ]
