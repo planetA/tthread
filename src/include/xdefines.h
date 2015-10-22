@@ -49,6 +49,8 @@ typedef struct runtime_data {
   volatile unsigned long thread_index;
   struct xlogger_shared_data xlogger;
   struct runtime_stats stats;
+  bool enable_logging;
+  bool protect_mmap;
 } runtime_data_t;
 
 extern runtime_data_t *global_data;

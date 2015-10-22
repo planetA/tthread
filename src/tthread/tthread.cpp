@@ -94,6 +94,8 @@ void initialize() {
                                              -1,
                                              0);
   global_data->thread_index = 1;
+  global_data->enable_logging = getenv("TTHREAD_NO_LOG") == NULL;
+  global_data->protect_mmap = getenv("TTHREAD_NO_MMAP_PROTECT") == NULL;
 
 #ifndef BUILTIN_RETURN_ADDRESS
 
@@ -536,7 +538,8 @@ _PUBLIC_ size_t fwrite(const void *ptr, size_t size, size_t nmemb,
 
 _PUBLIC_ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
                     off_t offset) __THROW {
-  if (initialized) {
+  if (initialized
+      && global_data->protect_mmap) {
     return run->mmap(addr, length, prot, flags, fd, offset);
   }
 
@@ -544,7 +547,8 @@ _PUBLIC_ void *mmap(void *addr, size_t length, int prot, int flags, int fd,
 }
 
 _PUBLIC_ int munmap(void *addr, size_t len) __THROW {
-  if (initialized) {
+  if (initialized
+      && global_data->protect_mmap) {
     return run->munmap(addr, len);
   }
 

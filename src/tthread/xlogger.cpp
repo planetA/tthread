@@ -5,6 +5,10 @@
 #include "xlogger.h"
 
 void xlogger::add(tthread::logevent e) {
+  if (!global_data->enable_logging) {
+    return;
+  }
+
   // FIXME later on, _thread should be logged
   // as an seperate event
   if (_thread != NULL) {
