@@ -62,7 +62,7 @@ AddParsecBenchmark(canneal
   ARCHIVE input_simlarge.tar)
 
 AddParsecBenchmark(dedup
-  ARGS -c -p -t ${DEDUP_THREADS} -i ${TEST_PATH}/vips/FC-6-x86_64-disc1.iso -o output.dat.ddp
+  ARGS -c -p -t ${DEDUP_THREADS} -i ${TEST_PATH}/dedup/FC-6-x86_64-disc1.iso -o output.dat.ddp
   PATH kernels/dedup
   ARCHIVE input_native.tar)
 
