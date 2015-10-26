@@ -16,7 +16,6 @@ TOTAL_THREADS = len(glob.glob("/sys/devices/system/cpu/cpu*"))
 TEST_PATH = os.path.join(EVAL_ROOT, "tests")
 DATASET_HOME = os.path.join(EVAL_ROOT, "datasets")
 
-
 class NCores:
     def to_param(self, cores):
         return cores
@@ -24,6 +23,8 @@ class NCores:
 
 class CannealThreads(NCores):
     def to_param(self, cores):
+        if cores == 16:
+            return 15
         if cores == 8:
             return 7
         elif cores == 4:
