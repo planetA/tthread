@@ -1,4 +1,5 @@
 import os
+import sys
 from . import Error
 
 
@@ -62,6 +63,9 @@ class PerfEvent():
     def destroy(self):
         self._move_processes(PerfEvent(""))
 
+        with open(os.path.join(self.mountpoint, "tasks"), "r") as f:
+            for line in f:
+                os.kill(int(line), signal.SIGKILL)
         try:
             os.rmdir(self.mountpoint)
         except OSError as e:
