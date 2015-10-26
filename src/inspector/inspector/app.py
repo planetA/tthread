@@ -4,7 +4,7 @@ import inspector
 import sys
 import argparse
 
-from .run import default_library_path
+from .run import default_tthread_path
 from . import Error
 
 
@@ -19,7 +19,7 @@ def parse_arguments():
     h1 = "path to libtthread.so " \
          "(default: ../../libtthread.so - relative to script path)"
     parser.add_argument("--libtthread-path",
-                        default=default_library_path(),
+                        default=default_tthread_path(),
                         help=h1)
     parser.add_argument("--perf-command",
                         default="perf",
