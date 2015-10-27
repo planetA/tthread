@@ -41,6 +41,8 @@ void * (*WRAP(memalign))(size_t, size_t);
 size_t(*WRAP(malloc_usable_size))(void *);
 ssize_t(*WRAP(read))(int, void *, size_t);
 size_t(*WRAP(fread))(void *, size_t, size_t, void *);
+size_t(*WRAP(open))(const char *, int, ...);
+void *(*WRAP(fopen))(const char *, const char *);
 ssize_t(*WRAP(write))(int, const void *, size_t);
 ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, void *);
 int(*WRAP(sigwait))(const sigset_t *, int *);
@@ -95,6 +97,8 @@ void init_real_functions() {
   SET_WRAPPED(malloc_usable_size, RTLD_NEXT);
   SET_WRAPPED(read,               RTLD_NEXT);
   SET_WRAPPED(fread,              RTLD_NEXT);
+  SET_WRAPPED(fopen,              RTLD_NEXT);
+  SET_WRAPPED(open,               RTLD_NEXT);
   SET_WRAPPED(write,              RTLD_NEXT);
   SET_WRAPPED(fwrite,             RTLD_NEXT);
   SET_WRAPPED(sigwait,            RTLD_NEXT);

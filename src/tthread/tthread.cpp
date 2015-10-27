@@ -530,6 +530,22 @@ _PUBLIC_ ssize_t write(int fd, const void *buf, size_t count) {
   return WRAP(write)(fd, buf, count);
 }
 
+_PUBLIC_ int open(const char *pathname, int flags, ...) {
+  (void)(strlen(pathname));
+  volatile int temp;
+
+  uint8_t *start = (uint8_t *)pathname;
+
+  for (size_t i = 0; i < strlen(pathname); i += xdefines::PageSize) {
+    temp = start[i];
+  }
+
+  temp = start[strlen(pathname) - 1];
+  temp = flags;
+
+  return WRAP(open)(pathname, flags);
+}
+
 _PUBLIC_ size_t fwrite(const void *ptr, size_t size, size_t nmemb,
                        FILE *stream) {
   prepare_write(ptr, size * nmemb);
