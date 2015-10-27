@@ -12,7 +12,7 @@ else:
 
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(__file__))
 EVAL_ROOT = os.path.realpath(os.path.join(SCRIPT_ROOT, "../../eval"))
-TOTAL_THREADS = len(glob.glob("/sys/devices/system/cpu/cpu*"))
+TOTAL_THREADS = os.system("nproc --all")
 TEST_PATH = os.path.join(EVAL_ROOT, "tests")
 DATASET_HOME = os.path.join(EVAL_ROOT, "datasets")
 
