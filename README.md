@@ -59,7 +59,7 @@ Tthread currently only supports Linux/x86\_64 platforms.
 % export LD_LIBRARY_PATH=<TTHREAD_DIR>:$LD_LIBRARY_PATH
 ```
 
-  (c) set LD_PRELOAD to <TTHREAD_DIR>/libtthread.so
+  (c) set LD_PRELOAD to <TTHREAD_DIR>/libtthread.so (Compile program with -rdynamic is also needed in this case)
 
 ```
 export LD_PRELOAD=<TTHREAD_DIR>/libtthread.so
