@@ -85,6 +85,7 @@ class Benchmark():
         os.chdir(test_path(self.name))
         cmd = ["./" + self.command] + args
         durations = []
+        log_sizes = []
         if with_tthread:
             libtthread = inspector.default_tthread_path()
         else:
@@ -92,9 +93,9 @@ class Benchmark():
         for c in cmd:
             assert type(c) is not None
         for i in range(6):
-            print("$ " + " ".join(cmd)
-                  + (" pt" if with_pt else "")
-                  + (" tthread" if with_tthread else ""))
+            print("$ " + " ".join(cmd) +
+                  (" pt" if with_pt else "") +
+                  (" tthread" if with_tthread else ""))
             if os.path.exists(perf_log):
                 os.remove(perf_log)
             proc = inspector.run(cmd,
@@ -107,7 +108,8 @@ class Benchmark():
                 raise OSError("command: %s\nfailed with: %d" %
                               (" ".join(cmd), status.exit_code))
             durations.append(status.duration)
-        return (sum(durations) - max(durations) - min(durations)) / 8
+            log_sizes.append(os.path.getsize(perf_log))
+        return durations, log_sizes
 
 benchmarks = [
     Benchmark("canneal",
@@ -222,18 +224,23 @@ def main():
             try:
                 sys.stderr.write(">> run %s\n" % bench.name)
 
-                def run(pt, tthread):
-                    return bench.run(threads, perf_log, pt, tthread)
+                log[run_name] = {"threads": threads}
 
-                both    = run(True, True)
-                pt      = run(True, False)
-                tthread = run(False, True)
-                pthread = run(False, False)
+                def run(name, pt, tthread):
+                    times, sizes = bench.run(threads, perf_log, pt, tthread)
+                    log[run_name][name] = {
+                            "times": times,
+                            "log_sizes": sizes
+                    }
+                    return
 
-                row = (threads, pthread, tthread, pt, both)
-                log[run_name] = row
+                run("pthread",   False, False)
+                run("tthread",   False, True)
+                run("pt",        True,  False)
+                run("inspector", True,  True)
+
                 with open(path, "w") as f:
-                    json.dump(log, f)
+                    json.dump(log, f, sort_keys=True, ident=4)
             except OSError as e:
                 print("failed to run %s: %s" % (bench.name, e))
 
