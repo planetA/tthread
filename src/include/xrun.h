@@ -45,6 +45,8 @@
 
 #include "xlogger.h"
 
+#include "xtime.h"
+
 #include "objectheader.h"
 
 class xrun {
@@ -60,6 +62,7 @@ private:
   xmemory& _memory;
   xlogger& _logger;
   xthread _thread;
+  xtime _cpu_time;
   determ& _determ;
 
 public:
@@ -147,6 +150,7 @@ public:
     // We should cleanup all blocks information inherited from the parent.
     _memory.cleanupOwnedBlocks();
 
+    _cpu_time.init();
     return _thread_index;
   }
 
@@ -169,6 +173,12 @@ public:
 
     // Remove current thread and decrease the fence
     _determ.deregisterThread(_thread_index);
+
+    // tthread::EventData d;
+    // d.end.cpu_time = _cpu_time.get();
+    // _logger.add(tthread::logevent(tthread::logevent::END,
+    //                               caller,
+    //                               d));
 
     _logger.add(tthread::logevent(tthread::logevent::FINISH,
                                   caller,
@@ -721,6 +731,7 @@ public:
 
     // Now start.
     _memory.begin();
+    _cpu_time.start();
   }
 
   /// @brief End a transaction, aborting it if necessary.
@@ -730,6 +741,11 @@ public:
     if (!_isCopyOnWrite) {
       return;
     }
+    tthread::EventData d;
+    d.end.cpu_time = _cpu_time.get();
+    _logger.add(tthread::logevent(tthread::logevent::END,
+                                  NULL,
+                                  d));
 
     // Commit all private modifications to shared mapping
     _memory.commit();
