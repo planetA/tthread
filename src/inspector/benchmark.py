@@ -109,7 +109,7 @@ class Benchmark():
                               (" ".join(cmd), status.exit_code))
             durations.append(status.duration)
             log_sizes.append(os.path.getsize(perf_log))
-        return durations, log_sizes
+        return durations, log_sizes, self.args(cores)
 
 benchmarks = [
     Benchmark("canneal",
@@ -227,10 +227,14 @@ def main():
                 log[run_name] = {"threads": threads}
 
                 def run(name, pt, tthread):
-                    times, sizes = bench.run(threads, perf_log, pt, tthread)
+                    times, sizes, args = bench.run(threads,
+                                                   perf_log,
+                                                   pt,
+                                                   tthread)
                     log[run_name][name] = {
                             "times": times,
-                            "log_sizes": sizes
+                            "log_sizes": sizes,
+                            "args": args
                     }
                     return
 
