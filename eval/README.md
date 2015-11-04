@@ -13,11 +13,13 @@ If you experience out-of-memory while running the benchmark, set `vm.overcommit_
 
 ```
 sysctl -w vm.overcommit_memory=1
+sysctl -w vm.max_map_count=128000
 ```
 
 Tthread will allocate a lot virtual memory, because of private memory mappings (per thread).
 Linux does not give processes more virtual memory then physical memory available on the system.
-The benchmarks however are safe to be used this way.
+The benchmarks however are safe to be used this way. The other option will
+increase the allowed number of memory mappings per process.
 
 ## Working Benchmarks
 
