@@ -24,6 +24,11 @@ def parse_arguments():
     parser.add_argument("--perf-command",
                         default="perf",
                         help="Path to perf tool")
+    h2 = "Enable Snapshot mode (Trigger by sending SIGUSR1 to this process)"
+    parser.add_argument("--snapshot-mode",
+                        action='store_true',
+                        default=False,
+                        help=h2)
     parser.add_argument("--perf-log",
                         default="perf.data",
                         help="File name to write log")
@@ -63,7 +68,8 @@ def main():
                                 perf_log=args.perf_log,
                                 user=args.set_user,
                                 group=args.set_group,
-                                processor_trace=not args.no_processor_trace)
+                                processor_trace=not args.no_processor_trace,
+                                snapshot_mode=args.snapshot_mode)
         status = process.wait()
         if not args.quiet:
             msg = "%s %.7fms total" % \
@@ -71,3 +77,4 @@ def main():
             print(msg)
     except Error as e:
         print("[inspector] Error while tracing: %s" % e, file=sys.stderr)
+

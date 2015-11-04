@@ -21,7 +21,8 @@ supported_formats = ", ".join(formats.keys())
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Process some integers.")
+    desc = "Run program with libtthread."
+    parser = argparse.ArgumentParser(description=desc)
     h1 = "path to libtthread.so " \
          "(default: ../../libtthread.so - relative to script path)"
     parser.add_argument("--libtthread-path",

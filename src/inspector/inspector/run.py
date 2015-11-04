@@ -1,8 +1,6 @@
 import os
 import multiprocessing as mp
-
-from . import cgroups, perf
-from . import tthread
+from . import cgroups, perf, tthread
 
 
 def default_tthread_path():
@@ -17,7 +15,8 @@ def run(command,
         perf_log="perf.data",
         user=None,
         group=None,
-        processor_trace=True):
+        processor_trace=True,
+        snapshot_mode=False):
 
     cgroup_name = "inspector-%d" % os.getpid()
     cgroup = cgroups.PerfEvent(cgroup_name)
@@ -37,4 +36,5 @@ def run(command,
                     barrier,
                     process,
                     cgroup,
-                    processor_trace=processor_trace)
+                    processor_trace=processor_trace,
+                    snapshot_mode=snapshot_mode)

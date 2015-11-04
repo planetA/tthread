@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+import signal
 from . import Error
 from collections import namedtuple
 from threading import BrokenBarrierError
@@ -8,23 +9,38 @@ from threading import BrokenBarrierError
 Status = namedtuple("Status", ["exit_code", "perf_exit_code", "duration"])
 
 
+class SnapshotHandler:
+    def __init__(self, perf_pid):
+        self.perf_pid = perf_pid
+        signal.signal(signal.SIGUSR2, self.on_signal)
+
+    def on_signal(self, signum, frame):
+        os.kill(self.perf_pid, signal.SIGUSR2)
+
+
 def run(perf_command,
         perf_log,
         barrier,
         process,
         cgroup,
-        processor_trace=True):
+        processor_trace=True,
+        snapshot_mode=False):
     command = [perf_command,
                "record",
                "--all-cpus",
                "--output", perf_log,
                "--event", "major-faults",
                "--cgroup", cgroup.name]
+    if snapshot_mode:
+        command.append("--snapshot")
     if processor_trace:
         command += ["--event", "intel_pt/tsc=1/u",
                     "--cgroup", cgroup.name]
     # print("$ " + " ".join(command))
     perf_process = subprocess.Popen(command)
+    if snapshot_mode:
+        SnapshotHandler(perf_process.pid)
+
     for i in range(5):
         if perf_process.poll() is not None:
             raise Error("Failed to start perf")
