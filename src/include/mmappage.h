@@ -53,7 +53,7 @@ public:
              tthread::logevent::READ;
     tthread::EventData m;
 
-    m.memory.address = (void *)((uintptr_t)addr & ~((uintptr_t)xdefines::PAGE_SIZE_MASK));
+    m.memory.address = (void *)((uintptr_t)addr >> xdefines::PageShift);
 
     tthread::logevent e(t, issuerAddress, m);
 
