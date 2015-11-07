@@ -450,7 +450,8 @@ public:
              tthread::logevent::READ;
     tthread::EventData m;
 
-    m.memory.address = addr;
+    m.memory.address = (void *)((uintptr_t)addr & ~((uintptr_t)xdefines::PAGE_SIZE_MASK));
+
     _logger->add(tthread::logevent(t, issuerAddress, m));
 
     if (is_write) {
