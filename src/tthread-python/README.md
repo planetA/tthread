@@ -100,7 +100,7 @@ As it is tab-seperated in can be imported into spreadsheet application without a
 # Disable ASLR
 
 For some benchmarks it is important to disable address space layout
-randomization. One way to do this is to start you shell as:
+randomization. One way to do this is to start a new shell as:
 
 ```bash
 setarch $(uname -m) -R $SHELL
