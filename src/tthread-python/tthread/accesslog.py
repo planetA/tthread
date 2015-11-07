@@ -13,7 +13,7 @@ default_event_fields = [
         # event specific data
         # ...
         ]
-thunk_event_data = [("id", "i")]
+thunk_event_data = [("id", "i"), ("cpu", "i")]
 memory_event_data = [("address", "Q")]
 finish_event_data = [("placeholder", "i")]
 end_event_data = [("cpu_time", "Q")]

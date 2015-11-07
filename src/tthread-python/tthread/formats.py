@@ -45,7 +45,7 @@ class TsvWriter:
                         event.return_address,
                         event.thread_id,
                         event.id,
-                        "-"))
+                        event.cpu))
 
     def _write_access(self, writer, event):
         if type(event) is accesslog.WriteEvent:
