@@ -16,6 +16,7 @@ typedef union EventData {
   struct {
     // synchronisation point within on thread
     int id;
+    int cpu;
   } thunk;
   struct {
     // memory address at which the first page fault was triggered

@@ -47,6 +47,8 @@
 
 #include "xtime.h"
 
+#include "xsched.h"
+
 #include "objectheader.h"
 
 class xrun {
@@ -61,6 +63,7 @@ private:
   bool _token_holding;
   xmemory& _memory;
   xlogger& _logger;
+  xsched& _sched;
   xthread _thread;
   xtime _cpu_time;
   determ& _determ;
@@ -69,7 +72,8 @@ public:
 
   /// @brief Initialize the system.
   xrun(xmemory& memory,
-       xlogger& logger) :
+       xlogger& logger,
+       xsched& xsched) :
     _isCopyOnWrite(false),
     _thread_index(0),
     _fence_enabled(false),
@@ -78,6 +82,7 @@ public:
     _token_holding(false),
     _memory(memory),
     _logger(logger),
+    _sched(xsched),
     _thread(*this),
     _determ(determ::newInstance(memory))
   {
@@ -89,6 +94,8 @@ public:
     _thread.setId(pid);
 
     logger.setThread(&_thread);
+
+    _sched.setThread(&_thread);
 
     // xmemory.initialize should happen before others
     _memory.initialize(logger);
@@ -726,7 +733,7 @@ public:
     d.thunk.id = _thread.getThunkId();
 
     tthread::logevent e(tthread::logevent::THUNK, caller, d);
-    e.setThreadId(_thread.getId());
+    e.setThreadId(_thread_index);
     _logger.add(e);
 
     // Now start.
