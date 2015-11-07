@@ -68,6 +68,7 @@ public:
 
   // The following functions are trying to get id or thread index of specified
   // thread.
+  int getThreadIndex();
   int getThreadIndex(void *v);
   int getThreadPid(void *v);
 
