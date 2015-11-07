@@ -729,8 +729,11 @@ public:
 
     _thread.startThunk();
 
+    _sched.trigger();
+
     tthread::EventData d;
     d.thunk.id = _thread.getThunkId();
+    d.thunk.cpu = _sched.getCPU();
 
     tthread::logevent e(tthread::logevent::THUNK, caller, d);
     e.setThreadId(_thread_index);
