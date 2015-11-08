@@ -78,11 +78,10 @@ int main(int argc, char *argv[])
          << size << "(" << sizeof size << ")  "  << endl;
     cout << "== " << endl;
     for (auto &thunk : t_map[thread.first]) {
-      cout << thunk.first << "(" << sizeof thunk.first << ")  "
-           << thunk.second<< "(" << sizeof thunk.second << endl;
+      cout << thunk.first << "  " << thunk.second << endl;
       tsched_out.write((char *)&thunk.first, sizeof thunk.first);
       tsched_out.write((char *)&thunk.second, sizeof thunk.second);
     }
-    cout << "--- " << endl;
+    cout << "--- " << endl << endl;
   }
 }
