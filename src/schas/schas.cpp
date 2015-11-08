@@ -33,22 +33,20 @@
 #include <map>
 #include <vector>
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <string.h>
 
 using namespace std;
 
-// Thunk schedule represented as a map
-map<int, map<int, int> > t_map;
-
-int main(int argc, char *argv[])
+void thunk_scheduler(const char *schedule_file)
 {
-  if ((argc < 2) || (argc > 2)) {
-    fprintf(stderr, "Use: %s <text_schedule>\n", argv[0]);
-    throw std::runtime_error("Wrong command line");
-  }
-
+  // Thunk schedule represented as a map
+  map<int, map<int, int> > t_map;
   ifstream tsched;
-  tsched.open(argv[1]);
+  tsched.open(schedule_file);
 
   int i = 0;
   std::string line;
@@ -69,7 +67,7 @@ int main(int argc, char *argv[])
   }
 
   ofstream tsched_out;
-  tsched_out.open(string(argv[1]) + ".bin", ofstream::out | ofstream::binary);
+  tsched_out.open(string(schedule_file) + ".bin", ofstream::out | ofstream::binary);
   for (auto &thread : t_map) {
     int size = t_map[thread.first].size();
     tsched_out.write((char *)&thread.first, sizeof thread.first);
@@ -84,4 +82,111 @@ int main(int argc, char *argv[])
     }
     cout << "--- " << endl << endl;
   }
+}
+
+void page_scheduler(const char *schedule_file)
+{
+  // Thunk schedule represented as a map
+  map<int, map<int, int> > t_map;
+  ifstream psched;
+  psched.open(schedule_file);
+
+  return;
+  int i = 0;
+  std::string line;
+  while (std::getline(psched, line)) {
+    std::istringstream iss(line);
+    // int pid, tid, cpu; // Process id, Thunk id, CPU number
+
+    // ++i;
+
+    // if (!(iss >> pid >> tid >> cpu)) {
+    //   // error
+    //   fprintf(stderr, "Error in line %d\n", i);
+    //   throw std::runtime_error("Wrong thunk schedule format");
+    // }
+
+    // t_map[pid][tid] = cpu;
+    // cout << pid << "  " << tid << "  "  << cpu << endl;
+  }
+
+  ofstream tsched_out;
+  tsched_out.open(string(schedule_file) + ".bin", ofstream::out | ofstream::binary);
+  for (auto &thread : t_map) {
+    int size = t_map[thread.first].size();
+    tsched_out.write((char *)&thread.first, sizeof thread.first);
+    tsched_out.write((char *)&size, sizeof size);
+    cout << thread.first << "(" << sizeof thread.first << ")  "
+         << size << "(" << sizeof size << ")  "  << endl;
+    cout << "== " << endl;
+    for (auto &thunk : t_map[thread.first]) {
+      cout << thunk.first << "  " << thunk.second << endl;
+      tsched_out.write((char *)&thunk.first, sizeof thunk.first);
+      tsched_out.write((char *)&thunk.second, sizeof thunk.second);
+    }
+    cout << "--- " << endl << endl;
+  }
+}
+
+void usage(const char *name)
+{
+  fprintf(stderr, "Usage: %s [-p <page_schedule>] [-t <thunk_schedule>] [-h]\n", name);
+}
+
+int main(int argc, char *argv[])
+{
+  if (argc < 2) {
+    usage(argv[0]);
+    throw std::runtime_error("Wrong command line");
+  }
+
+  const char *tsched = NULL, *psched = NULL;
+  bool work = false;
+  int c;
+  opterr = 0;
+
+  while ((c = getopt(argc, argv, "t:p:h")) !=  -1) {
+    switch (c) {
+    case 't':
+      tsched = strdup(optarg);
+      work = true;
+      break;
+    case 'p':
+      psched = strdup(optarg);
+      work = true;
+      break;
+    case 'h':
+      usage(argv[0]);
+      work = true;
+      break;
+    case '?':
+      if ((optopt == 'p') || (optopt == 't'))
+        fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+      else if (isprint (optopt))
+        fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+      else
+        fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+      return 1;
+    default:
+      usage(argv[0]);
+      abort ();
+    }
+  }
+
+  if (!work || optind < argc) {
+    usage(argv[0]);
+    return 1;
+  }
+
+  if (tsched) {
+    printf("Generating thunk schedule...\n");
+    thunk_scheduler(tsched);
+  }
+
+  if (psched) {
+    printf("Generating page schedule...\n");
+    page_scheduler(psched);
+  }
+
+  return 0;
 }
