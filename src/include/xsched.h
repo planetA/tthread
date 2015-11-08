@@ -32,23 +32,19 @@
 class xsched {
   /*** process local ***/
 
-  xthread *_thread;
+  xthread &_thread;
+  // Pointer to common schedule
+  int *_thunk_schedule;
+  size_t _sched_size;
+  // Pointer to thread local piece of schedule
+  int *_thread_schedule;
 
+  int get_affinity(int thunk);
 public:
-  static xsched*allocate() {
-    void *buf = WRAP(mmap)(NULL, sizeof(xsched), PROT_READ | PROT_WRITE,
-                           MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    assert(buf != MAP_FAILED);
-    return new(buf)xsched();
-  }
 
-  xsched() :
-    _thread(NULL) {
-  }
+  xsched(xthread &thread);
 
-  void setThread(xthread *thread) {
-    _thread = thread;
-  }
+  void updateThread();
 
   int getCPU();
 

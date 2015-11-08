@@ -63,7 +63,7 @@ private:
   bool _token_holding;
   xmemory& _memory;
   xlogger& _logger;
-  xsched& _sched;
+  xsched _sched;
   xthread _thread;
   xtime _cpu_time;
   determ& _determ;
@@ -72,8 +72,7 @@ public:
 
   /// @brief Initialize the system.
   xrun(xmemory& memory,
-       xlogger& logger,
-       xsched& xsched) :
+       xlogger& logger) :
     _isCopyOnWrite(false),
     _thread_index(0),
     _fence_enabled(false),
@@ -82,7 +81,7 @@ public:
     _token_holding(false),
     _memory(memory),
     _logger(logger),
-    _sched(xsched),
+    _sched(_thread),
     _thread(*this),
     _determ(determ::newInstance(memory))
   {
@@ -94,8 +93,7 @@ public:
     _thread.setId(pid);
 
     logger.setThread(&_thread);
-
-    _sched.setThread(&_thread);
+    _sched.updateThread();
 
     // xmemory.initialize should happen before others
     _memory.initialize(logger);
@@ -144,6 +142,7 @@ public:
     _lock_count = 0;
     _token_holding = false;
 
+    _sched.updateThread();
     // For child, fence is always enabled in the beginning.
     // Wait on token to do synchronizations if we set this.
     _fence_enabled = true;

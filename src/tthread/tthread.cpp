@@ -110,9 +110,8 @@ void initialize() {
   memory = new(xmemorybuf)xmemory;
   tthread::logger = xlogger::allocate(global_data->xlogger,
                                       memory->getLayout());
-  tthread::xsched = xsched::allocate();
 
-  run = new(xrunbuf)xrun(*memory, *tthread::logger, *tthread::xsched);
+  run = new(xrunbuf)xrun(*memory, *tthread::logger);
 
   initialized = true;
 }

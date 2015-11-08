@@ -18,6 +18,7 @@ extern ssize_t(*WRAP(write))(int, const void *, size_t);
 extern ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, void *);
 extern size_t(*WRAP(open))(const char *, int, ...);
 extern void *(*WRAP(fopen))(const char *, const char *);
+extern off_t (*WRAP(lseek))(int fd, off_t offset, int whence);
 
 extern int(*WRAP(sigwait))(const sigset_t *, int *);
 

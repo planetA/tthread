@@ -45,6 +45,7 @@ size_t(*WRAP(open))(const char *, int, ...);
 void *(*WRAP(fopen))(const char *, const char *);
 ssize_t(*WRAP(write))(int, const void *, size_t);
 ssize_t(*WRAP(fwrite))(const void *, size_t, size_t, void *);
+off_t (*WRAP(lseek))(int fd, off_t offset, int whence);
 int(*WRAP(sigwait))(const sigset_t *, int *);
 
 // pthread basics
@@ -101,6 +102,7 @@ void init_real_functions() {
   SET_WRAPPED(open,               RTLD_NEXT);
   SET_WRAPPED(write,              RTLD_NEXT);
   SET_WRAPPED(fwrite,             RTLD_NEXT);
+  SET_WRAPPED(lseek,              RTLD_NEXT);
   SET_WRAPPED(sigwait,            RTLD_NEXT);
 
   void *pthread_handle = dlopen("libpthread.so.0",
