@@ -108,7 +108,7 @@ public:
     _determ.registerMaster(_thread_index, pid);
   }
 
-  // Control whether we will copy on writed memory or not.
+  // Control whether we will copy on write memory or not.
   // When there is only one thread in the system, memory is not
   // copy on write to avoid the overhead of merging pages back.
   void setCopyOnWrite(bool copyOnWrite) {
