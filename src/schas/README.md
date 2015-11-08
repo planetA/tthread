@@ -32,3 +32,5 @@ An example of a schedule:
 
 To compile the schedule simply call compiler with textual schedule as
 an input parameter. The result produced in file with '.bin' extension.
+
+NB: Do not specify affinity for thunk 0.
