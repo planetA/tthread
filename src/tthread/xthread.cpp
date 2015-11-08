@@ -55,6 +55,7 @@ int xthread::getThreadIndex(void *v) {
   ASSERT(v != NULL);
 
   ThreadStatus *t = (ThreadStatus *)v;
+  ASSERT(_run.threadindex() == t->threadIndex);
 
   return t->threadIndex;
 }
