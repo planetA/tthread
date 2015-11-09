@@ -84,45 +84,78 @@ void thunk_scheduler(const char *schedule_file)
   }
 }
 
+struct MemoryRange
+{
+  off_t start;
+  off_t end;
+  int cpu;
+  int flags;
+
+  MemoryRange() {};
+
+  MemoryRange(off_t start, off_t end, int cpu, int flags)
+    : start(start), end(end), cpu(cpu), flags(flags)
+  {
+  }
+
+  friend ostream& operator<< (ostream &out, MemoryRange &range)
+  {
+    // Since operator<< is a friend of the Point class, we can access
+    // Point's members directly.
+    out << "[" << range.start << ", " << range.end << "] "
+        << range.cpu << "  " << range.flags;
+    return out;
+  }
+} __attribute__((packed));
+
+
 void page_scheduler(const char *schedule_file)
 {
   // Thunk schedule represented as a map
-  map<int, map<int, int> > t_map;
+  map<int, map<int, vector<MemoryRange> > > t_map;
   ifstream psched;
   psched.open(schedule_file);
 
-  return;
   int i = 0;
   std::string line;
   while (std::getline(psched, line)) {
     std::istringstream iss(line);
-    // int pid, tid, cpu; // Process id, Thunk id, CPU number
+    string type;
+    int pid, tid; // Process id, Thunk id
+    off_t start, end; // Memory range
+    int cpu;  // Currently ignored
+    int flags; // Currently ignored
 
-    // ++i;
+    ++i;
 
-    // if (!(iss >> pid >> tid >> cpu)) {
-    //   // error
-    //   fprintf(stderr, "Error in line %d\n", i);
-    //   throw std::runtime_error("Wrong thunk schedule format");
-    // }
+    if (!(iss >> type >> pid >> tid >> start >> end >> cpu >> flags)) {
+      // error
+      fprintf(stderr, "Error in line %d\n", i);
+      throw std::runtime_error("Wrong thunk schedule format");
+    }
 
-    // t_map[pid][tid] = cpu;
-    // cout << pid << "  " << tid << "  "  << cpu << endl;
+    t_map[pid][tid].push_back(MemoryRange(start, end, cpu, flags));
+    cout << pid << "  " << tid << "  "  << start << "  " << end << "  " << cpu << "  " << flags << endl;
   }
 
-  ofstream tsched_out;
-  tsched_out.open(string(schedule_file) + ".bin", ofstream::out | ofstream::binary);
+  ofstream psched_out;
+  psched_out.open(string(schedule_file) + ".bin", ofstream::out | ofstream::binary);
   for (auto &thread : t_map) {
     int size = t_map[thread.first].size();
-    tsched_out.write((char *)&thread.first, sizeof thread.first);
-    tsched_out.write((char *)&size, sizeof size);
+    psched_out.write((char *)&thread.first, sizeof thread.first);
+    psched_out.write((char *)&size, sizeof size);
     cout << thread.first << "(" << sizeof thread.first << ")  "
          << size << "(" << sizeof size << ")  "  << endl;
     cout << "== " << endl;
     for (auto &thunk : t_map[thread.first]) {
-      cout << thunk.first << "  " << thunk.second << endl;
-      tsched_out.write((char *)&thunk.first, sizeof thunk.first);
-      tsched_out.write((char *)&thunk.second, sizeof thunk.second);
+      int size = thunk.second.size();
+      cout << ">> size " << size << endl;
+      psched_out.write((char *)&size, sizeof size);
+      for (auto &range : thunk.second) {
+        cout << thunk.first << "  " << range << endl;
+        psched_out.write((char *)&thunk.first, sizeof thunk.first);
+        psched_out.write((char *)&range, sizeof thunk.second);
+      }
     }
     cout << "--- " << endl << endl;
   }
