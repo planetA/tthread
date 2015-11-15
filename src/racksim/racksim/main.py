@@ -29,13 +29,22 @@ class RackSim:
                 # if c <= 0: break
 
     def __mst_read_params(self, mst_reader, n):
+        params = {}
         for i in range(n):
-            print(next(mst_reader))
+            (k, v) = next(mst_reader)
+            params[k] = v
+        return params
 
     def __mst_read_table(self, mst_reader):
         (n, m) = map(int, list(next(mst_reader)))
+        if m == 1:
+            return [next(mst_reader)[0] for i in range(n)]
+        if n == 1:
+            return next(mst_reader)
+        res = []
         for i in range(n):
-            print(next(mst_reader))
+            res.append(next(mst_reader))
+        return res
 
     def __parse_mst(self, mst_filename):
         """
@@ -69,25 +78,13 @@ class RackSim:
                         continue
                     tab_name = tab_header[0]
                     nparams = int(tab_header[1])
-                    self.__mst_read_params(mst_reader, nparams)
-                    self.__mst_read_table(mst_reader)
-                    # Check table name
-                    if tab_name == "CPU-to-NUMA":
-                        print(tab_header)
-                    elif tab_name == "CPU-o":
-                        print(tab_header)
-                    elif tab_name == "CPU-O":
-                        print(tab_header)
-                    elif tab_name == "NUMA-g":
-                        print(tab_header)
-                    elif tab_name == "NUMA-G":
-                        print(tab_header)
-                    elif tab_name == "NUMA-L":
-                        print(tab_header)
-                    else:
-                        raise Exception("Unexpected table: %s" % tab_name)
+                    params = self.__mst_read_params(mst_reader, nparams)
+                    tab = self.__mst_read_table(mst_reader)
+                    self.arch.set_table(tab_name, params, tab)
                 except StopIteration:
                     break
+
+            print (self.arch)
 
     def __init__(self):
         parser = OptionParser()
