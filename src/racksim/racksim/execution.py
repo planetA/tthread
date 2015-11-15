@@ -1,7 +1,12 @@
+from enum import Enum
 import bisect
 
 from .programm import Programm
 from .architecture import Architecture
+
+class PageState(Enum):
+    inuse = 1
+    committed = 2
 
 class Timeslot:
     def __init__(self, begin, end, thunk):
@@ -23,6 +28,7 @@ class Timeslot:
 class Timeline:
     def __init__(self):
         self.time = []
+        self.reaped = True
 
     def append(self, thunk):
         if len(self.time) > 0:
@@ -31,6 +37,22 @@ class Timeline:
         else:
             new_thunk = Timeslot(0, thunk.cputime, thunk)
         self.time.append(new_thunk)
+        self.reaped = False
+
+    def reap(self, memory):
+        if self.reaped:
+            return
+        self.reaped = True
+        if len(self.time) == 0:
+            Exception("Expected empty timeline to be reaped")
+        last = self.time[-1].thunk
+        print("Reap thunk %s" % last)
+        for page in last.rs | last.ws:
+            memory.pagestate[page] = PageState.committed
+            if page == 34357618688:
+                print("Reaping page %d" % page)
+            if len(memory.pagemap[page]) > 1:
+                memory.pagemap[page].remove(last.cpu)
 
     def __repr__(self):
         sched = []
@@ -38,7 +60,29 @@ class Timeline:
             sched.append("[%f-%f): %s" % (slot.begin, slot.end, slot.thunk))
         return "\n".join(sched)
 
+class Memory:
+    def __init__(self, domains):
+        self.memory = [set() for i in range(domains)]
+        self.pagemap = {}
+        self.pagestate = {}
+
+    def move(self, page, cpu):
+        if page in self.pagemap:
+            if self.pagestate[page] == PageState.inuse:
+                self.pagemap[page].append(cpu)
+            elif self.pagestate[page] == PageState.committed:
+                self.pagemap[page] = set([cpu])
+                self.pagestate[page] = PageState.inuse
+        else:
+            self.pagemap[page] = set([cpu])
+            self.pagestate[page] = PageState.inuse
+
 class Execution:
+    def memmove(self, thunk):
+        print("Move memory for thunk %s" % thunk)
+        for page in thunk.rs | thunk.ws:
+            self.memory.move(page, thunk.cpu)
+
     def __init__(self, arch, prog):
         if type(arch) is not Architecture:
             raise Exception("Expected parameter of type Architecture, got %s"
@@ -49,11 +93,18 @@ class Execution:
         self.arch = arch
         self.prog = prog
         self.timelines = [Timeline() for i in range(self.arch.cores)]
+        self.memory = Memory(self.arch.domains)
 
     def run(self):
         for thunk in self.prog.run():
+            # Update page statuses before scheduling next thunk
+            for timeline in self.timelines:
+                timeline.reap(self.memory)
             self.timelines[thunk.cpu].append(thunk)
+            self.memmove(thunk)
             print("Schedule thunk %s " % (thunk))
+
+        print()
         for timeline in self.timelines:
             print (timeline)
             print()

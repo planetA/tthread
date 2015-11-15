@@ -85,7 +85,7 @@ class RackSim:
                 except StopIteration:
                     break
 
-            print (self.arch)
+            # print (self.arch)
 
     def __init__(self):
         parser = OptionParser()
