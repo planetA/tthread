@@ -1,3 +1,4 @@
+import numpy
 import networkx as nx
 
 class Architecture:
@@ -40,17 +41,20 @@ class Architecture:
 
         # Check specific table initialization
         if tab_name == "CPU-to-NUMA":
-            tab = [int(i) for i in tab_data]
+            tab = [float(i) for i in tab_data]
         elif tab_name == "CPU-o":
-            tab = [int(i) for i in tab_data]
+            tab = [float(i) for i in tab_data]
         elif tab_name == "CPU-O":
-            tab = [int(i) for i in tab_data]
+            tab = [float(i) for i in tab_data]
         elif tab_name == "NUMA-g":
-            tab = [[int(cell) for cell in row] for row in tab_data]
+            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
+            tab = nx.from_numpy_matrix(adj_matr)
         elif tab_name == "NUMA-G":
-            tab = [[int(cell) for cell in row] for row in tab_data]
+            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
+            tab = nx.from_numpy_matrix(adj_matr)
         elif tab_name == "NUMA-L":
-            tab = [[int(cell) for cell in row] for row in tab_data]
+            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
+            tab = nx.from_numpy_matrix(adj_matr)
 
         setattr(self, self.names[tab_name], tab)
 
@@ -58,5 +62,7 @@ class Architecture:
         tabs = []
         for name in self.names:
             tab = getattr(self, self.names[name])
+            if type(tab) is nx.Graph:
+                tab = str(tab.edges(data=True))
             tabs.append("%s: %s" %(name, tab))
         return '\n'.join(tabs)
