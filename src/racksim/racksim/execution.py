@@ -18,11 +18,25 @@ class Timeslot:
         return ((self.begin, self.end) < (self.begin, self.end))
 
     def concurrent(self, other):
-        return not ((self.end < other.begin) or (other.end < self.begin))
+        return not ((self.end <= other.begin) or (other.end <= self.begin))
 
 class Timeline:
     def __init__(self):
         self.time = []
+
+    def append(self, thunk):
+        if len(self.time) > 0:
+            last = self.time[-1]
+            new_thunk = Timeslot(last.end, last.end + thunk.cputime, thunk)
+        else:
+            new_thunk = Timeslot(0, thunk.cputime, thunk)
+        self.time.append(new_thunk)
+
+    def __repr__(self):
+        sched = []
+        for slot in self.time:
+            sched.append("[%f-%f): %s" % (slot.begin, slot.end, slot.thunk))
+        return "\n".join(sched)
 
 class Execution:
     def __init__(self, arch, prog):
@@ -38,4 +52,8 @@ class Execution:
 
     def run(self):
         for thunk in self.prog.run():
+            self.timelines[thunk.cpu].append(thunk)
             print("Schedule thunk %s " % (thunk))
+        for timeline in self.timelines:
+            print (timeline)
+            print()

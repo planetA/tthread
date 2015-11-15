@@ -45,12 +45,12 @@ class Programm:
         # Master thunk has no start in the logs
         if tid.thunk() == 0:
             self.thunks[tid] = ThunkData(tid, 0)
-            self.thunks[tid].cputime(0)
+            self.thunks[tid].cputime = 0
         if tid not in self.thunks:
             raise Exception("Expected to find thunk %s, finish found." % tid)
-        if self.thunks[tid].cputime() != float("-inf"):
+        if self.thunks[tid].cputime != float("-inf"):
             raise Exception("Expected to not find end of %s." % tid)
-        self.thunks[tid].cputime(float(cpu_time))
+        self.thunks[tid].cputime = float(cpu_time)
 
     def run(self):
         for thunk in self.order:
