@@ -4,6 +4,7 @@ import csv
 
 from .programm import Programm
 from .architecture import Architecture
+from .execution import Execution
 
 class RackSim:
     def __parse_dtl(self, dtl_filename):
@@ -110,4 +111,6 @@ class RackSim:
         print("Hi from RackSim {%s}" % options.dtl)
 
     def run(self):
+        execution = Execution(self.arch, self.prog)
+        execution.run()
         print("Run racksim")

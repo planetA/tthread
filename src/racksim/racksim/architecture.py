@@ -20,6 +20,10 @@ class Architecture:
             self.numa_g = None
             self.numa_G = None
             self.numa_L = None
+            # Number of CPU cores
+            self.cores = None
+            # Number of NUMA domains
+            self.domains = None
 
             self.names = {
                 "CPU-to-NUMA" : "cpu2numa",
@@ -40,19 +44,17 @@ class Architecture:
             Exception("Duplicate table definition: %s" % tab_name)
 
         # Check specific table initialization
-        if tab_name == "CPU-to-NUMA":
+        if tab_name in ["CPU-to-NUMA", "CPU-o", "CPU-O"]:
+            if self.cores is None:
+                self.cores = len(tab_data)
+            elif self.cores != len(tab_data):
+                raise Exception("Expected %d cores, found %d" %(self.cores, len(tab_data)))
             tab = [float(i) for i in tab_data]
-        elif tab_name == "CPU-o":
-            tab = [float(i) for i in tab_data]
-        elif tab_name == "CPU-O":
-            tab = [float(i) for i in tab_data]
-        elif tab_name == "NUMA-g":
-            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
-            tab = nx.from_numpy_matrix(adj_matr)
-        elif tab_name == "NUMA-G":
-            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
-            tab = nx.from_numpy_matrix(adj_matr)
-        elif tab_name == "NUMA-L":
+        elif tab_name in ["NUMA-g", "NUMA-L", "NUMA-G"]:
+            if self.domains is None:
+                self.domains = len(tab_data)
+            elif self.domains != len(tab_data):
+                raise Exception("Expected %d domains, found %d" %(self.domains, len(tab_data)))
             adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
             tab = nx.from_numpy_matrix(adj_matr)
 
@@ -66,3 +68,4 @@ class Architecture:
                 tab = str(tab.edges(data=True))
             tabs.append("%s: %s" %(name, tab))
         return '\n'.join(tabs)
+

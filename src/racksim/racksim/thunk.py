@@ -22,7 +22,8 @@ class ThunkId:
         return self.id == other.id
 
 class ThunkData:
-    def __init__(self, cpu):
+    def __init__(self, tid, cpu):
+        self.tid = tid
         self.cpu = int(cpu)
         self.cpu_time = float("-inf")
         self.rs = set()
@@ -34,11 +35,11 @@ class ThunkData:
         else:
             return self.cpu_time
 
-    def print_pages(self, tid):
+    def print_pages(self):
         for addr in self.__ranges(self.rs):
-            print ("read %s: [%d, %d]" % (tid, addr[0], addr[1]))
+            print ("read %s: [%d, %d]" % (self.tid, addr[0], addr[1]))
         for addr in self.__ranges(self.ws):
-            print ("write %s: [%d, %d]" % (tid, addr[0], addr[1]))
+            print ("write %s: [%d, %d]" % (self.tid, addr[0], addr[1]))
 
     def __ranges(self, lst):
         s = e = None
@@ -54,7 +55,7 @@ class ThunkData:
             yield (s, e)
 
     def __str__(self):
-        return "CPU: %d TIME %f " % (self.cpu, self.cpu_time)
+        return "%s CPU: %d TIME %f " % (self.tid, self.cpu, self.cpu_time)
 
     def __repr__(self):
-        return "CPU: %d TIME %f " % (self.cpu, self.cpu_time)
+        return "%s CPU: %d TIME %f " % (self.tid, self.cpu, self.cpu_time)

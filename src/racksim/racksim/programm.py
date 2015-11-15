@@ -10,13 +10,13 @@ class Programm:
         return
         for t in self.order:
             print ("%s: %s" % (t, self.thunks[t]))
-            self.thunks[t].print_pages(t)
+            self.thunks[t].print_pages()
 
     def add_thunk(self, thread, thunk, cpu):
         tid = ThunkId(thread, thunk)
         if tid in self.thunks:
             raise Exception("Unexpected thunk duplication: %s" % tid)
-        self.thunks[tid] = ThunkData(cpu)
+        self.thunks[tid] = ThunkData(tid, cpu)
         self.order.append(tid)
         self.cur[tid.thread()] = tid.thunk()
 
@@ -36,8 +36,6 @@ class Programm:
 
     def add_finish(self, thread, thunk):
         tid = ThunkId(thread, thunk)
-        # if tid.thunk() == 0:
-        #     self.thunks[tid] = ThunkData(0)
         if tid not in self.thunks:
             raise Exception("Expected to find thunk %s, finish found." % tid)
         pass
@@ -46,10 +44,14 @@ class Programm:
         tid = ThunkId(thread, thunk)
         # Master thunk has no start in the logs
         if tid.thunk() == 0:
-            self.thunks[tid] = ThunkData(0)
+            self.thunks[tid] = ThunkData(tid, 0)
             self.thunks[tid].cputime(0)
         if tid not in self.thunks:
             raise Exception("Expected to find thunk %s, finish found." % tid)
         if self.thunks[tid].cputime() != float("-inf"):
             raise Exception("Expected to not find end of %s." % tid)
         self.thunks[tid].cputime(float(cpu_time))
+
+    def run(self):
+        for thunk in self.order:
+            yield self.thunks[thunk]
