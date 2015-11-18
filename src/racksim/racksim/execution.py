@@ -3,6 +3,7 @@ import bisect
 
 from .programm import Programm
 from .architecture import Architecture
+from .device import Device, Machine, MachineNumaNet
 
 class PageState(Enum):
     inuse = 1
@@ -94,17 +95,56 @@ class Execution:
         self.prog = prog
         self.timelines = [Timeline() for i in range(self.arch.cores)]
         self.memory = Memory(self.arch.domains)
+        self.rack = MachineNumaNet(self)
+        # Set of active devices
+        self.active = set()
 
     def run(self):
-        for thunk in self.prog.run():
-            # Update page statuses before scheduling next thunk
-            for timeline in self.timelines:
-                timeline.reap(self.memory)
-            self.timelines[thunk.cpu].append(thunk)
-            self.memmove(thunk)
-            print("Schedule thunk %s " % (thunk))
+        """
+        Event state transisitons are:
+        blocked -> ready -> active -> running -> finished
+        """
 
-        print()
-        for timeline in self.timelines:
-            print (timeline)
-            print()
+        self.prog.start()
+
+        now = 0
+        ready = {self.prog.entry}
+        while ready:
+            print("READY  ", ready)
+            while ready:
+                event = ready.pop()
+                self.rack.schedule(event) # ready -> active
+
+            print("        Initiate progress")
+            self.rack.progress(now) # active -> running
+
+            (advance, events) = self.rack.complete() # running -> finished
+
+            for event in events:
+                for succ in  self.prog.edag.dag.successors(event):
+                    print ("SUCCCCCF", succ, succ.wait)
+                    succ.wait -= 1
+                    if succ.wait == 0:
+                        ready.add(succ)
+            now += advance
+
+        # for thunk in self.prog.run():
+        #     # Update page statuses before scheduling next thunk
+        #     for timeline in self.timelines:
+        #         timeline.reap(self.memory)
+        #     self.timelines[thunk.cpu].append(thunk)
+        #     self.memmove(thunk)
+        #     # thunkEvent = ThunkEvent(evId)
+        #     # commEvents = self.memory.makeCommEvents(thunkEvent)
+        #     # thunkEvent and commEvents have two Id's
+        #     # evId += 2
+        #     print("Schedule thunk %s " % (thunk))
+
+        # for event in self.eventq:
+        #     if event.isReady():
+        #         event.process()
+
+        # print()
+        # for timeline in self.timelines:
+        #     print (timeline)
+        #     print()
