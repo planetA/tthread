@@ -53,7 +53,6 @@ class LinkDevice(Device):
     def reserve(self, msg):
         self.active.add(msg)
         msg.event.counter += 1
-        print("Adding to %s msg %s %s" %(self, msg, self.is_active()))
 
     def progress(self, now):
         alarms = [Alarm(now + msg.time(), msg) for msg in self.active]
@@ -70,7 +69,6 @@ class CpuDevice(Device):
         msg = self.active.pop()
         alarms = Alarm(now + msg.event.thunk.cputime, msg, self)
         self.running = [alarms]
-        self.active = set()
         return self.running
 
     def complete(self):
@@ -137,13 +135,11 @@ class MachineNumaNet(Machine):
 
     def schedule(self, event):
         if type(event) is CommEvent:
-            print("ScheduleCommEvent %d %s" % (len(event.thunk.rs), event))
             for adj in range(len(self.pes)):
                 src = self.arch.cpu2numa[event.thunk.cpu]
                 dst = self.arch.cpu2numa[adj]
                 if src == dst:
                     continue
-                print("Reserve ", (event.thunk.cpu, adj))
                 msg = Message(event, event.thunk.cpu, adj)
 
                 path = nx.shortest_path(self.arch.numa_g, src, dst)
@@ -154,27 +150,22 @@ class MachineNumaNet(Machine):
             pe = CpuDevice(event.thunk.cpu)
             msg = Message(event, event.thunk.cpu)
             self.pes[pe.id].reserve(msg)
-            print("ScheduleThunkEvent")
         else:
             raise Exception("Unknown event to schedule of type %s" % type(event))
 
     def progress(self, now):
         for dev in self.devices:
             if dev.is_active():
-                print("Active dev ", dev)
                 for alarm in dev.progress(now):
                     heappush(self.alarms, alarm)
 
     def complete(self):
-        print("Complete")
         earliest = self.alarms[0].time
-        print(self.alarms, earliest)
         finished = []
         # Time of the first element
         while self.alarms and (self.alarms[0].time == earliest or not finished):
             alarm = heappop(self.alarms)
             event = alarm.complete()
-            print("Trigger alalrm", alarm, event)
             if event:
                 finished.append(event)
         return (alarm.time, finished)

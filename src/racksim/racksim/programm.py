@@ -75,12 +75,13 @@ class Programm:
     def start(self):
         print(self.edges)
         self.edag = EventDAG(self.edges)
-        self.entry = CommEvent(self.thunks[ThunkId(0, 1)])
 
         for event in self.edag.dag.nodes_iter():
             event.wait = len(self.edag.dag.in_edges(event))
-            print(event, event.wait)
-        print('-'*62)
+            if event.wait == 0:
+                self.entry = event
+            elif len(self.edag.dag.out_edges(event)) == 0:
+                self.exit = event
 
         if len(self.edag.dag.predecessors(self.entry)) != 0:
             raise Exception("Thunk %s is not the programm entry." % self.entry)

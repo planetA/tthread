@@ -1,6 +1,7 @@
 from enum import Enum
 import bisect
 
+from .event import CommEvent, ThunkEvent
 from .programm import Programm
 from .architecture import Architecture
 from .device import Device, Machine, MachineNumaNet
@@ -107,32 +108,29 @@ class Execution:
 
         self.prog.start()
 
-        for event in self.prog.edag.dag.nodes_iter():
-            print(event, event.wait)
-
         now = 0
         ready = {self.prog.entry}
-        while ready:
-            print("READY  ", ready)
+        print('Start execution')
+        print('='*60)
+        import ipdb
+        while self.prog.exit.wait > 0 or ready:
+            # ipdb.set_trace()
             while ready:
                 event = ready.pop()
                 self.rack.schedule(event) # ready -> active
 
-            print("        Initiate progress")
             self.rack.progress(now) # active -> running
 
-            (advance, events) = self.rack.complete() # running -> finished
-            print("Complete ", advance, events)
+            (now, events) = self.rack.complete() # running -> finished
 
             for event in events:
+                # if type(event) is ThunkEvent:
+                print("%s : (%s) %s" % (now, type(event), event))
+                # if now == 26758111.0: ipdb.set_trace()
                 for succ in  self.prog.edag.successors(event):
-                    print(succ, succ.wait)
                     succ.wait -= 1
-                    print(succ.wait)
                     if succ.wait == 0:
-                        print("        Add next ready", succ)
                         ready.add(succ)
-            now += advance
 
         # for thunk in self.prog.run():
         #     # Update page statuses before scheduling next thunk
