@@ -49,7 +49,10 @@ class Architecture:
                 self.cores = len(tab_data)
             elif self.cores != len(tab_data):
                 raise Exception("Expected %d cores, found %d" %(self.cores, len(tab_data)))
-            tab = [float(i) for i in tab_data]
+            if tab_name == "CPU-to-NUMA":
+                tab = [int(i) for i in tab_data]
+            else:
+                tab = [float(i) for i in tab_data]
         elif tab_name in ["NUMA-g", "NUMA-L", "NUMA-G"]:
             if self.domains is None:
                 self.domains = len(tab_data)

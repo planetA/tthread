@@ -65,7 +65,6 @@ class CpuDevice(Device):
     def reserve(self, msg):
         self.active.add(msg)
         msg.event.counter += 1
-        print("Adding to %s msg %s %s" %(self, msg, self.is_active()))
 
     def progress(self, now):
         msg = self.active.pop()
@@ -139,14 +138,18 @@ class MachineNumaNet(Machine):
     def schedule(self, event):
         if type(event) is CommEvent:
             print("ScheduleCommEvent %d %s" % (len(event.thunk.rs), event))
-            for adj in range(len(self.links)):
-                if adj == event.thunk.cpu:
+            for adj in range(len(self.pes)):
+                src = self.arch.cpu2numa[event.thunk.cpu]
+                dst = self.arch.cpu2numa[adj]
+                if src == dst:
                     continue
                 print("Reserve ", (event.thunk.cpu, adj))
                 msg = Message(event, event.thunk.cpu, adj)
-                link = LinkDevice((event.thunk.cpu, adj))
-                self.links[link.id].reserve(msg)
-            print(event.counter)
+
+                path = nx.shortest_path(self.arch.numa_g, src, dst)
+                for hop in zip(path[0:-1], path[1:]):
+                    link = LinkDevice(hop)
+                    self.links[link.id].reserve(msg)
         elif type(event) is ThunkEvent:
             pe = CpuDevice(event.thunk.cpu)
             msg = Message(event, event.thunk.cpu)

@@ -34,12 +34,19 @@ class EventDAG:
                     raise Exception("TT")
                 self.dag.add_edge(thunkEv, o)
 
+        # See XXX of successors
+        self.dic = {ev : ev for ev in self.dag.nodes()}
         # Verify correct DAG
         for n in self.dag.nodes():
             if type(n) is CommEvent:
                 if len(self.dag.successors(n)) > 1:
                     raise Exception("CommEvent %s has more than 1 successor." % n)
 
+    def successors(self, node):
+        # XXX: That's rather a hack, because for some reason
+        # successors sometimes return copies of objects and not the
+        # objects itself
+        return [self.dic[ev] for ev in self.dag.successors(node)]
 
 class EventQueue:
     pass
@@ -50,7 +57,7 @@ class Event:
             raise Exception("Expected tid of type ThunkData, found %s" % type(thunk))
         self.thunk = thunk
         self.tid = thunk.tid
-        self.wait = 0
+        self.wait = None
         self.counter = 0
 
     def __eq__(self, other):

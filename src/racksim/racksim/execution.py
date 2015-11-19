@@ -107,6 +107,9 @@ class Execution:
 
         self.prog.start()
 
+        for event in self.prog.edag.dag.nodes_iter():
+            print(event, event.wait)
+
         now = 0
         ready = {self.prog.entry}
         while ready:
@@ -119,12 +122,15 @@ class Execution:
             self.rack.progress(now) # active -> running
 
             (advance, events) = self.rack.complete() # running -> finished
+            print("Complete ", advance, events)
 
             for event in events:
-                for succ in  self.prog.edag.dag.successors(event):
-                    print ("SUCCCCCF", succ, succ.wait)
+                for succ in  self.prog.edag.successors(event):
+                    print(succ, succ.wait)
                     succ.wait -= 1
+                    print(succ.wait)
                     if succ.wait == 0:
+                        print("        Add next ready", succ)
                         ready.add(succ)
             now += advance
 
