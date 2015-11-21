@@ -51,13 +51,13 @@ class NumaDevice(Device):
         self.rs = set()
         self.ws = set()
 
-    def reserve(self, msg):
-        self.active.add(msg)
-        msg.task.counter += 1
+    def reserve(self, event):
+        self.active.add(event)
+        event.task.counter += 1
 
     def progress(self, now):
-        msg = self.active.pop()
-        alarms = Alarm(now + 0, msg, self)
+        event = self.active.pop()
+        alarms = Alarm(now + 0, event, self)
         return [alarms]
 
     def complete(self):
@@ -70,24 +70,24 @@ class LinkDevice(Device):
         super(LinkDevice, self).__init__(id)
         self.id = (min(id), max(id))
 
-    def reserve(self, msg):
-        self.active.add(msg)
-        msg.task.counter += 1
+    def reserve(self, event):
+        self.active.add(event)
+        event.task.counter += 1
 
     def progress(self, now):
-        alarms = [Alarm(now + msg.time(), msg) for msg in self.active]
+        alarms = [Alarm(now + event.time(), event) for event in self.active]
         self.running = self.active
         self.active = set()
         return alarms
 
 class CpuDevice(Device):
-    def reserve(self, msg):
-        self.active.add(msg)
-        msg.task.counter += 1
+    def reserve(self, event):
+        self.active.add(event)
+        event.task.counter += 1
 
     def progress(self, now):
-        msg = self.active.pop()
-        alarms = Alarm(now + msg.task.thunk.cputime, msg, self)
+        event = self.active.pop()
+        alarms = Alarm(now + event.task.thunk.cputime, event, self)
         self.running = [alarms]
         return self.running
 
@@ -97,9 +97,9 @@ class CpuDevice(Device):
     def is_active(self):
         return len(self.active) > 0 and len(self.runnig) == 0
 
-class Message:
+class Event:
     """
-    Message is a piece of work for a device.
+    Event is a piece of work for a device.
     """
     def __init__(self, task, src, dst = None):
         self.task = task
@@ -159,27 +159,28 @@ class MachineNumaNet(Machine):
 
 
     def schedule(self, task):
+        # TODO: XXX: This is an obvious target for Visitor pattern
         if type(task) is CommTask:
             print("Need fetch r %d w %d pages" % (len(task.thunk.rs), len(task.thunk.ws)))
+            src = self.arch.cpu2numa[task.thunk.cpu]
             for adj in range(len(self.pes)):
-                src = self.arch.cpu2numa[task.thunk.cpu]
                 dst = self.arch.cpu2numa[adj]
                 if src == dst:
                     continue
-                msg = Message(task, task.thunk.cpu, adj)
+                event = Event(task, task.thunk.cpu, adj)
 
                 path = nx.shortest_path(self.arch.numa_g, src, dst)
                 for hop in zip(path[0:-1], path[1:]):
                     link = LinkDevice(hop)
-                    self.links[link.id].reserve(msg)
+                    self.links[link.id].reserve(event)
         elif type(task) is ThunkTask:
             pe = CpuDevice(task.thunk.cpu)
-            msg = Message(task, task.thunk.cpu)
-            self.pes[pe.id].reserve(msg)
+            event = Event(task, task.thunk.cpu)
+            self.pes[pe.id].reserve(event)
         elif type(task) is CommitTask:
             local_domain = self.arch.cpu2numa[task.thunk.cpu]
-            msg = Message(task, local_domain)
-            self.numas[local_domain].reserve(msg)
+            event = Event(task, local_domain)
+            self.numas[local_domain].reserve(event)
         else:
             raise Exception("Unknown task to schedule of type %s" % type(task))
 
