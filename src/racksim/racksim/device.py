@@ -31,10 +31,10 @@ class Device:
         self.runnig = set()
 
     def __eq__(self, other):
-        return self.id == other.id
+        return (self.id, type(self)) == (other.id, type(other))
 
     def __hash__(self):
-        return hash(self.id)
+        return hash((self.id, type(self)))
 
     def __repr__(self):
         return "%s-%s" % (type(self), self.id)
@@ -43,6 +43,26 @@ class Device:
         return len(self.active) > 0
 
     def complete(self):
+        pass
+
+class NumaDevice(Device):
+    def __init__(self, id):
+        super(NumaDevice, self).__init__(id)
+        self.rs = set()
+        self.ws = set()
+
+    def reserve(self, msg):
+        self.active.add(msg)
+        msg.event.counter += 1
+
+    def progress(self, now):
+        msg = self.active.pop()
+        alarms = Alarm(now + 0, msg, self)
+        return [alarms]
+
+    def complete(self):
+        # This should delete duplicated pages or install the requested
+        # ones
         pass
 
 class LinkDevice(Device):
@@ -118,6 +138,7 @@ class MachineNumaNet(Machine):
         self.devices = set()
         self.links = {}
         self.pes = {}
+        self.numas = {}
         self.alarms = []
         for node in self.arch.numa_g.edges():
             print("NODE: ", node, type(node))
@@ -128,6 +149,10 @@ class MachineNumaNet(Machine):
             cpu = CpuDevice(node)
             self.devices.add(cpu)
             self.pes[cpu.id] = cpu
+        for domain in range(self.arch.domains):
+            numa = NumaDevice(domain)
+            self.devices.add(numa)
+            self.numas[numa.id] = numa
         print(self.links)
         print("CPU-o" , self.arch.cpu_o)
         print("NUMA-g" , self.arch.numa_g.edges())
@@ -150,6 +175,10 @@ class MachineNumaNet(Machine):
             pe = CpuDevice(event.thunk.cpu)
             msg = Message(event, event.thunk.cpu)
             self.pes[pe.id].reserve(msg)
+        elif type(event) is CommitEvent:
+            local_domain = self.arch.cpu2numa[event.thunk.cpu]
+            msg = Message(event, local_domain)
+            self.numas[local_domain].reserve(msg)
         else:
             raise Exception("Unknown event to schedule of type %s" % type(event))
 

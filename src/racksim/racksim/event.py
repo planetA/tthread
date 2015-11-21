@@ -22,9 +22,12 @@ class EventDAG:
         for tid in g.nodes():
             commEv = CommEvent(tid)
             thunkEv = ThunkEvent(tid)
+            commitEv = CommitEvent(tid)
             self.dag.add_node(commEv)
             self.dag.add_node(thunkEv)
+            self.dag.add_node(commitEv)
             self.dag.add_edge(commEv, thunkEv)
+            self.dag.add_edge(thunkEv, commitEv)
             in_thunks = map(lambda x : ThunkEvent(x[0]), g.in_edges(tid))
             for i in in_thunks:
                 self.dag.add_edge(i, commEv)
@@ -32,7 +35,7 @@ class EventDAG:
             for o in out_thunks:
                 if type(o) is ThunkEvent:
                     raise Exception("TT")
-                self.dag.add_edge(thunkEv, o)
+                self.dag.add_edge(commitEv, o)
 
         # See XXX of successors
         self.dic = {ev : ev for ev in self.dag.nodes()}
@@ -76,3 +79,7 @@ class ThunkEvent(Event):
 class CommEvent(Event):
     def __repr__(self):
         return "c%s" % self.thunk
+
+class CommitEvent(Event):
+    def __repr__(self):
+        return "m%s" % self.thunk
