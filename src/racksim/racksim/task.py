@@ -3,7 +3,7 @@ import networkx as nx
 
 from .thunk import *
 
-class EventDAG:
+class TaskDAG:
 
     def __transitive_reduction(self, g):
         for n1 in g.nodes_iter():
@@ -20,20 +20,20 @@ class EventDAG:
         self.__transitive_reduction(g)
         self.dag = nx.DiGraph()
         for tid in g.nodes():
-            commEv = CommEvent(tid)
-            thunkEv = ThunkEvent(tid)
-            commitEv = CommitEvent(tid)
+            commEv = CommTask(tid)
+            thunkEv = ThunkTask(tid)
+            commitEv = CommitTask(tid)
             self.dag.add_node(commEv)
             self.dag.add_node(thunkEv)
             self.dag.add_node(commitEv)
             self.dag.add_edge(commEv, thunkEv)
             self.dag.add_edge(thunkEv, commitEv)
-            in_thunks = map(lambda x : ThunkEvent(x[0]), g.in_edges(tid))
+            in_thunks = map(lambda x : ThunkTask(x[0]), g.in_edges(tid))
             for i in in_thunks:
                 self.dag.add_edge(i, commEv)
-            out_thunks = map(lambda x : CommEvent(x[1]), g.out_edges(tid))
+            out_thunks = map(lambda x : CommTask(x[1]), g.out_edges(tid))
             for o in out_thunks:
-                if type(o) is ThunkEvent:
+                if type(o) is ThunkTask:
                     raise Exception("TT")
                 self.dag.add_edge(commitEv, o)
 
@@ -41,9 +41,9 @@ class EventDAG:
         self.dic = {ev : ev for ev in self.dag.nodes()}
         # Verify correct DAG
         for n in self.dag.nodes():
-            if type(n) is CommEvent:
+            if type(n) is CommTask:
                 if len(self.dag.successors(n)) > 1:
-                    raise Exception("CommEvent %s has more than 1 successor." % n)
+                    raise Exception("CommTask %s has more than 1 successor." % n)
 
     def successors(self, node):
         # XXX: That's rather a hack, because for some reason
@@ -51,10 +51,10 @@ class EventDAG:
         # objects itself
         return [self.dic[ev] for ev in self.dag.successors(node)]
 
-class EventQueue:
+class TaskQueue:
     pass
 
-class Event:
+class Task:
     def __init__(self, thunk):
         if type(thunk) is not ThunkData:
             raise Exception("Expected tid of type ThunkData, found %s" % type(thunk))
@@ -72,14 +72,14 @@ class Event:
     def __repr__(self):
         return "%s" % self.thunk
 
-class ThunkEvent(Event):
+class ThunkTask(Task):
     def __repr__(self):
         return "t%s" % self.thunk
 
-class CommEvent(Event):
+class CommTask(Task):
     def __repr__(self):
         return "c%s" % self.thunk
 
-class CommitEvent(Event):
+class CommitTask(Task):
     def __repr__(self):
         return "m%s" % self.thunk

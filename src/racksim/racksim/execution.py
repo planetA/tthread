@@ -1,7 +1,7 @@
 from enum import Enum
 import bisect
 
-from .event import CommEvent, ThunkEvent
+from .task import CommTask, ThunkTask
 from .programm import Programm
 from .architecture import Architecture
 from .device import Device, Machine, MachineNumaNet
@@ -102,7 +102,7 @@ class Execution:
 
     def run(self):
         """
-        Event state transisitons are:
+        Task state transisitons are:
         blocked -> ready -> active -> running -> finished
         """
 
@@ -116,18 +116,18 @@ class Execution:
         while self.prog.exit.wait > 0 or ready:
             # ipdb.set_trace()
             while ready:
-                event = ready.pop()
-                self.rack.schedule(event) # ready -> active
+                task = ready.pop()
+                self.rack.schedule(task) # ready -> active
 
             self.rack.progress(now) # active -> running
 
-            (now, events) = self.rack.complete() # running -> finished
+            (now, tasks) = self.rack.complete() # running -> finished
 
-            for event in events:
-                # if type(event) is ThunkEvent:
-                print("%s : (%s) %s" % (now, type(event), event))
+            for task in tasks:
+                # if type(task) is ThunkTask:
+                print("%s : (%s) %s" % (now, type(task), task))
                 # if now == 26758111.0: ipdb.set_trace()
-                for succ in  self.prog.edag.successors(event):
+                for succ in  self.prog.edag.successors(task):
                     succ.wait -= 1
                     if succ.wait == 0:
                         ready.add(succ)
@@ -138,15 +138,15 @@ class Execution:
         #         timeline.reap(self.memory)
         #     self.timelines[thunk.cpu].append(thunk)
         #     self.memmove(thunk)
-        #     # thunkEvent = ThunkEvent(evId)
-        #     # commEvents = self.memory.makeCommEvents(thunkEvent)
-        #     # thunkEvent and commEvents have two Id's
+        #     # thunkTask = ThunkTask(evId)
+        #     # commTasks = self.memory.makeCommTasks(thunkTask)
+        #     # thunkTask and commTasks have two Id's
         #     # evId += 2
         #     print("Schedule thunk %s " % (thunk))
 
-        # for event in self.eventq:
-        #     if event.isReady():
-        #         event.process()
+        # for task in self.taskq:
+        #     if task.isReady():
+        #         task.process()
 
         # print()
         # for timeline in self.timelines:

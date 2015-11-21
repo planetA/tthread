@@ -5,7 +5,7 @@ import networkx.algorithms.dag as dag
 import matplotlib.pyplot as plt
 
 from .thunk import ThunkId, ThunkData
-from .event import Event, CommEvent, ThunkEvent, EventDAG
+from .task import Task, CommTask, ThunkTask, TaskDAG
 
 class Programm:
     def __init__(self):
@@ -74,14 +74,14 @@ class Programm:
 
     def start(self):
         print(self.edges)
-        self.edag = EventDAG(self.edges)
+        self.edag = TaskDAG(self.edges)
 
-        for event in self.edag.dag.nodes_iter():
-            event.wait = len(self.edag.dag.in_edges(event))
-            if event.wait == 0:
-                self.entry = event
-            elif len(self.edag.dag.out_edges(event)) == 0:
-                self.exit = event
+        for task in self.edag.dag.nodes_iter():
+            task.wait = len(self.edag.dag.in_edges(task))
+            if task.wait == 0:
+                self.entry = task
+            elif len(self.edag.dag.out_edges(task)) == 0:
+                self.exit = task
 
         if len(self.edag.dag.predecessors(self.entry)) != 0:
             raise Exception("Thunk %s is not the programm entry." % self.entry)

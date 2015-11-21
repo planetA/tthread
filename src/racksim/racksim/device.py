@@ -1,5 +1,5 @@
 from heapq import *
-from .event import *
+from .task import *
 
 class Alarm:
     def __init__(self, time, item, dev = None):
@@ -53,7 +53,7 @@ class NumaDevice(Device):
 
     def reserve(self, msg):
         self.active.add(msg)
-        msg.event.counter += 1
+        msg.task.counter += 1
 
     def progress(self, now):
         msg = self.active.pop()
@@ -72,7 +72,7 @@ class LinkDevice(Device):
 
     def reserve(self, msg):
         self.active.add(msg)
-        msg.event.counter += 1
+        msg.task.counter += 1
 
     def progress(self, now):
         alarms = [Alarm(now + msg.time(), msg) for msg in self.active]
@@ -83,11 +83,11 @@ class LinkDevice(Device):
 class CpuDevice(Device):
     def reserve(self, msg):
         self.active.add(msg)
-        msg.event.counter += 1
+        msg.task.counter += 1
 
     def progress(self, now):
         msg = self.active.pop()
-        alarms = Alarm(now + msg.event.thunk.cputime, msg, self)
+        alarms = Alarm(now + msg.task.thunk.cputime, msg, self)
         self.running = [alarms]
         return self.running
 
@@ -101,15 +101,15 @@ class Message:
     """
     Message is a piece of work for a device.
     """
-    def __init__(self, event, src, dst = None):
-        self.event = event
+    def __init__(self, task, src, dst = None):
+        self.task = task
         self.src = src
         self.dst = dst
 
     def complete(self):
-        self.event.counter -= 1
-        if self.event.counter == 0:
-            return self.event
+        self.task.counter -= 1
+        if self.task.counter == 0:
+            return self.task
         else:
             return None
 
@@ -117,7 +117,7 @@ class Message:
         return 0
 
     def __repr__(self):
-        return "%s->%s: %s" % (self.src, self.dst, self.event)
+        return "%s->%s: %s" % (self.src, self.dst, self.task)
 
 class Machine:
     def __init__(self, arch):
@@ -158,29 +158,30 @@ class MachineNumaNet(Machine):
         print("NUMA-g" , self.arch.numa_g.edges())
 
 
-    def schedule(self, event):
-        if type(event) is CommEvent:
+    def schedule(self, task):
+        if type(task) is CommTask:
+            print("Need fetch r %d w %d pages" % (len(task.thunk.rs), len(task.thunk.ws)))
             for adj in range(len(self.pes)):
-                src = self.arch.cpu2numa[event.thunk.cpu]
+                src = self.arch.cpu2numa[task.thunk.cpu]
                 dst = self.arch.cpu2numa[adj]
                 if src == dst:
                     continue
-                msg = Message(event, event.thunk.cpu, adj)
+                msg = Message(task, task.thunk.cpu, adj)
 
                 path = nx.shortest_path(self.arch.numa_g, src, dst)
                 for hop in zip(path[0:-1], path[1:]):
                     link = LinkDevice(hop)
                     self.links[link.id].reserve(msg)
-        elif type(event) is ThunkEvent:
-            pe = CpuDevice(event.thunk.cpu)
-            msg = Message(event, event.thunk.cpu)
+        elif type(task) is ThunkTask:
+            pe = CpuDevice(task.thunk.cpu)
+            msg = Message(task, task.thunk.cpu)
             self.pes[pe.id].reserve(msg)
-        elif type(event) is CommitEvent:
-            local_domain = self.arch.cpu2numa[event.thunk.cpu]
-            msg = Message(event, local_domain)
+        elif type(task) is CommitTask:
+            local_domain = self.arch.cpu2numa[task.thunk.cpu]
+            msg = Message(task, local_domain)
             self.numas[local_domain].reserve(msg)
         else:
-            raise Exception("Unknown event to schedule of type %s" % type(event))
+            raise Exception("Unknown task to schedule of type %s" % type(task))
 
     def progress(self, now):
         for dev in self.devices:
@@ -194,7 +195,7 @@ class MachineNumaNet(Machine):
         # Time of the first element
         while self.alarms and (self.alarms[0].time == earliest or not finished):
             alarm = heappop(self.alarms)
-            event = alarm.complete()
-            if event:
-                finished.append(event)
+            task = alarm.complete()
+            if task:
+                finished.append(task)
         return (alarm.time, finished)
