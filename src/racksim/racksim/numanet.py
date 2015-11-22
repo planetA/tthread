@@ -42,41 +42,80 @@ class MachineNumaNet(Machine):
             src = self.arch.cpu2numa[task.thunk.cpu]
             src_numa = self.numas[src]
             pages = task.thunk.rs | task.thunk.ws
-            print("%s on %s requires %d pages %d are present"
-                  % (task, src_numa, len(pages), len(pages & src_numa.pages)))
             pages = pages - src_numa.pages
-            # Order of iteration is not important unless we can have
-            # more than one copy per page
-            for adj in range(len(self.pes)):
-                dst = self.arch.cpu2numa[adj]
-                if src == dst:
-                    continue
+            print("Task %s requires %d pages " % (task, len(pages)))
+            if True: #First touch
+                # Order of iteration is not important unless we can have
+                # more than one copy per page
+                for adj in range(len(self.pes)):
+                    dst = self.arch.cpu2numa[adj]
+                    if src == dst:
+                        continue
 
-                dst_numa = self.numas[dst]
-                fetch = dst_numa.pages & pages
-                if len(fetch) == 0:
-                    continue
+                    dst_numa = self.numas[dst]
+                    fetch = dst_numa.pages & pages
+                    if len(fetch) == 0:
+                        continue
 
-                print("Fetch %d from %s" % (len(fetch), dst_numa))
-                pages = pages - fetch
-                event = CommEvent(task, src_numa, fetch)
-                event.time = self.arch.page_time(src, dst, len(fetch))
-                (delay, path) = self.arch.shortest_path(src, dst)
-                event.time += delay
+                    pages = pages - fetch
+                    event = CommEvent(task, src_numa, fetch)
+                    event.time = self.arch.page_time(src, dst, len(fetch))
+                    (delay, path) = self.arch.shortest_path(src, dst)
+                    event.time += delay
+                    task.time = event.time
 
-                for hop in zip(path[0:-1], path[1:]):
-                    link = LinkDevice(hop)
-                    print("Reserve delayed %s link %s for event %s parties %s" %
-                          (delay, link, event, hop))
-                    event.reserve(self.links[link.id])
-                    # XXX: update delay
-                    delay += 0
-            if len(pages):
-                # First touch policy
-                src_numa.pages |= pages
-                print("first touch pages %s (%d)" % (src_numa, len(src_numa.pages)))
-            event = CommEvent(task, src_numa, pages)
-            event.reserve(src_numa)
+                    for hop in zip(path[0:-1], path[1:]):
+                        link = LinkDevice(hop)
+                        event.reserve(self.links[link.id])
+                        # XXX: update delay
+                        delay += 0
+                if len(pages):
+                    # First touch policy
+                    src_numa.pages |= pages
+                event = CommEvent(task, src_numa, pages)
+                event.reserve(src_numa)
+            else:
+                # Order of iteration is not important unless we can have
+                # more than one copy per page
+                for adj in range(len(self.pes)):
+                    dst = self.arch.cpu2numa[adj]
+                    if src == dst:
+                        continue
+
+                    dst_numa = self.numas[dst]
+                    fetch = dst_numa.pages & pages
+                    if len(fetch) == 0:
+                        continue
+
+                    pages = pages - fetch
+                    event = CommEvent(task, src_numa, fetch)
+                    event.time = self.arch.page_time(src, dst, len(fetch))
+                    (delay, path) = self.arch.shortest_path(src, dst)
+                    event.time += delay
+                    task.time = event.time
+
+                    for hop in zip(path[0:-1], path[1:]):
+                        link = LinkDevice(hop)
+                        event.reserve(self.links[link.id])
+                        # XXX: update delay
+                        delay += 0
+                if len(pages):
+                    MAGIC_DOMAIN = 1
+                    if src != MAGIC_DOMAIN:
+                        dst_numa = self.numas[MAGIC_DOMAIN]
+                        dst_numa.pages |= pages
+                        event = CommEvent(task, src_numa, pages)
+                        event.time = self.arch.page_time(src, dst, len(pages))
+                        (delay, path) = self.arch.shortest_path(src, dst)
+                        event.time += delay
+                        task.time = event.time
+
+                        for hop in zip(path[0:-1], path[1:]):
+                            link = LinkDevice(hop)
+                            event.reserve(self.links[link.id])
+                        # Save pages to (1st) domain
+                event = CommEvent(task, src_numa, pages)
+                event.reserve(src_numa)
         elif type(task) is ThunkTask:
             pe = CpuDevice(task.thunk.cpu)
             event = Event(task)
@@ -92,7 +131,6 @@ class MachineNumaNet(Machine):
         for dev in self.devices:
             if dev.is_active():
                 for alarm in dev.progress(now):
-                    print("Set alarm %s " % alarm)
                     heappush(self.alarms, alarm)
 
     def complete(self):

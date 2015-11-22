@@ -44,7 +44,7 @@ class NumaDevice(Device):
     def complete(self):
         for event in self.running:
             if type(event) is CommEvent:
-                print("Complete %s in %s" % (event, self))
+                pass
             elif type(event) is Event:
                 # That's stupid
                 pass
@@ -64,7 +64,6 @@ class LinkDevice(Device):
         self.active.add(event)
 
     def progress(self, now):
-        print("Progress %s LinkEvent %s " % (self, [event.time for event in self.active]))
         alarms = [Alarm(now + event.time, event) for event in self.active]
         self.running = self.active
         self.active = set()

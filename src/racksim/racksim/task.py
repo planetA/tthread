@@ -77,8 +77,12 @@ class ThunkTask(Task):
         return "t%s" % self.thunk
 
 class CommTask(Task):
+    def __init__(self, thunk):
+        super(CommTask, self).__init__(thunk)
+        self.time = 0
+
     def __repr__(self):
-        return "c%s" % self.thunk
+        return "c%s CPU %d TIME %f" % (self.thunk.tid, self.thunk.cpu, self.time)
 
 class CommitTask(Task):
     def __repr__(self):

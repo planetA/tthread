@@ -115,28 +115,20 @@ class Execution:
         print('='*60)
         import ipdb
         while self.prog.exit.wait > 0 or ready:
-            print('-'*60)
             # ipdb.set_trace()
-            print('--schedule')
             while ready:
                 task = ready.pop()
                 self.rack.schedule(task) # ready -> active
-            print('++schedule')
-            print('--progress')
 
             self.rack.progress(now) # active -> running
 
-            print('++progress')
-            print('--complete')
             (now, tasks) = self.rack.complete() # running -> finished
-            print('++complete')
 
             for task in tasks:
                 if type(task) is ThunkTask:
                     for i in self.rack.numas:
                         dev = self.rack.numas[i]
-                        print ("Numa %s has %d pages" % (i, len(dev.pages)))
-                print(">>>>>>>>>>>>>>>%s : (%s) %s" % (now, type(task), task))
+                print(">>>>>>>>>>>>>>> %s : (%s) %s" % (now, type(task), task))
                 # if now == 26758111.0: ipdb.set_trace()
                 for succ in  self.prog.edag.successors(task):
                     succ.wait -= 1
