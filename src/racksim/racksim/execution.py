@@ -4,7 +4,8 @@ import bisect
 from .task import CommTask, ThunkTask
 from .programm import Programm
 from .architecture import Architecture
-from .device import Device, Machine, MachineNumaNet
+from .device import Device, Machine
+from .numanet import MachineNumaNet
 
 class PageState(Enum):
     inuse = 1
@@ -114,41 +115,30 @@ class Execution:
         print('='*60)
         import ipdb
         while self.prog.exit.wait > 0 or ready:
+            print('-'*60)
             # ipdb.set_trace()
+            print('--schedule')
             while ready:
                 task = ready.pop()
                 self.rack.schedule(task) # ready -> active
+            print('++schedule')
+            print('--progress')
 
             self.rack.progress(now) # active -> running
 
+            print('++progress')
+            print('--complete')
             (now, tasks) = self.rack.complete() # running -> finished
+            print('++complete')
 
             for task in tasks:
-                # if type(task) is ThunkTask:
-                print("%s : (%s) %s" % (now, type(task), task))
+                if type(task) is ThunkTask:
+                    for i in self.rack.numas:
+                        dev = self.rack.numas[i]
+                        print ("Numa %s has %d pages" % (i, len(dev.pages)))
+                print(">>>>>>>>>>>>>>>%s : (%s) %s" % (now, type(task), task))
                 # if now == 26758111.0: ipdb.set_trace()
                 for succ in  self.prog.edag.successors(task):
                     succ.wait -= 1
                     if succ.wait == 0:
                         ready.add(succ)
-
-        # for thunk in self.prog.run():
-        #     # Update page statuses before scheduling next thunk
-        #     for timeline in self.timelines:
-        #         timeline.reap(self.memory)
-        #     self.timelines[thunk.cpu].append(thunk)
-        #     self.memmove(thunk)
-        #     # thunkTask = ThunkTask(evId)
-        #     # commTasks = self.memory.makeCommTasks(thunkTask)
-        #     # thunkTask and commTasks have two Id's
-        #     # evId += 2
-        #     print("Schedule thunk %s " % (thunk))
-
-        # for task in self.taskq:
-        #     if task.isReady():
-        #         task.process()
-
-        # print()
-        # for timeline in self.timelines:
-        #     print (timeline)
-        #     print()

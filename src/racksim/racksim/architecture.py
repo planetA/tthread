@@ -43,6 +43,11 @@ class Architecture:
         if getattr(self, self.names[tab_name]) is not None:
             Exception("Duplicate table definition: %s" % tab_name)
 
+        if tab_name in ["CPU-o", "CPU-O", "NUMA-g", "NUMA-L", "NUMA-G"] and \
+           'mult' in params:
+            mult = float(params['mult'])
+        else:
+            mult = 1.
         # Check specific table initialization
         if tab_name in ["CPU-to-NUMA", "CPU-o", "CPU-O"]:
             if self.cores is None:
@@ -52,13 +57,15 @@ class Architecture:
             if tab_name == "CPU-to-NUMA":
                 tab = [int(i) for i in tab_data]
             else:
-                tab = [float(i) for i in tab_data]
+                tab = [mult * float(i) for i in tab_data]
         elif tab_name in ["NUMA-g", "NUMA-L", "NUMA-G"]:
             if self.domains is None:
                 self.domains = len(tab_data)
             elif self.domains != len(tab_data):
                 raise Exception("Expected %d domains, found %d" %(self.domains, len(tab_data)))
-            adj_matr = numpy.matrix([[float(cell) for cell in row] for row in tab_data])
+            dt = numpy.dtype(float)
+            data = [[mult * float(cell) for cell in row] for row in tab_data]
+            adj_matr = numpy.matrix(data, dtype = dt)
             tab = nx.from_numpy_matrix(adj_matr)
 
         setattr(self, self.names[tab_name], tab)
@@ -72,3 +79,14 @@ class Architecture:
             tabs.append("%s: %s" %(name, tab))
         return '\n'.join(tabs)
 
+
+    def page_time(self, i, j, count):
+        # if self.numa_G[i][j] == 0:
+        #     raise Exception("Can't report for unconnected hops")
+        return nx.shortest_path_length(self.numa_G, i, j, 'weight') * count
+
+    def shortest_path(self, i, j):
+        # if self.numa_L[i][j] == 0:
+        #     raise Exception("Can't report for unconnected hops")
+        return (nx.shortest_path_length(self.numa_L, i, j, 'weight'),
+                nx.shortest_path(self.numa_L, i, j, 'weight'))
