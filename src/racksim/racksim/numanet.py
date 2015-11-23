@@ -1,31 +1,6 @@
 from .device import *
 from .event import *
-
-class Scheduler:
-    def __init__(self, machine):
-        self.machine = machine
-
-class FirstTouch(Scheduler):
-    def init_pages(self, dst, pages, task):
-        self.machine.numas[dst].pages |= pages
-
-class MagicScheduler(Scheduler):
-    def init_pages(self, dst, pages, task):
-        MAGIC_DOMAIN = 1
-        src = MAGIC_DOMAIN
-        if dst != src:
-            src_numa = self.machine.numas[src]
-            src_numa.pages |= pages
-            dst_numa = self.machine.numas[dst]
-            event = CommEvent(task, dst_numa, pages)
-            event.time = self.machine.arch.page_time(dst, src, len(pages))
-            (delay, path) = self.machine.arch.shortest_path(dst, src)
-            event.time += delay
-            task.time = event.time
-
-            for hop in zip(path[0:-1], path[1:]):
-                link = LinkDevice(hop)
-                event.reserve(self.machine.links[link.id])
+from .scheduler import *
 
 class MachineNumaNet(Machine):
     """Machine of type NumaNet: Represented by a network of NUMA domains
@@ -58,7 +33,7 @@ class MachineNumaNet(Machine):
             self.devices.add(numa)
             self.numas[numa.id] = numa
 
-        self.scheduler = MagicScheduler(self)
+        self.scheduler = execution.scheduler
         # self.scheduler = FirstTouch(self)
         print(self.links)
         print("CPU-o" , self.arch.cpu_o)
@@ -99,7 +74,7 @@ class MachineNumaNet(Machine):
                     # XXX: update delay
                     delay += 0
             if len(pages):
-                self.scheduler.init_pages(dst, pages, task)
+                self.scheduler.init_page(dst, pages, task)
                 # First touch policy
             event = CommEvent(task, dst_numa, pages)
             event.reserve(dst_numa)

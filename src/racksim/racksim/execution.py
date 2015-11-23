@@ -86,7 +86,7 @@ class Execution:
         for page in thunk.rs | thunk.ws:
             self.memory.move(page, thunk.cpu)
 
-    def __init__(self, arch, prog):
+    def __init__(self, arch, prog, scheduler):
         if type(arch) is not Architecture:
             raise Exception("Expected parameter of type Architecture, got %s"
                             % str(type(arch)))
@@ -95,9 +95,11 @@ class Execution:
                             % str(type(prog)))
         self.arch = arch
         self.prog = prog
+        self.scheduler = scheduler
         self.timelines = [Timeline() for i in range(self.arch.cores)]
         self.memory = Memory(self.arch.domains)
         self.rack = MachineNumaNet(self)
+        self.scheduler.setMachine(self.rack)
         # Set of active devices
         self.active = set()
 

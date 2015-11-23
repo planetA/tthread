@@ -1,10 +1,12 @@
 from optparse import OptionParser
 from sys import exit
 import csv
+import json
 
 from .programm import Programm
 from .architecture import Architecture
 from .execution import Execution
+from .scheduler import FirstTouch, MagicTouch, Scheduler
 
 class RackSim:
     def __parse_dtl(self, dtl_filename):
@@ -85,7 +87,21 @@ class RackSim:
                 except StopIteration:
                     break
 
-            # print (self.arch)
+    def __parse_sched(self, sched_filename):
+        sched_variants = {
+            "init_page" : {"first_touch" : FirstTouch,
+                           "magic" : MagicTouch}
+        }
+        sched_params = json.load(open(sched_filename, 'r'))
+
+        self.scheduler = Scheduler(None)
+        for k in sched_params:
+            v = sched_params[k]
+            if k in sched_variants:
+                if v in sched_variants[k]:
+                    setattr(self.scheduler, k, sched_variants[k][v](self.scheduler))
+                else:
+                    raise Exception("Unexpected value %s for parameter %s" % (v, k))
 
     def __init__(self):
         parser = OptionParser()
@@ -93,6 +109,8 @@ class RackSim:
                           help="Load trace in dtl format.", metavar="FILE")
         parser.add_option("-m", "--mst", dest="mst",
                           help="Load machine specification in mst format.", metavar="FILE")
+        parser.add_option("-s", "--sched", dest="sched",
+                          help="Load scheduling parameters key-value format.", metavar="FILE")
 
         (options, args) = parser.parse_args()
         if options.dtl is not None:
@@ -108,9 +126,17 @@ class RackSim:
             print("Missing architecture specification")
             parser.print_help()
             exit()
+
+        if options.sched is not None:
+            self.__parse_sched(options.sched)
+        else:
+            print("Missing scheduling parametrs specification")
+            parser.print_help()
+            exit()
+
         print("Hi from RackSim {%s}" % options.dtl)
 
     def run(self):
-        execution = Execution(self.arch, self.prog)
+        execution = Execution(self.arch, self.prog, self.scheduler)
         execution.run()
         print("Run racksim")
