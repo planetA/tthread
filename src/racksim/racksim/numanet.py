@@ -1,6 +1,32 @@
 from .device import *
 from .event import *
 
+class Scheduler:
+    def __init__(self, machine):
+        self.machine = machine
+
+class FirstTouch(Scheduler):
+    def init_pages(self, dst, pages, task):
+        self.machine.numas[dst].pages |= pages
+
+class MagicScheduler(Scheduler):
+    def init_pages(self, dst, pages, task):
+        MAGIC_DOMAIN = 1
+        src = MAGIC_DOMAIN
+        if dst != src:
+            src_numa = self.machine.numas[src]
+            src_numa.pages |= pages
+            dst_numa = self.machine.numas[dst]
+            event = CommEvent(task, dst_numa, pages)
+            event.time = self.machine.arch.page_time(dst, src, len(pages))
+            (delay, path) = self.machine.arch.shortest_path(dst, src)
+            event.time += delay
+            task.time = event.time
+
+            for hop in zip(path[0:-1], path[1:]):
+                link = LinkDevice(hop)
+                event.reserve(self.machine.links[link.id])
+
 class MachineNumaNet(Machine):
     """Machine of type NumaNet: Represented by a network of NUMA domains
     and a set of CPUs. Each NUMA domain has some CPUs connected to it.
@@ -31,6 +57,9 @@ class MachineNumaNet(Machine):
             numa = NumaDevice(domain)
             self.devices.add(numa)
             self.numas[numa.id] = numa
+
+        self.scheduler = MagicScheduler(self)
+        # self.scheduler = FirstTouch(self)
         print(self.links)
         print("CPU-o" , self.arch.cpu_o)
         print("NUMA-g" , self.arch.numa_g.edges())
@@ -39,83 +68,41 @@ class MachineNumaNet(Machine):
     def schedule(self, task):
         # TODO: XXX: This is an obvious target for Visitor pattern
         if type(task) is CommTask:
-            src = self.arch.cpu2numa[task.thunk.cpu]
-            src_numa = self.numas[src]
+            dst = self.arch.cpu2numa[task.thunk.cpu]
+            dst_numa = self.numas[dst]
             pages = task.thunk.rs | task.thunk.ws
-            pages = pages - src_numa.pages
+            pages = pages - dst_numa.pages
             print("Task %s requires %d pages " % (task, len(pages)))
-            if True: #First touch
-                # Order of iteration is not important unless we can have
-                # more than one copy per page
-                for adj in range(len(self.pes)):
-                    dst = self.arch.cpu2numa[adj]
-                    if src == dst:
-                        continue
+            #First touch
+            # Order of iteration is not important unless we can have
+            # more than one copy per page
+            for adj in range(len(self.pes)):
+                src = self.arch.cpu2numa[adj]
+                if dst == src:
+                    continue
 
-                    dst_numa = self.numas[dst]
-                    fetch = dst_numa.pages & pages
-                    if len(fetch) == 0:
-                        continue
+                src_numa = self.numas[src]
+                fetch = src_numa.pages & pages
+                if len(fetch) == 0:
+                    continue
 
-                    pages = pages - fetch
-                    event = CommEvent(task, src_numa, fetch)
-                    event.time = self.arch.page_time(src, dst, len(fetch))
-                    (delay, path) = self.arch.shortest_path(src, dst)
-                    event.time += delay
-                    task.time = event.time
+                pages = pages - fetch
+                event = CommEvent(task, dst_numa, fetch)
+                event.time = self.arch.page_time(dst, src, len(fetch))
+                (delay, path) = self.arch.shortest_path(dst, src)
+                event.time += delay
+                task.time = event.time
 
-                    for hop in zip(path[0:-1], path[1:]):
-                        link = LinkDevice(hop)
-                        event.reserve(self.links[link.id])
-                        # XXX: update delay
-                        delay += 0
-                if len(pages):
-                    # First touch policy
-                    src_numa.pages |= pages
-                event = CommEvent(task, src_numa, pages)
-                event.reserve(src_numa)
-            else:
-                # Order of iteration is not important unless we can have
-                # more than one copy per page
-                for adj in range(len(self.pes)):
-                    dst = self.arch.cpu2numa[adj]
-                    if src == dst:
-                        continue
-
-                    dst_numa = self.numas[dst]
-                    fetch = dst_numa.pages & pages
-                    if len(fetch) == 0:
-                        continue
-
-                    pages = pages - fetch
-                    event = CommEvent(task, src_numa, fetch)
-                    event.time = self.arch.page_time(src, dst, len(fetch))
-                    (delay, path) = self.arch.shortest_path(src, dst)
-                    event.time += delay
-                    task.time = event.time
-
-                    for hop in zip(path[0:-1], path[1:]):
-                        link = LinkDevice(hop)
-                        event.reserve(self.links[link.id])
-                        # XXX: update delay
-                        delay += 0
-                if len(pages):
-                    MAGIC_DOMAIN = 1
-                    if src != MAGIC_DOMAIN:
-                        dst_numa = self.numas[MAGIC_DOMAIN]
-                        dst_numa.pages |= pages
-                        event = CommEvent(task, src_numa, pages)
-                        event.time = self.arch.page_time(src, dst, len(pages))
-                        (delay, path) = self.arch.shortest_path(src, dst)
-                        event.time += delay
-                        task.time = event.time
-
-                        for hop in zip(path[0:-1], path[1:]):
-                            link = LinkDevice(hop)
-                            event.reserve(self.links[link.id])
-                        # Save pages to (1st) domain
-                event = CommEvent(task, src_numa, pages)
-                event.reserve(src_numa)
+                for hop in zip(path[0:-1], path[1:]):
+                    link = LinkDevice(hop)
+                    event.reserve(self.links[link.id])
+                    # XXX: update delay
+                    delay += 0
+            if len(pages):
+                self.scheduler.init_pages(dst, pages, task)
+                # First touch policy
+            event = CommEvent(task, dst_numa, pages)
+            event.reserve(dst_numa)
         elif type(task) is ThunkTask:
             pe = CpuDevice(task.thunk.cpu)
             event = Event(task)
