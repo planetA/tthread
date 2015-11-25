@@ -20,22 +20,22 @@ class TaskDAG:
         self.__transitive_reduction(g)
         self.dag = nx.DiGraph()
         for tid in g.nodes():
-            commEv = CommTask(tid)
-            thunkEv = ThunkTask(tid)
-            commitEv = CommitTask(tid)
-            self.dag.add_node(commEv)
-            self.dag.add_node(thunkEv)
-            self.dag.add_node(commitEv)
-            self.dag.add_edge(commEv, thunkEv)
-            self.dag.add_edge(thunkEv, commitEv)
+            commT = CommTask(tid)
+            thunkT = ThunkTask(tid)
+            commitT = CommitTask(tid)
+            self.dag.add_node(commT)
+            self.dag.add_node(thunkT)
+            self.dag.add_node(commitT)
+            self.dag.add_edge(commT, thunkT)
+            self.dag.add_edge(thunkT, commitT)
             in_thunks = map(lambda x : ThunkTask(x[0]), g.in_edges(tid))
             for i in in_thunks:
-                self.dag.add_edge(i, commEv)
+                self.dag.add_edge(i, commT)
             out_thunks = map(lambda x : CommTask(x[1]), g.out_edges(tid))
             for o in out_thunks:
                 if type(o) is ThunkTask:
                     raise Exception("TT")
-                self.dag.add_edge(commitEv, o)
+                self.dag.add_edge(commitT, o)
 
         # See XXX of successors
         self.dic = {ev : ev for ev in self.dag.nodes()}
