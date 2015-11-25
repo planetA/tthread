@@ -6,7 +6,7 @@ import json
 from .programm import Programm
 from .architecture import Architecture
 from .execution import Execution
-from .scheduler import FirstTouch, MagicTouch, Scheduler
+from .scheduler import FirstTouch, MagicTouch, RandomTouch, Scheduler
 
 class RackSim:
     def __parse_dtl(self, dtl_filename):
@@ -90,7 +90,8 @@ class RackSim:
     def __parse_sched(self, sched_filename):
         sched_variants = {
             "init_page" : {"first_touch" : FirstTouch,
-                           "magic" : MagicTouch}
+                           "magic" : MagicTouch,
+                           "random" : RandomTouch}
         }
         sched_params = json.load(open(sched_filename, 'r'))
 
