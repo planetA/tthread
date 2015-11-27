@@ -1,3 +1,4 @@
 {
-    "init_page" : "magic"
+    "init_page" : "magic",
+    "commit" : "nomove"
 }

@@ -1,3 +1,4 @@
 {
-    "init_page" : "random"
+    "init_page" : "random",
+    "commit" : "nomove"
 }

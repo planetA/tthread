@@ -82,33 +82,7 @@ class MachineNumaNet(Machine):
             event = Event(task)
             event.reserve(self.pes[pe.id])
         elif type(task) is CommitTask:
-            src = self.arch.cpu2numa[task.thunk.cpu]
-            src_numa = self.numas[src]
-            pages = task.thunk.ws
-            pages = pages - src_numa.pages
-            print("Task %s commits %d pages" % (task, len(pages)))
-            for adj in range(len(self.pes)):
-                dst = self.arch.cpu2numa[adj]
-                if dst == src:
-                    continue
-
-                dst_numa = self.numas[dst]
-                commit = dst_numa.pages & pages
-                if len(commit) == 0:
-                    continue
-                pages = pages - commit
-                event = CommEvent(task, src_numa, commit)
-                event.time = self.arch.page_time(src, dst, len(commit))
-                (delay, path) = self.arch.shortest_path(src, dst)
-                event.time += delay
-                task.time = event.time
-
-                for hop in zip(path[0:-1], path[1:]):
-                    link = LinkDevice(hop)
-                    event.reserve(self.links[link.id])
-                    delay += 0
-            event = CommEvent(task, src_numa, pages)
-            event.reserve(src_numa)
+            self.scheduler.commit(task)
         else:
             raise Exception("Unknown task to schedule of type %s" % type(task))
 

@@ -1,3 +1,4 @@
 {
-    "init_page" : "first_touch"
+    "init_page" : "first_touch",
+    "commit" : "nomove"
 }

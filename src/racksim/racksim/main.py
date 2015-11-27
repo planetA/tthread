@@ -7,6 +7,7 @@ from .programm import Programm
 from .architecture import Architecture
 from .execution import Execution
 from .scheduler import FirstTouch, MagicTouch, RandomTouch, Scheduler
+from .scheduler import NoMoveCommit, MoveHereCommit
 
 class RackSim:
     def __parse_dtl(self, dtl_filename):
@@ -91,7 +92,9 @@ class RackSim:
         sched_variants = {
             "init_page" : {"first_touch" : FirstTouch,
                            "magic" : MagicTouch,
-                           "random" : RandomTouch}
+                           "random" : RandomTouch},
+            "commit" : {"nomove" : NoMoveCommit,
+                        "movehere" : MoveHereCommit}
         }
         sched_params = json.load(open(sched_filename, 'r'))
 
@@ -103,6 +106,7 @@ class RackSim:
                     setattr(self.scheduler, k, sched_variants[k][v](self.scheduler))
                 else:
                     raise Exception("Unexpected value %s for parameter %s" % (v, k))
+
 
     def __init__(self):
         parser = OptionParser()
