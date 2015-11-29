@@ -21,7 +21,7 @@
 int xsched::get_affinity(int thunk)
 {
   // Pay attention that thunk numeration starts from 1, not from 0
-  if (_thread_schedule[thunk*2] != thunk) {
+  if (!_thread_schedule || _thread_schedule[thunk*2] != thunk) {
     fprintf(stderr, "Unexpected thunk affinity [%d/%d]=%d\n",
             _thread.getThreadIndex(), thunk, _thread_schedule[thunk*2 + 1]);
     ::abort();
@@ -32,6 +32,11 @@ int xsched::get_affinity(int thunk)
 void xsched::trigger()
 {
   cpu_set_t set;
+
+  // We do not do scheduling
+  if (!_thread_schedule)
+    return;
+
   CPU_ZERO(&set);
   CPU_SET(get_affinity(_thread.getThunkId()), &set);
   if (sched_setaffinity(getpid(), sizeof(set), &set) == -1)
@@ -72,7 +77,8 @@ void xsched::updateThread()
 
 xsched::xsched(xthread &thread)
   : _thread(thread),
-    _thunk_schedule(NULL)
+    _thunk_schedule(NULL),
+    _thread_schedule(NULL)
 {
    char *sched_file = getenv("TTHREAD_SCHED");
 
