@@ -1,6 +1,8 @@
 import os, sys
 import resource
-from subprocess import call, Popen, PIPE
+
+from subprocess import call, Popen, PIPE, DEVNULL
+from itertools import product
 
 from .constants import BM_ROOT, BM_APPS, BM_DATA
 from .benchmark import benchmarks
@@ -26,18 +28,26 @@ class RunBench(Command):
             for app in benchmarks:
                 self.runs.append(app)
 
+        self.tasksets = []
+        if args.c:
+            for cpulist in args.c:
+                self.tasksets.append(['taskset', '-c', cpulist])
+
+        self.n = args.n
+
     def __call__(self):
-        for app in self.runs:
+        for (taskset, iteration, app) in product(self.tasksets, range(self.n), self.runs):
             dataset = benchmarks[app]['dataset'][self.args.type]
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
-            taskset = 'taskset -c 0-1'.split()
             perf = 'perf stat -e cycles'.split()
             tthread = str('env LD_PRELOAD=' +
                            os.path.join(BM_ROOT, 'src/libtthread.so')).split()
-            run = Popen(taskset + perf + tthread +
+            run_param = taskset + perf + tthread + \
                         [os.path.join(BM_APPS, app, app),
-                         dataset], stderr=PIPE)
+                         dataset]
+            print(run_param)
+            run = Popen(run_param, stderr=PIPE, stdout=DEVNULL)
             run.wait()
             # after = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(after.ru_utime, ' ', after.ru_utime - before.ru_utime)
@@ -47,4 +57,3 @@ class RunBench(Command):
                 if 'time elapsed' in line:
                     time = float(line.strip().split()[1])
                     print('Time elapsed %f' % time)
-        pass

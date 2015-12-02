@@ -54,5 +54,11 @@ benchmarks = {
             'test' : ds_wrap('string_match_datafiles/key_file_50MB.txt'),
             'real' : ds_wrap('string_match_datafiles/key_file_500MB.txt')
         }
-    }
+    },
+    # 'reverse_index' : {
+    #     'dataset' : {
+    #         'test' : ds_wrap('reverse_index_datafiles'),
+    #         'real' : ds_wrap('reverse_index_datafiles')
+    #     }
+    # }
 }

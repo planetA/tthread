@@ -42,11 +42,20 @@ def parse_args():
     run.add_argument('apps', nargs='*')
     run.add_argument('--type', help='Type of execution',
                      choices=['test', 'real'], default='test')
+    run.add_argument('-c', help='Cpu lists to use. As for taskset.', action='append')
+    run.add_argument('-n', help='Number of runs', type=int, default=1)
     run.set_defaults(comm=manager.RunBench)
 
     sim = commands.add_parser('sim')
     topo = commands.add_parser('topo')
     args = parser.parse_args()
+
+    if args.c:
+        print (args.c)
+    # if args.n is not None and not args.n > 0:
+    #     print('Unexpected number of processors: %d' % n)
+    #     parser.print_help()
+    #     return None
 
     if args.comm is None:
         parser.print_help()
