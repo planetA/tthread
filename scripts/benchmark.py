@@ -33,16 +33,19 @@ def parse_args():
     #                              'sim', 'topo'])
     commands = parser.add_subparsers(help = 'Choose mode of operation')
 
-    trace = commands.add_parser('trace')
+    app_parser = ArgumentParser(add_help=False)
+    app_parser.add_argument('apps', nargs='*')
+    app_parser.add_argument('--type', help='Type of execution',
+                     choices=['test', 'real'], default='test')
+    app_parser.add_argument('-c', help='Cpu lists to use. As for taskset.', action='append')
+
+    trace = commands.add_parser('trace', parents = [app_parser])
+    trace.set_defaults(comm=manager.TraceBench)
 
     make = commands.add_parser('make', help='Compile benchmarks and library')
     make.set_defaults(comm=manager.CompileBench)
 
-    run = commands.add_parser('run')
-    run.add_argument('apps', nargs='*')
-    run.add_argument('--type', help='Type of execution',
-                     choices=['test', 'real'], default='test')
-    run.add_argument('-c', help='Cpu lists to use. As for taskset.', action='append')
+    run = commands.add_parser('run', parents = [app_parser])
     run.add_argument('-n', help='Number of runs', type=int, default=1)
     run.set_defaults(comm=manager.RunBench)
 
@@ -50,8 +53,6 @@ def parse_args():
     topo = commands.add_parser('topo')
     args = parser.parse_args()
 
-    if args.c:
-        print (args.c)
     # if args.n is not None and not args.n > 0:
     #     print('Unexpected number of processors: %d' % n)
     #     parser.print_help()

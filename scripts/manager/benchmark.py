@@ -41,6 +41,10 @@ benchmarks = {
         'dataset' : {
             'test' : '1000 1000',
             'real' : '2000 2000'
+        },
+        'prepare' : {
+            'test' : '1000 1000 1',
+            'real' : '2000 2000 1',
         }
     },
     'pca' : {
