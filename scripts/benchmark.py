@@ -24,6 +24,7 @@ import manager
 
 def parse_args():
     parser = ArgumentParser()
+    parser.add_argument('-v', help='Be more verbose', action='store_true', dest='verbose')
     parser.set_defaults(comm=None)
     # parser.add_argument('command',
     #                     help='Command to execute',

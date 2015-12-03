@@ -1,7 +1,7 @@
 import os, sys
 import resource
 
-from subprocess import call, Popen, PIPE, DEVNULL
+from subprocess import check_output, Popen, PIPE, DEVNULL
 from itertools import product
 
 import tthread
@@ -14,6 +14,11 @@ from .benchmark import benchmarks
 class Command:
     def __init__(self, args):
         self.args = args
+
+        if args.verbose:
+            self.verbose = True
+        else:
+            self.verbose = False
 
 class RunCommand(Command):
     def __init__(self, args):
@@ -37,6 +42,9 @@ class RunCommand(Command):
             return ['taskset', '-c', cpus]
         else:
             return []
+
+    def nproc(self, cpus):
+        return str(check_output(self.taskset_cmd(cpus) + ['nproc']).decode())
 
     def __call__(self):
         for app in self.apps:
@@ -68,21 +76,26 @@ class RunBench(RunCommand):
             # print(before.ru_utime)
             perf = 'perf stat -e cycles'.split()
             tthread = str('env LD_PRELOAD=' +
-                           os.path.join(BM_ROOT, 'src/libtthread.so')).split()
+                           os.path.join(BM_ROOT, 'src/libtthread.so') + \
+                          ' NPROCS=' + str(self.nproc(cpus))).split()
             run_param = taskset + perf + tthread + \
                         [os.path.join(BM_APPS, app, app)] + dataset
-            run = Popen(run_param, stderr=PIPE# , stdout=DEVNULL
-            )
+            if self.verbose:
+                print(run_param)
+                run = Popen(run_param, stderr=PIPE)
+            else:
+                run = Popen(run_param, stderr=PIPE, stdout=DEVNULL)
             run.wait()
+            if run.returncode != 0:
+                print("Unexpected return code %d for command %s" % (run.returncode, run_param))
             # after = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(after.ru_utime, ' ', after.ru_utime - before.ru_utime)
             out = run.stderr.readlines()
-            print(out)
             for line in out:
                 line = str(line)
                 if 'time elapsed' in line:
                     time = float(line.strip().split()[1])
-                    print('Time elapsed %f' % time)
+                    print('App %s, CPU %s Time elapsed %f' % (app, cpus, time))
 
 class TraceBench(RunCommand):
     def __init__(self, args):
@@ -92,29 +105,16 @@ class TraceBench(RunCommand):
         super(RunBench, self).__call__()
 
         for (cpus, app) in product(self.cpulist, self.apps):
-            taskset = self.taskset_cmd(cpus)
             output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
-            print(output)
             dataset = benchmarks[app]['dataset'][self.args.type].split()
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
-            perf = 'perf stat -e cycles'.split()
             tthread_lib = str('env LD_PRELOAD=' +
                            os.path.join(BM_ROOT, 'src/libtthread.so')).split()
-            # run_param = taskset + perf +
+            taskset = self.taskset_cmd(cpus)
             run_param = taskset + \
                         tthread_lib + \
                         [os.path.join(BM_APPS, app, app)] + dataset
-            print(run_param)
             process = tthread.run(run_param, tthread_lib)
             log = process.wait()
             DTLWriter(log).write(output)
-            continue
-            # after = resource.getrusage(resource.RUSAGE_CHILDREN)
-            # print(after.ru_utime, ' ', after.ru_utime - before.ru_utime)
-            out = run.stderr.readlines()
-            for line in out:
-                line = str(line)
-                if 'time elapsed' in line:
-                    time = float(line.strip().split()[1])
-                    print('Time elapsed %f' % time)
