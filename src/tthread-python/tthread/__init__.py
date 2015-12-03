@@ -35,7 +35,7 @@ def run(command,
     log_fd = log_file.fileno()
     pass_fds = [0, 1, 2, log_fd]
     env = os.environ.copy()
-    env["LD_PRELOAD"] = tthread_path
+    # env["LD_PRELOAD"] = tthread_path
     env["TTHREAD_LOG_FD"] = str(log_fd)
     env["LD_BIND_NOW"] = "1"
     popen = subprocess.Popen(command,
