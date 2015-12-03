@@ -122,6 +122,8 @@ void wordcount_splitter(void *data_in)
    int i,num_procs;
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+     num_procs = atoi(GETENV("NPROCS"));
    dprintf("THe number of processors is %d\n\n", num_procs);
 
    wc_data_t * data = (wc_data_t *)data_in; 

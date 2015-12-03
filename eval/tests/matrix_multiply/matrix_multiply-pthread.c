@@ -77,6 +77,8 @@ void matrixmult_splitter(void *data_in)
    assert(data->output);
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+     num_procs = atoi(GETENV("NPROCS"));
    dprintf("THe number of processors is %d\n", num_procs);
 
    tid = (pthread_t *)MALLOC(num_procs * sizeof(pthread_t));

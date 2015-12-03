@@ -140,6 +140,8 @@ void string_match_splitter(void *data_in)
    int i, num_procs;
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+     num_procs = atoi(GETENV("NPROCS"));
    printf("THe number of processors is %d\n", num_procs);
 
    str_data_t * data = (str_data_t *)data_in; 

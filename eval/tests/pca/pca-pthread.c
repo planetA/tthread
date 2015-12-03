@@ -360,6 +360,8 @@ int main(int argc, char **argv) {
 	 // Compute the mean and the covariance
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+      num_procs = atoi(GETENV("NPROCS"));
 
    // goes faster with more threads
    // maknum_procs = 48;

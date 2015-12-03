@@ -206,6 +206,8 @@ int main(int argc, char *argv[]) {
    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
    
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+      num_procs = atoi(GETENV("NPROCS"));
    num_per_thread = num_pixels / num_procs;
    excess = num_pixels % num_procs;
    

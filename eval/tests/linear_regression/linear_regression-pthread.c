@@ -116,6 +116,8 @@ int main(int argc, char *argv[])
       PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) == NULL);
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+      num_procs = atoi(GETENV("NPROCS"));
    printf("The number of processors is %d\n\n", num_procs);
 
    pthread_attr_init(&attr);

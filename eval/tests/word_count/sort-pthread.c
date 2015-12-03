@@ -34,7 +34,7 @@
 #include <pthread.h>
 
 #include "MapReduceScheduler.h"
-//#include "stddefines.h"
+#include "stddefines.h"
 
 #define CHECK_ERROR(a)                                       \
    if (a)                                                    \
@@ -75,6 +75,8 @@ void sort_pthreads(void *base, size_t num_elems, size_t width,
    pthread_t * tid;
 
    CHECK_ERROR((num_procs = sysconf(_SC_NPROCESSORS_ONLN)) <= 0);
+   if (atoi(GETENV("NPROCS")) > 0)
+     num_procs = atoi(GETENV("NPROCS"));
    printf("THe number of processors is %d\n\n", num_procs);
 
    tid = (pthread_t *)malloc(num_procs * sizeof(pthread_t)); 
