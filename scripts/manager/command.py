@@ -105,7 +105,6 @@ class TraceBench(RunCommand):
         super(TraceBench, self).__call__()
 
         for (cpus, app) in product(self.cpulist, self.apps):
-            output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
             dataset = benchmarks[app]['dataset'][self.args.type].split()
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
@@ -121,4 +120,8 @@ class TraceBench(RunCommand):
             else:
                 process = tthread.run(run_param, tthread_lib)
             log = process.wait()
+
+            if not os.path.exists(BM_TRACE):
+                os.makedirs(BM_TRACE)
+            output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
             DTLWriter(log).write(output)
