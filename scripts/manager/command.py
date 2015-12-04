@@ -109,7 +109,8 @@ class TraceBench(RunCommand):
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
             tthread_lib = str('env LD_PRELOAD=' +
-                           os.path.join(BM_ROOT, 'src/libtthread.so')).split()
+                              os.path.join(BM_ROOT, 'src/libtthread.so') + \
+                              ' NPROCS=' + str(self.nproc(cpus))).split()
             taskset = self.taskset_cmd(cpus)
             run_param = taskset + \
                         tthread_lib + \
