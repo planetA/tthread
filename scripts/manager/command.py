@@ -102,7 +102,7 @@ class TraceBench(RunCommand):
         super(TraceBench, self).__init__(args)
 
     def __call__(self):
-        super(RunBench, self).__call__()
+        super(TraceBench, self).__call__()
 
         for (cpus, app) in product(self.cpulist, self.apps):
             output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
@@ -115,6 +115,10 @@ class TraceBench(RunCommand):
             run_param = taskset + \
                         tthread_lib + \
                         [os.path.join(BM_APPS, app, app)] + dataset
-            process = tthread.run(run_param, tthread_lib)
+            if self.verbose:
+                print(run_param)
+                process = tthread.run(run_param, tthread_lib, stderr=PIPE)
+            else:
+                process = tthread.run(run_param, tthread_lib)
             log = process.wait()
             DTLWriter(log).write(output)
