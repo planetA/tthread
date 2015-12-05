@@ -123,7 +123,11 @@ class TraceBench(RunCommand):
         super(TraceBench, self).__call__()
 
         for (cpus, app) in product(self.cpulist, self.apps):
-            dataset = benchmarks[app]['dataset'][self.args.type].split()
+            taskset = self.taskset_cmd(cpus)
+            nproc = str(self.nproc(cpus))
+
+            dataset = benchmarks[app]['dataset'][self.args.type]
+            dataset = dataset.replace("$NPROCS", nproc).split()
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
             tthread_lib = str('env LD_PRELOAD=' +
@@ -139,6 +143,8 @@ class TraceBench(RunCommand):
             else:
                 process = tthread.run(run_param, tthread_lib)
             log = process.wait()
+            if log.return_code != 0:
+                print("process exited with: %d" % log.return_code, file=sys.stderr)
 
             if not os.path.exists(BM_TRACE):
                 os.makedirs(BM_TRACE)
