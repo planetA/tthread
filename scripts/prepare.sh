@@ -28,6 +28,7 @@ DIRS=( $(find . -name run) )
 for i in ${DIRS[@]}
 do
     APP=$(basename `dirname $i`)
+    mkdir $DATASETS/${APP}_datafiles
     cp $i/* $DATASETS/${APP}_datafiles
 done
 
