@@ -1,7 +1,7 @@
 import os, sys
 import resource
 
-from subprocess import check_output, Popen, PIPE, DEVNULL
+import subprocess as sp
 from itertools import product
 
 import tthread
@@ -44,21 +44,35 @@ class RunCommand(Command):
             return []
 
     def nproc(self, cpus):
-        return str(check_output(self.taskset_cmd(cpus) + ['nproc']).decode())
+        return str(sp.check_output(self.taskset_cmd(cpus) + ['nproc']).decode())
 
     def __call__(self):
-        for app in self.apps:
-            if 'prepare' in benchmarks[app]:
-                prepare = benchmarks[app]['prepare'][self.args.type].split()
-                run_param = [os.path.join(BM_APPS, app, app)] + prepare
-                run = Popen(run_param, stdout=DEVNULL, stderr=DEVNULL)
-                run.wait()
+        pass
 
 
 class CompileBench(Command):
     def __call__(self):
-        pid = Popen(['make'], cwd=BM_ROOT)
+        pid = sp.Popen(['make'], cwd=BM_ROOT)
         pid.wait()
+
+        # Phoenix
+        for app in benchmarks:
+            continue
+            if 'prepare' in benchmarks[app]:
+                actions = benchmarks[app]['prepare']
+                for action in actions:
+                    print(action)
+                    if action[0] == 'app':
+                        prepare = action[1].split()
+                        run_param = [os.path.join(BM_APPS, app, app)] + prepare
+                        if self.verbose:
+                            print("Prepare: " + " ".join(run_param))
+                        run = sp.Popen(run_param, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+                        run.wait()
+
+        if self.verbose:
+            print(" ".join([os.path.join(BM_ROOT, 'scripts/prepare.sh'), BM_ROOT]))
+        sp.call([os.path.join(BM_ROOT, 'scripts/prepare.sh'), BM_ROOT])
 
 class RunBench(RunCommand):
     def __init__(self, args):
@@ -71,20 +85,24 @@ class RunBench(RunCommand):
 
         for (cpus, iteration, app) in product(self.cpulist, range(self.n), self.apps):
             taskset = self.taskset_cmd(cpus)
-            dataset = benchmarks[app]['dataset'][self.args.type].split()
+            nproc = str(self.nproc(cpus))
+
+            dataset = benchmarks[app]['dataset'][self.args.type]
+            dataset = dataset.replace("$NPROCS", nproc).split()
             # before = resource.getrusage(resource.RUSAGE_CHILDREN)
             # print(before.ru_utime)
+            print(dataset)
             perf = 'perf stat -e cycles'.split()
             tthread = str('env LD_PRELOAD=' +
                            os.path.join(BM_ROOT, 'src/libtthread.so') + \
-                          ' NPROCS=' + str(self.nproc(cpus))).split()
+                          ' NPROCS=' + nproc).split()
             run_param = taskset + perf + tthread + \
                         [os.path.join(BM_APPS, app, app)] + dataset
             if self.verbose:
-                print(run_param)
-                run = Popen(run_param, stderr=PIPE)
+                print(" ".join(run_param))
+                run = sp.Popen(run_param, stderr=sp.PIPE)
             else:
-                run = Popen(run_param, stderr=PIPE, stdout=DEVNULL)
+                run = sp.Popen(run_param, stderr=sp.PIPE, stdout=sp.DEVNULL)
             run.wait()
             if run.returncode != 0:
                 print("Unexpected return code %d for command %s" % (run.returncode, run_param))
@@ -116,8 +134,8 @@ class TraceBench(RunCommand):
                         tthread_lib + \
                         [os.path.join(BM_APPS, app, app)] + dataset
             if self.verbose:
-                print(run_param)
-                process = tthread.run(run_param, tthread_lib, stderr=PIPE)
+                print(" ".join(run_param))
+                process = tthread.run(run_param, tthread_lib, stderr=sp.PIPE)
             else:
                 process = tthread.run(run_param, tthread_lib)
             log = process.wait()
