@@ -45,7 +45,8 @@ public:
 
   /// @brief Lock the lock.
   void lock(void) {
-    WRAP(pthread_mutex_lock)(_lock);
+    while (WRAP(pthread_mutex_trylock(_lock)));
+    //WRAP(pthread_mutex_lock)(_lock);
   }
 
   /// @brief Unlock the lock.
