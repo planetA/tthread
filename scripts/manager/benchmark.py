@@ -79,14 +79,14 @@ benchmarks = {
     'blackscholes' : {
         'dataset' : {
             'test' : '$NPROCS ' + ds_wrap('blackscholes_datafiles/in_64K.txt') + \
-                       ' ' + ds_wrap('blackscholes_datafiles/in_64K.txt')
+                       ' ' + ds_wrap('blackscholes_datafiles/prices.txt')
         }
     },
-    'dedup' : {
-        'dataset' : {
-            'test' : '-c -p -v -t $NPROCS  -i %s -o output.dat.ddp' % ds_wrap('dedup_datafiles/media.dat')
-        }
-    },
+    # 'dedup' : {
+    #     'dataset' : {
+    #         'test' : '-c -p -v -t $NPROCS  -i %s -o output.dat.ddp' % ds_wrap('dedup_datafiles/media.dat')
+    #     }
+    # },
     'streamcluster' : {
         'dataset' : {
             'test' : '10 20 128 16384 16384 1000 none %s $NPROCS' + ds_wrap('streamcluster_datafiles/output.txt')
