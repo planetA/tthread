@@ -1,5 +1,7 @@
 import os, sys
+import pathlib
 import resource
+import sqlite3
 
 import subprocess as sp
 from itertools import product
@@ -9,6 +11,8 @@ from tthread import run
 from tthread.formats import DTLWriter
 
 import racksim
+
+import csv
 
 from .constants import BM_ROOT, BM_APPS, BM_DATA, BM_TRACE
 from .benchmark import benchmarks
@@ -174,8 +178,30 @@ class SimCommand(Command):
     def __call__(self):
         arch = os.path.basename(self.args.dir)
 
+        sim_db = os.path.join(self.args.dir, '../sim.db')
+        if not os.path.isfile(sim_db):
+            fieldnames = ['arch', 'sched', 'app', 'threads', 'cpulist', 'time']
+            conn = sqlite3.connect(sim_db)
+            c = conn.cursor()
+            c.execute('''CREATE TABLE runtime
+                         (arch TEXT, sched TEXT, app TEXT, problem TEXT, threads INTEGER,
+                          cpulist TEXT, time REAL, sim INTEGER,
+                          CONSTRAINT configuration PRIMARY KEY (arch, sched, app, problem, cpulist, sim))''')
+            conn.commit()
+            conn.close()
+        conn = sqlite3.connect(sim_db)
+        c = conn.cursor()
+
         for (trace_file, mst, sched) in product(self.file_list, self.args.mst, self.args.sched):
             trace_path=os.path.join(self.trace_dir, trace_file)
             (app, problem, cpustr) = trace_file.split('.')[0].rsplit('_', 2)
-            print(mst, sched, arch, trace_path, app, problem, cpustr, self.__cpustr2list(cpustr))
-            racksim.RackSim(trace_path, mst, sched).run()
+            end = racksim.RackSim(trace_path, mst, sched).run()
+            cpulist = self.__cpustr2list(cpustr)
+            print (end)
+            if end == float('-Inf'):
+                end = -1
+                print(mst, sched, arch, trace_path, app, problem, cpustr, cpulist, end)
+            c.execute("INSERT INTO runtime VALUES ('%s', '%s', '%s', '%s', %d, '%s', %f, %d)" % \
+                      (arch, sched, app, problem, len(cpulist), cpustr, float(end), 1))
+        conn.commit()
+        conn.close()

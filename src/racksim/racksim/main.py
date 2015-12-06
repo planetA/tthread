@@ -148,5 +148,5 @@ class RackSim:
 
     def run(self):
         execution = Execution(self.arch, self.prog, self.scheduler)
-        execution.run()
         print("Run racksim")
+        return execution.run()
