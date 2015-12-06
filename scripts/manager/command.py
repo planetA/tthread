@@ -150,7 +150,7 @@ class TraceBench(RunCommand):
 
             if not os.path.exists(BM_TRACE):
                 os.makedirs(BM_TRACE)
-            output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
+            output = open(os.path.join(BM_TRACE, '%s_%s_%s.dtl' % (app, self.args.type, cpus)), 'w')
             DTLWriter(log).write(output)
 
 class SimCommand(Command):
