@@ -201,7 +201,7 @@ class SimCommand(Command):
             if end == float('-Inf'):
                 end = -1
                 print(mst, sched, arch, trace_path, app, problem, cpustr, cpulist, end)
-            c.execute("INSERT INTO runtime VALUES ('%s', '%s', '%s', '%s', %d, '%s', %f, %d)" % \
+            c.execute("INSERT or REPLACE INTO runtime VALUES ('%s', '%s', '%s', '%s', %d, '%s', %f, %d)" % \
                       (arch, sched, app, problem, len(cpulist), cpustr, float(end), 1))
         conn.commit()
         conn.close()
