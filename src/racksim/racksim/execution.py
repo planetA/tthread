@@ -111,6 +111,7 @@ class Execution:
 
         self.prog.start()
 
+        time = 0
         now = 0
         ready = {self.prog.entry}
         print('Start execution')
@@ -122,7 +123,8 @@ class Execution:
                 task = ready.pop()
                 self.rack.schedule(task) # ready -> active
 
-            self.rack.progress(now) # active -> running
+            time = now
+            self.rack.progress(time) # active -> running
 
             (now, tasks) = self.rack.complete() # running -> finished
 
@@ -131,8 +133,10 @@ class Execution:
                     for i in self.rack.numas:
                         dev = self.rack.numas[i]
                 print(">>>>>>>>>>>>>>> %s : (%s) %s" % (now, type(task), task))
-                # if now == 26758111.0: ipdb.set_trace()
+                if now == 1078651.000000: ipdb.set_trace()
                 for succ in  self.prog.edag.successors(task):
                     succ.wait -= 1
                     if succ.wait == 0:
                         ready.add(succ)
+
+        return time
