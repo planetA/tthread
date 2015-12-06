@@ -641,7 +641,7 @@ public:
     }
 
     waitToken();
-    atomicEnd();
+    _atomicEnd();
     _determ.barrier_wait(barrier, _thread_index);
 
     return 0;
@@ -749,6 +749,17 @@ public:
   }
 
   /// @brief End a transaction, aborting it if necessary.
+  void _atomicEnd() {
+    fflush(stdout);
+
+    if (!_isCopyOnWrite) {
+      return;
+    }
+
+    // Commit all private modifications to shared mapping
+    _memory.commit();
+  }
+
   void atomicEnd() {
     fflush(stdout);
 
