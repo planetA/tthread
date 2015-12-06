@@ -103,7 +103,7 @@ class Log:
         if header.file_magic != log_file_magic:
             msg = "expect file_magick of tthread_log " \
                   "to be equal %d, got %d" \
-                  % (log_file_magic, header.file_magick)
+                  % (log_file_magic, header.file_magic)
             raise Error(msg)
         return header
 
