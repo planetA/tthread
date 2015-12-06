@@ -50,7 +50,17 @@ def parse_args():
     run.add_argument('-n', help='Number of runs', type=int, default=1)
     run.set_defaults(comm=manager.RunBench)
 
+    # sim = commands.add_parser('sim', parents = [app_parser])
     sim = commands.add_parser('sim')
+    sim.add_argument('dir', help='Directory with traces', metavar="DIR")
+    sim.add_argument('-d', dest='dtl', nargs='*',
+                     help='Load only selected traces.', metavar='FILE')
+    sim.add_argument('-m', dest='mst', nargs='+',
+                      help='Load machine specification in mst format.', metavar='FILE')
+    sim.add_argument('-s', dest='sched', nargs='+',
+                      help='Load scheduling parameters key-value format.', metavar='FILE')
+    sim.set_defaults(comm=manager.SimCommand)
+
     topo = commands.add_parser('topo')
     args = parser.parse_args()
 

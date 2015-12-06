@@ -141,6 +141,11 @@ class RackSim:
 
         print("Hi from RackSim {%s}" % options.dtl)
 
+    def __init__(self, trace, mst, sched):
+        self.__parse_dtl(trace)
+        self.__parse_mst(mst)
+        self.__parse_sched(sched)
+
     def run(self):
         execution = Execution(self.arch, self.prog, self.scheduler)
         execution.run()

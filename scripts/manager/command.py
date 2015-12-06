@@ -8,6 +8,8 @@ import tthread
 from tthread import run
 from tthread.formats import DTLWriter
 
+import racksim
+
 from .constants import BM_ROOT, BM_APPS, BM_DATA, BM_TRACE
 from .benchmark import benchmarks
 
@@ -150,3 +152,30 @@ class TraceBench(RunCommand):
                 os.makedirs(BM_TRACE)
             output = open(os.path.join(BM_TRACE, '%s_%s.dtl' % (app, cpus)), 'w')
             DTLWriter(log).write(output)
+
+class SimCommand(Command):
+    def __init__(self, args):
+        super(SimCommand, self).__init__(args)
+        if not args.dtl:
+            self.trace_dir = os.path.join(self.args.dir, 'traces')
+            self.file_list = os.listdir(self.trace_dir)
+        else:
+            self.trace_dir = '.'
+            self.file_list = args.dtl
+
+    def __cpustr2list(self, cpustr):
+        res = []
+        for r in cpustr.split(','):
+            b = int(r.split('-')[0])
+            e = int(r.split('-')[-1]) + 1
+            res.extend(range(b, e))
+        return res
+
+    def __call__(self):
+        arch = os.path.basename(self.args.dir)
+
+        for (trace_file, mst, sched) in product(self.file_list, self.args.mst, self.args.sched):
+            trace_path=os.path.join(self.trace_dir, trace_file)
+            (app, problem, cpustr) = trace_file.split('.')[0].rsplit('_', 2)
+            print(mst, sched, arch, trace_path, app, problem, cpustr, self.__cpustr2list(cpustr))
+            racksim.RackSim(trace_path, mst, sched).run()
