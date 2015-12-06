@@ -66,26 +66,6 @@ def parse_args():
         print(args.comm)
         return args.comm(args)
 
-    mode = None
-    if args.command == 'page-trace':
-        print(args.command)
-    elif args.command == 'run-trace':
-        print(args.command)
-    elif args.command == 'compile-lib':
-        print(args.command)
-    elif args.command == 'compile-bench':
-        mode = manager.CompileBench()
-        print(args.command)
-    elif args.command == 'bench-tthread':
-        print(args.command)
-    elif args.command == 'bench-dthread':
-        print(args.command)
-    elif args.command == 'sim':
-        print(args.command)
-    elif args.command == 'topo':
-        print(args.command)
-    # return (mode, args)
-
 def main():
     mode = parse_args()
     if mode:
