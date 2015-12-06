@@ -19,6 +19,9 @@ void xtime::stop()
 
 void xtime::init()
 {
+  if (PAPI_is_initialized() != PAPI_NOT_INITED)
+    return;
+
   _cpu_time = 1;
 
   int retval;
