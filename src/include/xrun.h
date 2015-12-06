@@ -197,7 +197,7 @@ public:
 
     // Reclaiming the thread index, new threads can share the same heap with
     // previous exiting threads. Thus we could improve the locality.
-    global_data->thread_index = 1;
+    // global_data->thread_index = 1;
   }
 
   void forceThreadCommit(void *v) {
