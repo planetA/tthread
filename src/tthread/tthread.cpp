@@ -142,6 +142,7 @@ void initialize() {
 void finalize() {
   DEBUG("finalizing libtthread");
 
+  run->finalize();
   memory->closeProtection();
   initialized = false;
 

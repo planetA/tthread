@@ -119,6 +119,11 @@ public:
   }
 
   void finalize(void) {
+    tthread::EventData d;
+    d.end.cpu_time = _cpu_time.get();
+    _logger.add(tthread::logevent(tthread::logevent::END,
+                                  NULL,
+                                  d));
     _memory.finalize();
   }
 
