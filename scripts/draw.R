@@ -13,12 +13,21 @@ library(ggplot2)
 
 pdf('/tmp/out.pdf')
 
-threads = unique(dt$threads)
-for (i in threads) {
-    c <- ggplot(dt[threads==i],
+cpulist = unique(dt$cpulist)
+for (i in cpulist) {
+    c <- ggplot(dt[cpulist==i],
                 aes(x=factor(app), y=time, fill=sched))
     print(c + geom_bar(stat="identity", position="dodge") +
-          facet_wrap( ~ threads, ncol=1))
+          facet_wrap( ~ cpulist, ncol=1))
+}
+
+
+apps = unique(dt$app)
+for (i in apps) {
+    c <- ggplot(dt[app==i],
+                aes(x=factor(cpulist), y=time, fill=sched))
+    print(c + geom_bar(stat="identity", position="dodge") +
+          facet_wrap( ~ app, ncol=1))
 }
 
 dev.off()
