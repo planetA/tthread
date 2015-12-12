@@ -14,6 +14,7 @@ class Programm:
         self.cur = {}
         self.edges = defaultdict(lambda:list(),{})
         self.finished = {}
+        self.concurrent = defaultdict(lambda:set(),{ThunkId(0, 0) : set()})
 
     def __del__(self):
         return
@@ -34,6 +35,11 @@ class Programm:
             out_thunk = self.thunks[ThunkId(out, self.finished[out])]
             self.edges[out_thunk].append(thunk_data)
         self.cur[tid.thread()] = tid.thunk()
+        for t in self.cur:
+            if ThunkId(t, self.cur[t]) != tid:
+                self.concurrent[ThunkId(t, self.cur[t])].add(tid)
+            if t != tid.thread():
+                self.concurrent[tid].add(ThunkId(t, self.cur[t]))
 
     def add_finish(self, thread, thunk):
         tid = ThunkId(thread, thunk)

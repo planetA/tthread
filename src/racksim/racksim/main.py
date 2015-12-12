@@ -8,6 +8,7 @@ from .architecture import Architecture
 from .execution import Execution
 from .scheduler import FirstTouch, MagicTouch, RandomTouch, Scheduler
 from .scheduler import NoMoveCommit, MoveHereCommit
+from .migration import MmcpMigration
 
 class RackSim:
     def __parse_dtl(self, dtl_filename):
@@ -94,7 +95,8 @@ class RackSim:
                            "magic" : MagicTouch,
                            "random" : RandomTouch},
             "commit" : {"nomove" : NoMoveCommit,
-                        "movehere" : MoveHereCommit}
+                        "movehere" : MoveHereCommit},
+            "thunk" : {"mmcp" : MmcpMigration}
         }
         sched_params = json.load(open(sched_filename, 'r'))
 
@@ -108,7 +110,15 @@ class RackSim:
                     raise Exception("Unexpected value %s for parameter %s" % (v, k))
 
 
-    def __init__(self):
+    def __init__(self, trace = None, mst = None, sched = None, cpulist=None):
+        if trace is not None and mst is not None and sched is not None:
+            self.__parse_dtl(trace)
+            self.__parse_mst(mst)
+            self.__parse_sched(sched)
+            self.scheduler.cpulist = cpulist
+            print('--- ', cpulist)
+            return
+
         parser = OptionParser()
         parser.add_option("-d", "--dtl", dest="dtl",
                           help="Load trace in dtl format.", metavar="FILE")
@@ -140,11 +150,6 @@ class RackSim:
             exit()
 
         print("Hi from RackSim {%s}" % options.dtl)
-
-    def __init__(self, trace, mst, sched):
-        self.__parse_dtl(trace)
-        self.__parse_mst(mst)
-        self.__parse_sched(sched)
 
     def run(self):
         execution = Execution(self.arch, self.prog, self.scheduler)

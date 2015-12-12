@@ -81,6 +81,10 @@ class Memory:
             self.pagestate[page] = PageState.inuse
 
 class Execution:
+    def assign_thunks(self):
+        print("Assign thunks")
+        self.scheduler.thunk.schedule(self.prog, self.rack)
+
     def memmove(self, thunk):
         print("Move memory for thunk %s" % thunk)
         for page in thunk.rs | thunk.ws:
@@ -110,6 +114,10 @@ class Execution:
         """
 
         self.prog.start()
+
+        if hasattr(self.scheduler, 'thunk'):
+            # Thunk scheduler exists
+            self.assign_thunks()
 
         time = 0
         now = 0
