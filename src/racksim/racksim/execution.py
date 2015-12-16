@@ -135,6 +135,9 @@ class Execution:
             self.rack.progress(time) # active -> running
 
             (now, tasks) = self.rack.complete() # running -> finished
+            if now < 0:
+                print(now, tasks)
+                raise Exception("Wrong time")
 
             for task in tasks:
                 if type(task) is ThunkTask:
