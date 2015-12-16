@@ -195,13 +195,14 @@ class SimCommand(Command):
         for (trace_file, mst, sched) in product(self.file_list, self.args.mst, self.args.sched):
             trace_path=os.path.join(self.trace_dir, trace_file)
             (app, problem, cpustr) = trace_file.split('.')[0].rsplit('_', 2)
-            end = racksim.RackSim(trace_path, mst, sched).run()
             cpulist = self.__cpustr2list(cpustr)
-            print (end)
+            print ("CPULIST %s " % cpulist)
+            end = racksim.RackSim(trace_path, mst, sched, cpulist).run()
+            print(end)
             if end == float('-Inf'):
                 end = -1
                 print(mst, sched, arch, trace_path, app, problem, cpustr, cpulist, end)
-            c.execute("INSERT INTO runtime VALUES ('%s', '%s', '%s', '%s', %d, '%s', %f, %d)" % \
+            c.execute("INSERT or REPLACE INTO runtime VALUES ('%s', '%s', '%s', '%s', %d, '%s', %f, %d)" % \
                       (arch, sched, app, problem, len(cpulist), cpustr, float(end), 1))
         conn.commit()
         conn.close()

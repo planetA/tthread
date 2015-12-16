@@ -45,19 +45,9 @@ public:
     return _addr;
   }
 
-  void handleAccess(xlogger  & logger,
-                    void       *addr,
+  void handleAccess(void       *addr,
                     bool       isWrite,
                     const void *issuerAddress) const {
-    auto t = isWrite ? tthread::logevent::WRITE :
-             tthread::logevent::READ;
-    tthread::EventData m;
-
-    m.memory.address = (void *)((uintptr_t)addr >> xdefines::PageShift);
-
-    tthread::logevent e(t, issuerAddress, m);
-
-    logger.add(e);
     void *pageaddr = (void *)PAGE_ALIGN_DOWN(addr);
     isWrite ? handleWrite(pageaddr) : handleRead(pageaddr);
   }

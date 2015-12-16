@@ -81,6 +81,10 @@ class Memory:
             self.pagestate[page] = PageState.inuse
 
 class Execution:
+    def assign_thunks(self):
+        print("Assign thunks")
+        self.scheduler.thunk.schedule(self.prog, self.rack)
+
     def memmove(self, thunk):
         print("Move memory for thunk %s" % thunk)
         for page in thunk.rs | thunk.ws:
@@ -111,6 +115,10 @@ class Execution:
 
         self.prog.start()
 
+        if hasattr(self.scheduler, 'thunk'):
+            # Thunk scheduler exists
+            self.assign_thunks()
+
         time = 0
         now = 0
         ready = {self.prog.entry}
@@ -127,6 +135,9 @@ class Execution:
             self.rack.progress(time) # active -> running
 
             (now, tasks) = self.rack.complete() # running -> finished
+            if now < 0:
+                print(now, tasks)
+                raise Exception("Wrong time")
 
             for task in tasks:
                 if type(task) is ThunkTask:
