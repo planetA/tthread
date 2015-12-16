@@ -185,11 +185,11 @@ public:
     // Remove current thread and decrease the fence
     _determ.deregisterThread(_thread_index);
 
-    // tthread::EventData d;
-    // d.end.cpu_time = _cpu_time.get();
-    // _logger.add(tthread::logevent(tthread::logevent::END,
-    //                               caller,
-    //                               d));
+    tthread::EventData d;
+    d.end.cpu_time = _cpu_time.get();
+    _logger.add(tthread::logevent(tthread::logevent::END,
+                                  caller,
+                                  d));
 
     _logger.add(tthread::logevent(tthread::logevent::FINISH,
                                   caller,
@@ -730,7 +730,14 @@ public:
     if (!_isCopyOnWrite) {
       return;
     }
-
+    //if (!(!_thread.getThreadIndex() && !_thread.getThunkId())) {
+    if (_thread.getThunkId() > 0 ) {
+      tthread::EventData d;
+      d.end.cpu_time = _cpu_time.get();
+      _logger.add(tthread::logevent(tthread::logevent::END,
+                                    NULL,
+                                    d));
+    }
     _thread.startThunk();
 
     _sched.trigger();
@@ -766,11 +773,6 @@ public:
     if (!_isCopyOnWrite) {
       return;
     }
-    tthread::EventData d;
-    d.end.cpu_time = _cpu_time.get();
-    _logger.add(tthread::logevent(tthread::logevent::END,
-                                  NULL,
-                                  d));
 
     // Commit all private modifications to shared mapping
     _memory.commit();
