@@ -39,7 +39,15 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <schas.hpp>
+
 using namespace std;
+
+using schas::MemoryRange;
+using schas::MemoryThunk;
+using schas::MemoryHeader;
+using schas::READ;
+using schas::WRITE;
 
 void thunk_scheduler(const char *schedule_file)
 {
@@ -83,31 +91,6 @@ void thunk_scheduler(const char *schedule_file)
     cout << "--- " << endl << endl;
   }
 }
-
-struct MemoryRange
-{
-  off_t start;
-  off_t end;
-  int cpu;
-  int flags;
-
-  MemoryRange() {};
-
-  MemoryRange(off_t start, off_t end, int cpu, int flags)
-    : start(start), end(end), cpu(cpu), flags(flags)
-  {
-  }
-
-  friend ostream& operator<< (ostream &out, MemoryRange &range)
-  {
-    // Since operator<< is a friend of the Point class, we can access
-    // Point's members directly.
-    out << "[" << range.start << ", " << range.end << "] "
-        << range.cpu << "  " << range.flags;
-    return out;
-  }
-} __attribute__((packed));
-
 
 void page_scheduler(const char *schedule_file)
 {
