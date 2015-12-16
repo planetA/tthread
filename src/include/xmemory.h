@@ -207,7 +207,16 @@ public:
       fprintf(stderr, "%d: wrong faulted address at %p\n", getpid(), addr);
       ::abort();
     } else {
-      page->handleAccess(*_logger, addr, is_write, issuerAddress);
+      auto t = (is_write ? tthread::logevent::WRITE :
+                tthread::logevent::READ);
+      tthread::EventData m;
+
+      m.memory.address = (void *)((uintptr_t)addr >> xdefines::PageShift);
+
+      tthread::logevent e(t, issuerAddress, m);
+
+      _logger->add(e);
+      page->handleAccess(addr, is_write, issuerAddress);
       _accessedmmappages.add(addr);
     }
   }
